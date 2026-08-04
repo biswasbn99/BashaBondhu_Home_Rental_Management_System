@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "616696053472",
+    "project_id": "home-rental-management-s-22a77",
+    "storage_bucket": "home-rental-management-s-22a77.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:616696053472:android:ceec1d885c2551a7885a85",
+        "android_client_info": {
+          "package_name": "com.example.bashabondhu_home_rental_management_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsNGIov2shYynQNHZc1CV0tHZ8H-4p1Q4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
