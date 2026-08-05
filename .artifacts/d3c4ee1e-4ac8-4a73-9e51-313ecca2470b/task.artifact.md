@@ -1,0 +1,3 @@
+- [x] Update AGP to 8.11.1 and Kotlin to 2.2.20 in `android/settings.gradle.kts`
+- [x] Verify build (Attempted, permissions requires local run)
+- [x] Create walkthrough
