@@ -42,7 +42,9 @@ dependencies:
   firebase_analytics: ^12.4.6
   flutter_svg: ^2.3.0
   lottie: ^3.5.1
-  intl: 
+  intl:
+  provider:
+  shared_preferences: 
 
 dev_dependencies:
   flutter_test:
