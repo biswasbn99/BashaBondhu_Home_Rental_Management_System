@@ -1,6 +1,7 @@
 
 import 'package:bashabondhu_home_rental_management_system/app/app_theme.dart';
 import 'package:bashabondhu_home_rental_management_system/app/providers/locale_provider.dart';
+import 'package:bashabondhu_home_rental_management_system/app/providers/theme_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/app/routes.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/splash_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
@@ -19,12 +20,14 @@ class BashabondhuApp extends StatefulWidget {
 class _BashabondhuAppState extends State<BashabondhuApp> {
 
   final LocaleProvider _localeProvider = LocaleProvider();
+  final ThemeProvider _themeProvider = ThemeProvider();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _localeProvider.init();
+    _themeProvider.init();
   }
 
   @override
@@ -32,10 +35,13 @@ class _BashabondhuAppState extends State<BashabondhuApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: _localeProvider,),
+        ChangeNotifierProvider.value(value: _themeProvider,),
       ],
-      child: Consumer<LocaleProvider>(
+      child: Consumer<ThemeProvider>(
         builder: (context, _, _) {
-          return MaterialApp(
+          return Consumer<LocaleProvider>(
+            builder: (context, _, _) {
+              return MaterialApp(
             debugShowCheckedModeBanner: false,
             title:'Bashabondhu',
             initialRoute: SplashScreen.name,
@@ -48,12 +54,14 @@ class _BashabondhuAppState extends State<BashabondhuApp> {
             onGenerateRoute: AppRoutes.onGenerateRoute,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.light,
+            themeMode: _themeProvider.currentThemeMode,
             supportedLocales: _localeProvider.supportedLocales,
             locale: _localeProvider.currentLocale,
-          );
-        }
-      ),
-    );
-  }
+        );
+          },
+        );
+      },
+    ),
+  );
+}
 }
