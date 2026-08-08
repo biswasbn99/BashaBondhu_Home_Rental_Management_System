@@ -10,4 +10,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get version => 'ভার্সন';
+
+  @override
+  String get signUpSubTitle => 'Create an account with details';
 }

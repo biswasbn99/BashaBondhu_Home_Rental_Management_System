@@ -45,6 +45,7 @@ dependencies:
   intl:
   provider:
   shared_preferences: 
+  email_validator: 
 
 dev_dependencies:
   flutter_test:

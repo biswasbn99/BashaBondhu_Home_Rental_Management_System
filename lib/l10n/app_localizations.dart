@@ -103,6 +103,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Version'**
   String get version;
+
+  /// No description provided for @signUpSubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account with details'**
+  String get signUpSubTitle;
 }
 
 class _AppLocalizationsDelegate
