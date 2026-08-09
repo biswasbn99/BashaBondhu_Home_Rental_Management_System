@@ -109,6 +109,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create an account with details'**
   String get signUpSubTitle;
+
+  /// No description provided for @signInSubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your details to continue'**
+  String get signInSubTitle;
+
+  /// No description provided for @alreadyHaveAnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAnAccount;
+
+  /// No description provided for @doNotHaveAnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get doNotHaveAnAccount;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
 }
 
 class _AppLocalizationsDelegate

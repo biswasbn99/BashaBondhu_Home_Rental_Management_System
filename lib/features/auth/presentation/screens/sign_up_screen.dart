@@ -1,10 +1,15 @@
-import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
-import 'package:bashabondhu_home_rental_management_system/app/validators.dart';
-import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/widgets/app_logo.dart';
+
+import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:flutter/material.dart';
+
+import '../../../../app/extensions/utility_extension.dart';
+import '../../../../app/validators.dart';
+import '../widgets/app_logo.dart';
+
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
+
   static const String name = '/sign-up';
 
   @override
@@ -12,8 +17,6 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  bool _isPasswordObscured = true;
-
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _firstNameTEController = TextEditingController();
   final TextEditingController _lastNameTEController = TextEditingController();
@@ -44,7 +47,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     context.localizations.signUpSubTitle,
                     style: context.textTheme.labelLarge,
                   ),
-
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _emailTEController,
@@ -53,18 +55,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     decoration: InputDecoration(hintText: 'Email'),
                     validator: Validators.validateEmail,
                   ),
-
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _firstNameTEController,
-                    textInputAction: .next,
+                    textInputAction: TextInputAction.next,
                     decoration: InputDecoration(hintText: 'First name'),
                     validator: (input) => Validators.validateText(
                       input,
                       message: 'Enter your first name',
                     ),
                   ),
-
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _lastNameTEController,
@@ -75,60 +75,51 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       message: 'Enter your last name',
                     ),
                   ),
-
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _mobileTEController,
-                    textInputAction: .next,
+                    textInputAction: TextInputAction.next,
                     keyboardType: .phone,
                     decoration: InputDecoration(hintText: 'Mobile'),
                     validator: (input) => Validators.validatePhoneNumber(input),
                   ),
-
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _cityTEController,
-                    textInputAction: .next,
+                    textInputAction: TextInputAction.next,
                     decoration: InputDecoration(hintText: 'City'),
                     validator: (input) => Validators.validateText(
                       input,
                       message: 'Enter your city',
                     ),
                   ),
-
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _passwordTEController,
-                    textInputAction: .done,
-                    obscureText: _isPasswordObscured,
+                    obscureText: true,
                     obscuringCharacter: '*',
-                    decoration: InputDecoration(
-                      hintText: 'Password',
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isPasswordObscured
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordObscured = !_isPasswordObscured;
-                          });
-                        },
-                      ),
-                    ),
+                    decoration: InputDecoration(hintText: 'Password'),
                     validator: Validators.validatePassword,
                   ),
-
                   const SizedBox(height: 16),
                   FilledButton(
-                    onPressed: () {
-                      if (_formKey.currentState?.validate() == true) {
-                        // Perform sign-up logic here
-                      }
-                    },
+                    onPressed: _onTapSignUpButton,
                     child: Text('Sign Up'),
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: .center,
+                    children: [
+                      Text(
+                        context.localizations.alreadyHaveAnAccount,
+                        style: context.textTheme.labelLarge,
+                      ),
+                      TextButton(
+                        onPressed: _onTapSignInButton,
+                        child: Text(context.localizations.signIn),
+                      ),
+                    ],
+                  )
                 ],
               ),
             ),
@@ -136,5 +127,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       ),
     );
+  }
+
+  void _onTapSignUpButton() {}
+  void _onTapSignInButton() {
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>SignInScreen()));
+  }
+
+ 
+
+  @override
+  void dispose() {
+    _emailTEController.dispose();
+    _firstNameTEController.dispose();
+    _lastNameTEController.dispose();
+    _mobileTEController.dispose();
+    _cityTEController.dispose();
+    _passwordTEController.dispose();
+    super.dispose();
   }
 }
