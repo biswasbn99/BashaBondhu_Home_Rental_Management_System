@@ -139,6 +139,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign Up'**
   String get signUp;
+
+  /// No description provided for @accommodationPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'For which month and what type of accommodation are you looking?'**
+  String get accommodationPromptTitle;
+
+  /// No description provided for @accommodationPromptSubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the month and type of accommodation.'**
+  String get accommodationPromptSubTitle;
+
+  /// No description provided for @month.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get month;
+
+  /// No description provided for @division.
+  ///
+  /// In en, this message translates to:
+  /// **'Division'**
+  String get division;
+
+  /// No description provided for @district.
+  ///
+  /// In en, this message translates to:
+  /// **'District'**
+  String get district;
+
+  /// No description provided for @upazila.
+  ///
+  /// In en, this message translates to:
+  /// **'Upazila'**
+  String get upazila;
+
+  /// No description provided for @roomOrSeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Room Or Seat'**
+  String get roomOrSeat;
+
+  /// No description provided for @roomOrSeatNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Number Of Room Or Seat'**
+  String get roomOrSeatNo;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
+
+  /// No description provided for @bedroom.
+  ///
+  /// In en, this message translates to:
+  /// **'BedRoom'**
+  String get bedroom;
+
+  /// No description provided for @room.
+  ///
+  /// In en, this message translates to:
+  /// **'Room'**
+  String get room;
+
+  /// No description provided for @emptySeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty Seat'**
+  String get emptySeat;
+
+  /// No description provided for @unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get unit;
+
+  /// No description provided for @bedroomNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Number Of BedRoom'**
+  String get bedroomNo;
+
+  /// No description provided for @roomNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Number Of Room'**
+  String get roomNo;
+
+  /// No description provided for @emptySeatNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Number Of Empty Seat'**
+  String get emptySeatNo;
+
+  /// No description provided for @unitNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Number Of Unit'**
+  String get unitNo;
+
+  /// No description provided for @houseType.
+  ///
+  /// In en, this message translates to:
+  /// **'House Type'**
+  String get houseType;
+
+  /// No description provided for @locationPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which area do you want to look for a house in?'**
+  String get locationPromptTitle;
+
+  /// No description provided for @locationPromptSubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select those.'**
+  String get locationPromptSubTitle;
+
+  /// No description provided for @divisionNoLoadPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Department information could not be loaded...'**
+  String get divisionNoLoadPrompt;
+
+  /// No description provided for @districtNoLoadPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'District information could not be loaded...'**
+  String get districtNoLoadPrompt;
+
+  /// No description provided for @upazilaNoLoadPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'The upazila information could not be loaded...'**
+  String get upazilaNoLoadPrompt;
 }
 
 class _AppLocalizationsDelegate

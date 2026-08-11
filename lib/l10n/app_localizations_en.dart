@@ -28,4 +28,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signUp => 'Sign Up';
+
+  @override
+  String get accommodationPromptTitle =>
+      'For which month and what type of accommodation are you looking?';
+
+  @override
+  String get accommodationPromptSubTitle =>
+      'Select the month and type of accommodation.';
+
+  @override
+  String get month => 'Month';
+
+  @override
+  String get division => 'Division';
+
+  @override
+  String get district => 'District';
+
+  @override
+  String get upazila => 'Upazila';
+
+  @override
+  String get roomOrSeat => 'Room Or Seat';
+
+  @override
+  String get roomOrSeatNo => 'Number Of Room Or Seat';
+
+  @override
+  String get loading => 'Loading...';
+
+  @override
+  String get bedroom => 'BedRoom';
+
+  @override
+  String get room => 'Room';
+
+  @override
+  String get emptySeat => 'Empty Seat';
+
+  @override
+  String get unit => 'Unit';
+
+  @override
+  String get bedroomNo => 'Number Of BedRoom';
+
+  @override
+  String get roomNo => 'Number Of Room';
+
+  @override
+  String get emptySeatNo => 'Number Of Empty Seat';
+
+  @override
+  String get unitNo => 'Number Of Unit';
+
+  @override
+  String get houseType => 'House Type';
+
+  @override
+  String get locationPromptTitle =>
+      'Which area do you want to look for a house in?';
+
+  @override
+  String get locationPromptSubTitle => 'Select those.';
+
+  @override
+  String get divisionNoLoadPrompt =>
+      'Department information could not be loaded...';
+
+  @override
+  String get districtNoLoadPrompt =>
+      'District information could not be loaded...';
+
+  @override
+  String get upazilaNoLoadPrompt =>
+      'The upazila information could not be loaded...';
 }

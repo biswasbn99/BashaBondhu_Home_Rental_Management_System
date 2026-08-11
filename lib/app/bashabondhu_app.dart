@@ -4,6 +4,7 @@ import 'package:bashabondhu_home_rental_management_system/app/providers/locale_p
 import 'package:bashabondhu_home_rental_management_system/app/providers/theme_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/app/routes.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/splash_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -36,6 +37,7 @@ class _BashabondhuAppState extends State<BashabondhuApp> {
       providers: [
         ChangeNotifierProvider.value(value: _localeProvider,),
         ChangeNotifierProvider.value(value: _themeProvider,),
+        ChangeNotifierProvider(create: (_) => MainNavHolderProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, _, _) {

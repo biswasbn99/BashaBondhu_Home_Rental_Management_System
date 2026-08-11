@@ -7,6 +7,9 @@ class AppTheme {
     brightness: Brightness.light,
     colorSchemeSeed: AppColors.themeColor,
     scaffoldBackgroundColor: Colors.white,
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.white,
+    ),
     progressIndicatorTheme: _progressIndicatorThemeData,
     textTheme:_textTheme,
     inputDecorationTheme:_inputDecorationTheme,
@@ -55,6 +58,7 @@ class AppTheme {
 
       static final FilledButtonThemeData _filledButtonThemeData=FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          foregroundColor: ThemeData().colorScheme.onPrimary,
           backgroundColor: AppColors.themeColor,
           fixedSize: Size.fromWidth(double.maxFinite),
           padding: .symmetric(vertical: 10),
