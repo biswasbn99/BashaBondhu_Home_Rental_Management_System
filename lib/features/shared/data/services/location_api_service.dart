@@ -4,7 +4,8 @@ import 'package:http/http.dart' as http;
 
 import '../models/division_model.dart';
 import '../models/district_model.dart';
-import '../models/upazila_model.dart';
+import '../models/area_model.dart';
+import '../models/sub_area_model.dart';
 
 
 class LocationApiService {
@@ -27,6 +28,11 @@ class LocationApiService {
   Future<List<UpazilaModel>> getUpazilasByDistrict(String districtId) async {
     final data = await _getList('$baseUrl/upazilas/$districtId');
     return data.map(UpazilaModel.fromJson).toList();
+  }
+
+  Future<List<UnionModel>> getUnionsByUpazila(String upazilaId) async {
+    final data = await _getList('$baseUrl/unions/$upazilaId');
+    return data.map(UnionModel.fromJson).toList();
   }
 
   Future<List<Map<String, dynamic>>> _getList(String url) async {

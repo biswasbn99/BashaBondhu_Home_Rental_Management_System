@@ -1,7 +1,8 @@
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/district_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/division_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/search_filter_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/upazila_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/area_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/sub_area_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/repository/location_repository.dart';
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -84,20 +85,83 @@ class FindHomeProvider extends ChangeNotifier {
   bool isLoadingDivisions = false;
   bool isLoadingDistricts = false;
   bool isLoadingUpazilas = false;
+  bool isLoadingAreas = false;
 
   String? errorMessage;
 
   List<DivisionModel> divisions = [];
   List<DistrictModel> districts = [];
   List<UpazilaModel> upazilas = [];
+  List<UnionModel> areas = [];
 
   DivisionModel? selectedDivision;
   DistrictModel? selectedDistrict;
   UpazilaModel? selectedUpazila;
+  UnionModel? selectedArea;
+
+  // New Filters
+  String? selectedBudgetRange;
+  TenantType? selectedTenantType;
+  int? selectedBathrooms;
+  int? selectedBalconies;
+  int? selectedFloorNumber;
+  bool? hasLift;
+  bool? hasParking;
+  SortBy selectedSortBy = SortBy.newest;
+
+  static List<String> budgetRanges = [
+    '1000 - 5000',
+    '5000 - 10000',
+    '10000 - 20000',
+    '20000 - 30000',
+    '30000 - 50000',
+    '50000+',
+  ];
+
+  void selectBudget(String? value) {
+    selectedBudgetRange = value;
+    notifyListeners();
+  }
+
+  void selectTenantType(TenantType? value) {
+    selectedTenantType = value;
+    notifyListeners();
+  }
+
+  void selectBathrooms(int? value) {
+    selectedBathrooms = value;
+    notifyListeners();
+  }
+
+  void selectBalconies(int? value) {
+    selectedBalconies = value;
+    notifyListeners();
+  }
+
+  void selectFloor(int? value) {
+    selectedFloorNumber = value;
+    notifyListeners();
+  }
+
+  void selectLift(bool? value) {
+    hasLift = value;
+    notifyListeners();
+  }
+
+  void selectParking(bool? value) {
+    hasParking = value;
+    notifyListeners();
+  }
+
+  void selectSortBy(SortBy value) {
+    selectedSortBy = value;
+    notifyListeners();
+  }
 
   Future<void> loadDivisions(AppLocalizations localizations) async {
     isLoadingDistricts = false;
     isLoadingUpazilas = false;
+    isLoadingAreas = false;
     isLoadingDivisions = true;
     errorMessage = null;
     notifyListeners();
@@ -116,8 +180,10 @@ class FindHomeProvider extends ChangeNotifier {
     selectedDivision = division;
     selectedDistrict = null;
     selectedUpazila = null;
+    selectedArea = null;
     districts = [];
     upazilas = [];
+    areas = [];
     notifyListeners();
 
     if (division == null) return;
@@ -139,7 +205,9 @@ class FindHomeProvider extends ChangeNotifier {
   Future<void> selectDistrict(DistrictModel? district, AppLocalizations localizations) async {
     selectedDistrict = district;
     selectedUpazila = null;
+    selectedArea = null;
     upazilas = [];
+    areas = [];
     notifyListeners();
 
     if (district == null) return;
@@ -158,8 +226,30 @@ class FindHomeProvider extends ChangeNotifier {
     }
   }
 
-  void selectUpazila(UpazilaModel? upazila) {
+  Future<void> selectUpazila(UpazilaModel? upazila, AppLocalizations localizations) async {
     selectedUpazila = upazila;
+    selectedArea = null;
+    areas = [];
+    notifyListeners();
+
+    if (upazila == null) return;
+
+    isLoadingAreas = true;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      areas = await repository.getUnionsByUpazila(upazila.id);
+    } catch (_) {
+      errorMessage = 'Could not load areas';
+    } finally {
+      isLoadingAreas = false;
+      notifyListeners();
+    }
+  }
+
+  void selectArea(UnionModel? area) {
+    selectedArea = area;
     notifyListeners();
   }
 
@@ -179,7 +269,16 @@ class FindHomeProvider extends ChangeNotifier {
       division: selectedDivision!,
       district: selectedDistrict!,
       upazila: selectedUpazila!,
+      area: selectedArea,
       roomOrSeat: selectedRoomOrSeat!,
+      budgetRange: selectedBudgetRange,
+      tenantType: selectedTenantType,
+      bathrooms: selectedBathrooms,
+      balconies: selectedBalconies,
+      floorNumber: selectedFloorNumber,
+      hasLift: hasLift,
+      hasParking: hasParking,
+      sortBy: selectedSortBy,
     );
   }
 
@@ -189,13 +288,24 @@ class FindHomeProvider extends ChangeNotifier {
     selectedDivision = null;
     selectedDistrict = null;
     selectedUpazila = null;
+    selectedArea = null;
     selectedRoomOrSeat = null;
+    selectedBudgetRange = null;
+    selectedTenantType = null;
+    selectedBathrooms = null;
+    selectedBalconies = null;
+    selectedFloorNumber = null;
+    hasLift = null;
+    hasParking = null;
+    selectedSortBy = SortBy.newest;
     errorMessage = null;
     isLoadingDivisions = false;
     isLoadingDistricts = false;
     isLoadingUpazilas = false;
+    isLoadingAreas = false;
     districts = [];
     upazilas = [];
+    areas = [];
     notifyListeners();
   }
 }

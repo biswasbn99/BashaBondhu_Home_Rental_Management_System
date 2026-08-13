@@ -46,7 +46,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get district => 'জেলা';
 
   @override
-  String get upazila => 'উপজেলা';
+  String get upazila => 'এলাকা';
 
   @override
   String get roomOrSeat => 'রুম / সিট';
@@ -56,6 +56,9 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get loading => 'লোড হচ্ছে...';
+
+  @override
+  String get flat => 'ফ্ল্যাট';
 
   @override
   String get bedroom => 'বেডরুম';
@@ -97,5 +100,72 @@ class AppLocalizationsBn extends AppLocalizations {
   String get districtNoLoadPrompt => 'জেলার তথ্য লোড করা যায়নি';
 
   @override
-  String get upazilaNoLoadPrompt => 'উপজেলার তথ্য লোড করা যায়নি';
+  String get upazilaNoLoadPrompt => 'এলাকার তথ্য লোড করা যায়নি';
+
+  @override
+  String get area => 'উপ-এলাকা';
+
+  @override
+  String get budget => 'বাজেট';
+
+  @override
+  String get tenantType => 'ভাড়াটিয়ার ধরন';
+
+  @override
+  String get bathroom => 'বাথরুম';
+
+  @override
+  String get balcony => 'বারান্দা';
+
+  @override
+  String get floorNumber => 'ফ্লোর নম্বর';
+
+  @override
+  String get lift => 'লিফট';
+
+  @override
+  String get parking => 'পার্কিং';
+
+  @override
+  String get sortBy => 'সর্ট বাই';
+
+  @override
+  String get lowestRent => 'সর্বনিম্ন ভাড়া';
+
+  @override
+  String get highestRent => 'সর্বোচ্চ ভাড়া';
+
+  @override
+  String get newest => 'নতুনগুলো আগে';
+
+  @override
+  String get oldest => 'পুরানো গুলো আগে';
+
+  @override
+  String get family => 'ফ্যামিলি';
+
+  @override
+  String get bachelorMale => 'ব্যাচেলর (ছেলে)';
+
+  @override
+  String get bachelorFemale => 'ব্যাচেলর (মেয়ে)';
+
+  @override
+  String get subLet => 'সাব-লেট';
+
+  @override
+  String get available => 'পাওয়া যাবে';
+
+  @override
+  String get unavailable => 'পাওয়া যাবে না';
+
+  @override
+  String get any => 'যেকোনো';
+
+  @override
+  String get findHomeButton => 'বাসা খুঁজুন';
+
+  @override
+  String get findHomePrompt =>
+      'উপরের সকল তথ্য সিলেক্ট করা হলে এবার বাসা খুঁজুন বাটনে ক্লিক করুন';
 }

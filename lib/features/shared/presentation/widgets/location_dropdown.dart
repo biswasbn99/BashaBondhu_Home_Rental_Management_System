@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../../data/models/district_model.dart';
 import '../../data/models/division_model.dart';
-import '../../data/models/upazila_model.dart';
+import '../../data/models/area_model.dart';
+import '../../data/models/sub_area_model.dart';
 import 'filter_dropdown.dart';
 
 
@@ -23,8 +24,7 @@ class DivisionDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    // Division
+    final languageCode = Localizations.localeOf(context).languageCode;
     return FilterDropdown<DivisionModel>(
       hint: context.localizations.division,
       value: value,
@@ -33,7 +33,7 @@ class DivisionDropdown extends StatelessWidget {
           .map(
             (division) => DropdownMenuItem(
               value: division,
-              child: Text(division.bnName),
+              child: Text(division.getLocalizedName(languageCode)),
             ),
           )
           .toList(),
@@ -60,6 +60,7 @@ class DistrictDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final languageCode = Localizations.localeOf(context).languageCode;
     return FilterDropdown<DistrictModel>(
       hint: context.localizations.district,
       value: value,
@@ -69,7 +70,7 @@ class DistrictDropdown extends StatelessWidget {
           .map(
             (district) => DropdownMenuItem(
               value: district,
-              child: Text(district.bnName),
+              child: Text(district.getLocalizedName(languageCode)),
             ),
           )
           .toList(),
@@ -97,6 +98,7 @@ class UpazilaDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final languageCode = Localizations.localeOf(context).languageCode;
     return FilterDropdown<UpazilaModel>(
       hint: context.localizations.upazila,
       value: value,
@@ -106,7 +108,44 @@ class UpazilaDropdown extends StatelessWidget {
           .map(
             (upazila) => DropdownMenuItem(
               value: upazila,
-              child: Text(upazila.bnName),
+              child: Text(upazila.getLocalizedName(languageCode)),
+            ),
+          )
+          .toList(),
+      onChanged: onChanged,
+    );
+  }
+}
+
+class AreaDropdown extends StatelessWidget {
+  const AreaDropdown({
+    super.key,
+    required this.value,
+    required this.areas,
+    required this.onChanged,
+    required this.enabled,
+    this.isLoading = false,
+  });
+
+  final UnionModel? value;
+  final List<UnionModel> areas;
+  final ValueChanged<UnionModel?> onChanged;
+  final bool enabled;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    return FilterDropdown<UnionModel>(
+      hint: context.localizations.area,
+      value: value,
+      enabled: enabled,
+      isLoading: isLoading,
+      items: areas
+          .map(
+            (area) => DropdownMenuItem(
+              value: area,
+              child: Text(area.getLocalizedName(languageCode)),
             ),
           )
           .toList(),

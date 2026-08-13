@@ -173,7 +173,7 @@ abstract class AppLocalizations {
   /// No description provided for @upazila.
   ///
   /// In en, this message translates to:
-  /// **'Upazila'**
+  /// **'Area'**
   String get upazila;
 
   /// No description provided for @roomOrSeat.
@@ -193,6 +193,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loading...'**
   String get loading;
+
+  /// No description provided for @flat.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat'**
+  String get flat;
 
   /// No description provided for @bedroom.
   ///
@@ -275,8 +281,140 @@ abstract class AppLocalizations {
   /// No description provided for @upazilaNoLoadPrompt.
   ///
   /// In en, this message translates to:
-  /// **'The upazila information could not be loaded...'**
+  /// **'Area information could not be loaded...'**
   String get upazilaNoLoadPrompt;
+
+  /// No description provided for @area.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub-area'**
+  String get area;
+
+  /// No description provided for @budget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get budget;
+
+  /// No description provided for @tenantType.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenant Type'**
+  String get tenantType;
+
+  /// No description provided for @bathroom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bathroom'**
+  String get bathroom;
+
+  /// No description provided for @balcony.
+  ///
+  /// In en, this message translates to:
+  /// **'Balcony'**
+  String get balcony;
+
+  /// No description provided for @floorNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor Number'**
+  String get floorNumber;
+
+  /// No description provided for @lift.
+  ///
+  /// In en, this message translates to:
+  /// **'Lift'**
+  String get lift;
+
+  /// No description provided for @parking.
+  ///
+  /// In en, this message translates to:
+  /// **'Parking'**
+  String get parking;
+
+  /// No description provided for @sortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort By'**
+  String get sortBy;
+
+  /// No description provided for @lowestRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest Rent'**
+  String get lowestRent;
+
+  /// No description provided for @highestRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest Rent'**
+  String get highestRent;
+
+  /// No description provided for @newest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get newest;
+
+  /// No description provided for @oldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest'**
+  String get oldest;
+
+  /// No description provided for @family.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get family;
+
+  /// No description provided for @bachelorMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Bachelor Male'**
+  String get bachelorMale;
+
+  /// No description provided for @bachelorFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Bachelor Female'**
+  String get bachelorFemale;
+
+  /// No description provided for @subLet.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub-let'**
+  String get subLet;
+
+  /// No description provided for @available.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get available;
+
+  /// No description provided for @unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get unavailable;
+
+  /// No description provided for @any.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get any;
+
+  /// No description provided for @findHomeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Find Home'**
+  String get findHomeButton;
+
+  /// No description provided for @findHomePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Once all the above information is selected, click the Find Home button.'**
+  String get findHomePrompt;
 }
 
 class _AppLocalizationsDelegate

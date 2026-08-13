@@ -11,6 +11,7 @@ class FilterDropdown<T> extends StatelessWidget {
     required this.onChanged,
     this.enabled = true,
     this.isLoading = false,
+    this.isRequired = true,
   });
 
   final String hint;
@@ -19,6 +20,7 @@ class FilterDropdown<T> extends StatelessWidget {
   final ValueChanged<T?>? onChanged;
   final bool enabled;
   final bool isLoading;
+  final bool isRequired;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +48,7 @@ class FilterDropdown<T> extends StatelessWidget {
       items: items,
       onChanged: isEnabled ? onChanged : null,
       validator: (val) {
-        if (enabled && val == null) {
+        if (isRequired && enabled && val == null) {
           return 'দয়া করে এটি পূরণ করুন';
         }
         return null;

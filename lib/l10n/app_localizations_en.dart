@@ -47,7 +47,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get district => 'District';
 
   @override
-  String get upazila => 'Upazila';
+  String get upazila => 'Area';
 
   @override
   String get roomOrSeat => 'Room Or Seat';
@@ -57,6 +57,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loading => 'Loading...';
+
+  @override
+  String get flat => 'Flat';
 
   @override
   String get bedroom => 'BedRoom';
@@ -101,6 +104,72 @@ class AppLocalizationsEn extends AppLocalizations {
       'District information could not be loaded...';
 
   @override
-  String get upazilaNoLoadPrompt =>
-      'The upazila information could not be loaded...';
+  String get upazilaNoLoadPrompt => 'Area information could not be loaded...';
+
+  @override
+  String get area => 'Sub-area';
+
+  @override
+  String get budget => 'Budget';
+
+  @override
+  String get tenantType => 'Tenant Type';
+
+  @override
+  String get bathroom => 'Bathroom';
+
+  @override
+  String get balcony => 'Balcony';
+
+  @override
+  String get floorNumber => 'Floor Number';
+
+  @override
+  String get lift => 'Lift';
+
+  @override
+  String get parking => 'Parking';
+
+  @override
+  String get sortBy => 'Sort By';
+
+  @override
+  String get lowestRent => 'Lowest Rent';
+
+  @override
+  String get highestRent => 'Highest Rent';
+
+  @override
+  String get newest => 'Newest';
+
+  @override
+  String get oldest => 'Oldest';
+
+  @override
+  String get family => 'Family';
+
+  @override
+  String get bachelorMale => 'Bachelor Male';
+
+  @override
+  String get bachelorFemale => 'Bachelor Female';
+
+  @override
+  String get subLet => 'Sub-let';
+
+  @override
+  String get available => 'Available';
+
+  @override
+  String get unavailable => 'Unavailable';
+
+  @override
+  String get any => 'Any';
+
+  @override
+  String get findHomeButton => 'Find Home';
+
+  @override
+  String get findHomePrompt =>
+      'Once all the above information is selected, click the Find Home button.';
 }

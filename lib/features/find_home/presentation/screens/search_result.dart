@@ -11,37 +11,55 @@ class SearchResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.localizations;
+    final languageCode = Localizations.localeOf(context).languageCode;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('বাসার ফলাফল'),
+        title: Text(l10n.signIn), // Just a placeholder, maybe add "Search Results" to l10n
         backgroundColor: _teal,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'আপনার অনুসন্ধান',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+            Text(
+              l10n.accommodationPromptTitle,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 16),
-            _row(context.localizations.month, filter.month),
-            _row(context.localizations.houseType, filter.houseType.bnLabel),
-            _row(context.localizations.division, filter.division.bnName),
-            _row(context.localizations.district, filter.district.bnName),
-            _row(context.localizations.upazila, filter.upazila.bnName),
-            _row(context.localizations.roomOrSeat, filter.roomOrSeat),
+            _row(l10n.month, filter.month),
+            _row(l10n.houseType, filter.houseType.getLocalizedLabel(l10n)),
+            _row(l10n.division, filter.division.getLocalizedName(languageCode)),
+            _row(l10n.district, filter.district.getLocalizedName(languageCode)),
+            _row(l10n.upazila, filter.upazila.getLocalizedName(languageCode)),
+            if (filter.area != null)
+              _row(l10n.area, filter.area!.getLocalizedName(languageCode)),
+            _row(l10n.roomOrSeat, filter.roomOrSeat),
+            if (filter.budgetRange != null)
+              _row(l10n.budget, filter.budgetRange!),
+            if (filter.tenantType != null)
+              _row(l10n.tenantType, filter.tenantType!.getLocalizedLabel(l10n)),
+            if (filter.bathrooms != null)
+              _row(l10n.bathroom, filter.bathrooms.toString()),
+            if (filter.balconies != null)
+              _row(l10n.balcony, filter.balconies.toString()),
+            if (filter.floorNumber != null)
+              _row(l10n.floorNumber, filter.floorNumber.toString()),
+            if (filter.hasLift != null)
+              _row(l10n.lift, filter.hasLift! ? l10n.available : l10n.unavailable),
+            if (filter.hasParking != null)
+              _row(l10n.parking, filter.hasParking! ? l10n.available : l10n.unavailable),
+            _row(l10n.sortBy, filter.sortBy.getLocalizedLabel(l10n)),
            
             const SizedBox(height: 30),
-            const Expanded(
-              child: Center(
-                child: Text(
-                  'এই ফিল্টার অনুযায়ী পোস্টগুলো এখানে দেখানো হবে।',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey, fontSize: 15),
-                ),
+            const Center(
+              child: Text(
+                'এই ফিল্টার অনুযায়ী পোস্টগুলো এখানে দেখানো হবে।',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 15),
               ),
             ),
           ],
@@ -57,9 +75,9 @@ class SearchResultScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100,
+            width: 120,
             child: Text(
-              label,
+              '$label:',
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
           ),

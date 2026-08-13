@@ -1,9 +1,18 @@
+import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/providers/find_home_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/screens/search_result.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/search_filter_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/filter_dropdown.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/month_dropdown_button.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/house_type_dropdown_button.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/number_of_room_or_seat_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/location_dropdown.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/bathroom_dropdown_button.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/belcony_dropdown_button.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/budget_dropdown_button.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/floor_number_dropdown_button.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/lift_dropdown_button.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/parking_dropdown_button.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/tenant_type_dropdown_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -40,14 +49,12 @@ class _FindHomeView extends StatelessWidget {
 
     return Scaffold(
        appBar: AppBar(
-       
         elevation: 0,
         automaticallyImplyLeading: false,
         titleSpacing: 20,
         title: const Text(
           'Find Home',
           style: TextStyle(
-           
             fontSize: 24,
             fontWeight: FontWeight.w800,
           ),
@@ -69,6 +76,7 @@ class _FindHomeView extends StatelessWidget {
                 _ErrorBanner(message: provider.errorMessage!),
                 const SizedBox(height: 12),
               ],
+              const SizedBox(height: 16),
 
               // -------- Month + House type --------
              _SectionLabel(
@@ -79,30 +87,17 @@ class _FindHomeView extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: FilterDropdown<String>(
-                      hint: l10n.month,
+                    child: MonthDropdown(
                       value: provider.selectedMonth,
-                      items: FindHomeProvider.months
-                          .map(
-                            (m) => DropdownMenuItem(value: m, child: Text(m)),
-                          )
-                          .toList(),
+                      months: FindHomeProvider.months,
                       onChanged: provider.selectMonth,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: FilterDropdown<HouseType>(
-                      hint: l10n.houseType,
+                    child: HouseTypeDropdown(
                       value: provider.selectedHouseType,
-                      items: FindHomeProvider.houseTypes
-                          .map(
-                            (t) => DropdownMenuItem(
-                              value: t,
-                              child: Text(t.bnLabel),
-                            ),
-                          )
-                          .toList(),
+                      houseTypes: FindHomeProvider.houseTypes,
                       onChanged: provider.selectHouseType,
                     ),
                   ),
@@ -140,36 +135,118 @@ class _FindHomeView extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              UpazilaDropdown(
-                value: provider.selectedUpazila,
-                upazilas: provider.upazilas,
-                enabled: provider.selectedDistrict != null,
-                isLoading: provider.isLoadingUpazilas,
-                onChanged: provider.selectUpazila,
+              Row(
+                children: [
+                  Expanded(
+                    child: UpazilaDropdown(
+                      value: provider.selectedUpazila,
+                      upazilas: provider.upazilas,
+                      enabled: provider.selectedDistrict != null,
+                      isLoading: provider.isLoadingUpazilas,
+                      onChanged: (val) => provider.selectUpazila(val, l10n),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AreaDropdown(
+                      value: provider.selectedArea,
+                      areas: provider.areas,
+                      enabled: provider.selectedUpazila != null,
+                      isLoading: provider.isLoadingAreas,
+                      onChanged: provider.selectArea,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: BudgetDropdown(
+                      value: provider.selectedBudgetRange,
+                      ranges: FindHomeProvider.budgetRanges,
+                      onChanged: provider.selectBudget,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TenantTypeDropdown(
+                      value: provider.selectedTenantType,
+                      onChanged: provider.selectTenantType,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: BathroomDropdown(
+                      value: provider.selectedBathrooms,
+                      onChanged: provider.selectBathrooms,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: BalconyDropdown(
+                      value: provider.selectedBalconies,
+                      onChanged: provider.selectBalconies,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: FloorNumberDropdown(
+                      value: provider.selectedFloorNumber,
+                      onChanged: provider.selectFloor,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ParkingDropdown(
+                      value: provider.hasParking,
+                      onChanged: provider.selectParking,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: LiftDropdown(
+                      value: provider.hasLift,
+                      onChanged: provider.selectLift,
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 12),
 
               // -------- Room / Seat count --------
-              FilterDropdown<String>(
+              RoomOrSeatDropdown(
                 hint: provider.roomOrSeatHint(l10n),
                 value: provider.selectedRoomOrSeat,
                 enabled: provider.selectedHouseType != null,
-                items: provider.roomOrSeatOptions(l10n)
-                    .map((o) => DropdownMenuItem(value: o, child: Text(o)))
-                    .toList(),
+                options: provider.roomOrSeatOptions(l10n),
                 onChanged: provider.selectRoomOrSeat,
               ),
 
               const SizedBox(height: 14),
-              const Text(
-                'উপরের সকল তথ্য সিলেক্ট করা হলে এবার বাসা খুঁজুন বাটনে ক্লিক করুন',
-                style: TextStyle(color: _grey, fontSize: 13.5),
+              Text(
+                l10n.findHomePrompt,
+                style: const TextStyle(color: _grey, fontSize: 13.5),
               ),
              const SizedBox(height: 16),
                   FilledButton(
                     onPressed:(){},
-                    child: const Text('বাসা খুঁজুন'),
+                    child: Text(l10n.findHomeButton),
                   ),
             ],
           ),
@@ -190,6 +267,7 @@ class _FindHomeView extends StatelessWidget {
     );
   }
 }
+
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel({required this.title, required this.subtitle});
