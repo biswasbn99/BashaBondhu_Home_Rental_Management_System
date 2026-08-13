@@ -17,6 +17,9 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  
+  String? _selectedUserType;
+   bool _isPasswordObscured = true;
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
 
@@ -25,10 +28,13 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Sign In'),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: .all(24),
+            padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
               autovalidateMode: .onUserInteraction,
@@ -43,7 +49,29 @@ class _SignInScreenState extends State<SignInScreen> {
                     context.localizations.signInSubTitle,
                     style: context.textTheme.labelLarge,
                   ),
+
                   const SizedBox(height: 24),
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedUserType,
+                    decoration: const InputDecoration(
+                      hintText: 'Select User Type',
+                    ),
+                    items: ['House Owner', 'Tenant']
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedUserType = value;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a user type';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _emailTEController,
                     textInputAction: TextInputAction.next,
@@ -53,28 +81,43 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                 
                   const SizedBox(height: 8),
-                  TextFormField(
+                   TextFormField(
                     controller: _passwordTEController,
-                    obscureText: true,
+                    textInputAction: TextInputAction.done,
+                    obscureText: _isPasswordObscured,
                     obscuringCharacter: '*',
-                    decoration: InputDecoration(hintText: 'Password'),
+                    decoration: InputDecoration(
+                      hintText: 'Password',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordObscured
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordObscured = !_isPasswordObscured;
+                          });
+                        },
+                      ),
+                    ),
                     validator: Validators.validatePassword,
                   ),
                   const SizedBox(height: 16),
                   FilledButton(
-                    onPressed: _onTapSignUpButton,
-                    child: Text('Sign Up'),
+                    onPressed: _onTapSignInButton,
+                    child: const Text('Sign In'),
                   ),
                   const SizedBox(height: 16),
                   Row(
-                    mainAxisAlignment: .center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         context.localizations.doNotHaveAnAccount,
                         style: context.textTheme.labelLarge,
                       ),
                       TextButton(
-                        onPressed: _onTapSignInButton,
+                        onPressed: _onTapSignUpNavigation,
                         child: Text(context.localizations.signUp),
                       ),
                     ],
@@ -88,9 +131,14 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  void _onTapSignUpButton() {}
   void _onTapSignInButton() {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>SignUpScreen()));
+    if (_formKey.currentState!.validate()) {
+      // TODO: Implement actual sign in logic
+    }
+  }
+
+  void _onTapSignUpNavigation() {
+    Navigator.pushReplacementNamed(context, SignUpScreen.name);
   }
 
  

@@ -84,9 +84,12 @@ class _AccountScreenState extends State<AccountScreen> {
                       MaterialPageRoute(builder: (context) => SignInScreen()),
                     );
                   },
-                  child: const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('SIGN IN'),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('SIGN IN'),
+                      Icon(Icons.chevron_right, size: 20),
+                    ],
                   ),
                 ),
               ),
@@ -107,9 +110,12 @@ class _AccountScreenState extends State<AccountScreen> {
                       MaterialPageRoute(builder: (context) => SignUpScreen()),
                     );
                   },
-                  child: const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('SIGN UP'),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('SIGN UP'),
+                      Icon(Icons.chevron_right, size: 20),
+                    ],
                   ),
                 ),
               ),

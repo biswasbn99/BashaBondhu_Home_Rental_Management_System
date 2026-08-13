@@ -22,9 +22,15 @@ class _SplashScreenState extends State<SplashScreen> {
     _moveToNextScreen();
   }
 
-  Future<void> _moveToNextScreen() async{
-    await Future.delayed(Duration(seconds: 2));
-    Navigator.pushNamedAndRemoveUntil(context, MainNavHolderScreen.name, (predicate) => false);
+  Future<void> _moveToNextScreen() async {
+    await Future.delayed(const Duration(seconds: 2));
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        MainNavHolderScreen.name,
+        (predicate) => false,
+      );
+    }
   }
   @override
   Widget build(BuildContext context) {

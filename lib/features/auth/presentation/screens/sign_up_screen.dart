@@ -17,6 +17,8 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  String? _selectedUserType;
+  bool _isPasswordObscured = true;
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _firstNameTEController = TextEditingController();
   final TextEditingController _lastNameTEController = TextEditingController();
@@ -29,10 +31,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Sign Up'),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: .all(24),
+            padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
               autovalidateMode: .onUserInteraction,
@@ -48,6 +53,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     style: context.textTheme.labelLarge,
                   ),
                   const SizedBox(height: 24),
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedUserType,
+                    decoration: const InputDecoration(
+                      hintText: 'Select User Type',
+                    ),
+                    items: ['House Owner', 'Tenant']
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedUserType = value;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a user type';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _emailTEController,
                     textInputAction: TextInputAction.next,
@@ -68,8 +94,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _lastNameTEController,
-                    textInputAction: .next,
-                    decoration: InputDecoration(hintText: 'Last name'),
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(hintText: 'Last name'),
                     validator: (input) => Validators.validateText(
                       input,
                       message: 'Enter your last name',
@@ -96,9 +122,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _passwordTEController,
-                    obscureText: true,
+                    textInputAction: TextInputAction.done,
+                    obscureText: _isPasswordObscured,
                     obscuringCharacter: '*',
-                    decoration: InputDecoration(hintText: 'Password'),
+                    decoration: InputDecoration(
+                      hintText: 'Password',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordObscured
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordObscured = !_isPasswordObscured;
+                          });
+                        },
+                      ),
+                    ),
                     validator: Validators.validatePassword,
                   ),
                   const SizedBox(height: 16),
@@ -108,7 +149,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   const SizedBox(height: 16),
                   Row(
-                    mainAxisAlignment: .center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         context.localizations.alreadyHaveAnAccount,

@@ -1,25 +1,28 @@
-# Walkthrough - UI Consistency Alignment
+# Walkthrough - UI Unification (Dropdown Design)
 
-I have updated the "Sign In" and "Sign Up" buttons in the Account screen to perfectly match the height, padding, and text alignment of the Theme and Language dropdowns.
+I have refactored the dropdown components in the "Find Home" feature to align with the visual style used in the Authentication screens.
 
 ## Changes Made
 
-### 1. Button Styling Alignment
-- **`account_screen.dart`**:
-    - Updated `SIGN IN` and `SIGN UP` buttons:
-        - Set `minimumSize` to `Size(double.infinity, 48)` to match the dropdown container height.
-        - Set `padding` to `EdgeInsets.symmetric(horizontal: 16)` to match the dropdown horizontal padding.
-        - Set `shape` to `RoundedRectangleBorder(borderRadius: 8)` for identical corner rounding.
-        - Aligned text to the left using `Align(alignment: Alignment.centerLeft, ...)` to mirror the dropdown text position.
-        - Uppercased labels (`SIGN IN`, `SIGN UP`) to match the style of the dropdown items (e.g., `SYSTEM`, `ENGLISH`).
+### 1. Refactored `FilterDropdown`
+- **File**: `lib/features/shared/presentation/widgets/filter_dropdown.dart`
+- **Modernization**: Replaced the custom 72px mint-green container with a standard `DropdownButtonFormField`.
+- **Theme Integration**: The dropdown now automatically inherits the project's Teal border and rounded corner style from the `InputDecorationTheme`.
+- **Loading State**: Implemented a small `CircularProgressIndicator` inside the `suffixIcon` of the dropdown when `isLoading` is true, providing a clean and native look.
+
+### 2. Location & Find Home UI Sync
+- **Files**: `location_dropdown.dart` and `find_home_screen.dart`
+- **Automatic Updates**: Since these files depend on `FilterDropdown`, they now automatically show the new Teal-bordered design.
+- **Improved Search Action**: Updated the "বাসা খুঁজুন" (Find Home) button to correctly trigger the search navigation and only enable when the form is valid.
 
 ## Verification Results
 
 ### Visual Consistency
-The buttons and dropdowns now share the exact same dimensions and internal layout:
-- **Height**: 48 pixels
-- **Horizontal Padding**: 16 pixels
-- **Corner Radius**: 8 pixels
-- **Text Alignment**: Left-aligned
+The app now has a unified input style across all features:
+- **Sign In/Up**: Teal borders.
+- **Find Home**: Teal borders.
+- **Account**: Teal theme consistent.
 
-This creates a unified, "list-like" appearance for all primary actions in the Account screen.
+### Functional Integrity
+- Dropdowns correctly enable/disable based on selection (e.g., District requires Division).
+- Error validation is integrated into the form fields.

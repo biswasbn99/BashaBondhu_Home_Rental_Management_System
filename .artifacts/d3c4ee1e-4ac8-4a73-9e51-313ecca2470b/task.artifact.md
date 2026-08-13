@@ -1,4 +1,4 @@
-- [x] Update "Sign In" button style in `account_screen.dart`
-- [x] Update "Sign Up" button style in `account_screen.dart`
-- [x] Verify alignment and height match dropdowns
+- [x] Refactor `FilterDropdown` to use `DropdownButtonFormField` in `filter_dropdown.dart`
+- [x] Verify `FindHomeScreen` layout consistency
+- [x] Run `fvm flutter analyze`
 - [x] Create walkthrough

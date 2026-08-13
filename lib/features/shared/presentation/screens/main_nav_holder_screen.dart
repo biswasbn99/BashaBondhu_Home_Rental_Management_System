@@ -46,7 +46,7 @@ class _MainNavHolderScreenState extends State<MainNavHolderScreen> {
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.domain_add),
-                label: 'Carts',
+                label: 'Demand',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.favorite),

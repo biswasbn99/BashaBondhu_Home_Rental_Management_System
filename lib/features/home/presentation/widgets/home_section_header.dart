@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/extensions/utility_extension.dart';
-
 class HomeSectionHeader extends StatelessWidget {
   const HomeSectionHeader({
     super.key,
@@ -15,7 +13,7 @@ class HomeSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: .spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title, style: TextStyle(
           fontSize: 20,

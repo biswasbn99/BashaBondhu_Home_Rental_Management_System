@@ -39,7 +39,25 @@ class _FindHomeView extends StatelessWidget {
     final l10n = context.localizations;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+       appBar: AppBar(
+       
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 20,
+        title: const Text(
+          'Find Home',
+          style: TextStyle(
+           
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: const Color(0xFFECECEC)),
+        ),
+      ),
+     
       
       body: SafeArea(
         child: SingleChildScrollView(
@@ -148,31 +166,15 @@ class _FindHomeView extends StatelessWidget {
                 'উপরের সকল তথ্য সিলেক্ট করা হলে এবার বাসা খুঁজুন বাটনে ক্লিক করুন',
                 style: TextStyle(color: _grey, fontSize: 13.5),
               ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: provider.isSearchValid ? () => _search(context, provider) : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _teal,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
+             const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed:(){},
+                    child: const Text('বাসা খুঁজুন'),
                   ),
-                  child: const Text(
-                    'বাসা খুঁজুন',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
       ),
-      
     );
   }
 
@@ -216,16 +218,37 @@ class _ErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFEAEA),
-        borderRadius: BorderRadius.circular(10),
+        color: theme.colorScheme.errorContainer.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: theme.colorScheme.error.withOpacity(0.2),
+          width: 1,
+        ),
       ),
-      child: Text(
-        message,
-        style: const TextStyle(color: Color(0xFFB3261E), fontSize: 13),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline_rounded,
+            color: theme.colorScheme.error,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
