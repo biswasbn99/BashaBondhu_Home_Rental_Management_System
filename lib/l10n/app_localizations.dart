@@ -415,6 +415,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Once all the above information is selected, click the Find Home button.'**
   String get findHomePrompt;
+
+  /// No description provided for @appName.
+  ///
+  /// In en, this message translates to:
+  /// **'BashaBondhu App'**
+  String get appName;
+
+  /// No description provided for @basha.
+  ///
+  /// In en, this message translates to:
+  /// **'Basha'**
+  String get basha;
+
+  /// No description provided for @bondhu.
+  ///
+  /// In en, this message translates to:
+  /// **'Bondhu'**
+  String get bondhu;
+
+  /// No description provided for @app.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get app;
 }
 
 class _AppLocalizationsDelegate

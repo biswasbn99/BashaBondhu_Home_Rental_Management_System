@@ -7,8 +7,10 @@ class AppTheme {
     brightness: Brightness.light,
     colorSchemeSeed: AppColors.themeColor,
     scaffoldBackgroundColor: Colors.white,
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
     ),
     progressIndicatorTheme: _progressIndicatorThemeData,
     textTheme:_textTheme,
@@ -19,6 +21,10 @@ class AppTheme {
   static ThemeData get darkTheme => ThemeData(
     brightness: Brightness.dark,
     colorSchemeSeed: AppColors.themeColor,
+    appBarTheme: const AppBarTheme(
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+    ),
     progressIndicatorTheme: _progressIndicatorThemeData,
     textTheme:_textTheme,
     inputDecorationTheme:_inputDecorationTheme,

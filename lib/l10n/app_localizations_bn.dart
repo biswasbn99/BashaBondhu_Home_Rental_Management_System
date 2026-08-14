@@ -168,4 +168,16 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get findHomePrompt =>
       'উপরের সকল তথ্য সিলেক্ট করা হলে এবার বাসা খুঁজুন বাটনে ক্লিক করুন';
+
+  @override
+  String get appName => 'বাসাবন্ধু অ্যাপ';
+
+  @override
+  String get basha => 'বাসা';
+
+  @override
+  String get bondhu => 'বন্ধু';
+
+  @override
+  String get app => 'অ্যাপ';
 }

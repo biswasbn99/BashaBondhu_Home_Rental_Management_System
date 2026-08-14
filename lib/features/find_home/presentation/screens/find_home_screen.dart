@@ -1,4 +1,3 @@
-import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/providers/find_home_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/screens/search_result.dart';
@@ -13,6 +12,7 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/lift_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/parking_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/tenant_type_dropdown_button.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -39,7 +39,6 @@ class FindHomeScreen extends StatelessWidget {
 class _FindHomeView extends StatelessWidget {
   const _FindHomeView();
 
-  static const Color _teal = Color(0xFF049A8F);
   static const Color _grey = Color(0xFF7A8A88);
 
   @override
@@ -48,21 +47,9 @@ class _FindHomeView extends StatelessWidget {
     final l10n = context.localizations;
 
     return Scaffold(
-       appBar: AppBar(
-        elevation: 0,
+      appBar: const MainAppBar(
         automaticallyImplyLeading: false,
         titleSpacing: 20,
-        title: const Text(
-          'Find Home',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: const Color(0xFFECECEC)),
-        ),
       ),
      
       
@@ -245,7 +232,7 @@ class _FindHomeView extends StatelessWidget {
               ),
              const SizedBox(height: 16),
                   FilledButton(
-                    onPressed:(){},
+                    onPressed: (){},
                     child: Text(l10n.findHomeButton),
                   ),
             ],
@@ -301,10 +288,10 @@ class _ErrorBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.errorContainer.withOpacity(0.8),
+        color: theme.colorScheme.errorContainer.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: theme.colorScheme.error.withOpacity(0.2),
+          color: theme.colorScheme.error.withValues(alpha: 0.2),
           width: 1,
         ),
       ),

@@ -172,4 +172,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get findHomePrompt =>
       'Once all the above information is selected, click the Find Home button.';
+
+  @override
+  String get appName => 'BashaBondhu App';
+
+  @override
+  String get basha => 'Basha';
+
+  @override
+  String get bondhu => 'Bondhu';
+
+  @override
+  String get app => 'App';
 }

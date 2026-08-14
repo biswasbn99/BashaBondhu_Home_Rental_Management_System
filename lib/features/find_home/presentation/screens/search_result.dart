@@ -1,5 +1,6 @@
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/search_filter_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 
 class SearchResultScreen extends StatelessWidget {
@@ -7,19 +8,13 @@ class SearchResultScreen extends StatelessWidget {
 
   final SearchFilterModel filter;
 
-  static const Color _teal = Color(0xFF049A8F);
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.localizations;
     final languageCode = Localizations.localeOf(context).languageCode;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.signIn), // Just a placeholder, maybe add "Search Results" to l10n
-        backgroundColor: _teal,
-        foregroundColor: Colors.white,
-      ),
+      appBar: const MainAppBar(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(

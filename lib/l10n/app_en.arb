@@ -51,5 +51,9 @@
   "unavailable":"Unavailable",
   "any":"Any",
   "findHomeButton":"Find Home",
-  "findHomePrompt":"Once all the above information is selected, click the Find Home button."
+  "findHomePrompt":"Once all the above information is selected, click the Find Home button.",
+  "appName": "BashaBondhu App",
+  "basha": "Basha",
+  "bondhu": "Bondhu",
+  "app": "App"
 }
