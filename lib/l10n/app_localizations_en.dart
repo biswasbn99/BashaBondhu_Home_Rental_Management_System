@@ -184,4 +184,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get app => 'App';
+
+  @override
+  String get postDemand => 'Post Demand';
+
+  @override
+  String get postDemandPrompt =>
+      'Once all the above information is selected, click the Post Demand button.';
+
+  @override
+  String get bannerTitle => 'Landlord will find you!';
+
+  @override
+  String get bannerSubtitle =>
+      'To get direct calls from landlords and instant notifications for preferred houses, state your demand with the following information.';
+
+  @override
+  String get bannerNote =>
+      'Note: Notification permission must be given to receive notifications.';
+
+  @override
+  String get noticeQuestion =>
+      'Have you informed the landlord that you are vacating your current home?';
+
+  @override
+  String get noticeHint =>
+      'Have you given notice that you are vacating the house?';
+
+  @override
+  String get enterName => 'Enter Your Name';
+
+  @override
+  String get enterMobile => 'Enter Your Mobile Number';
+
+  @override
+  String get enterWhatsApp => 'Enter WhatsApp Number (if available)';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get budgetTenantPromptTitle => 'What is your budget and tenant type?';
+
+  @override
+  String get budgetTenantPromptSubTitle => 'Select budget and tenant type.';
+
+  @override
+  String get amenitiesPromptTitle => 'What amenities and floor do you prefer?';
+
+  @override
+  String get amenitiesPromptSubTitle => 'Select amenities and floor details.';
+
+  @override
+  String get roomSeatPromptTitle => 'Specify the number of rooms or seats.';
+
+  @override
+  String get roomSeatPromptSubTitle => 'Select the required number.';
+
+  @override
+  String get contactPromptTitle => 'Your Contact Information';
+
+  @override
+  String get contactPromptSubTitle => 'Provide your name and number.';
 }

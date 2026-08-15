@@ -34,7 +34,7 @@ class SearchResultScreen extends StatelessWidget {
               _row(l10n.area, filter.area!.getLocalizedName(languageCode)),
             _row(l10n.roomOrSeat, filter.roomOrSeat),
             if (filter.budgetRange != null)
-              _row(l10n.budget, filter.budgetRange!),
+              _row(l10n.budget, "${filter.budgetRange} ৳"),
             if (filter.tenantType != null)
               _row(l10n.tenantType, filter.tenantType!.getLocalizedLabel(l10n)),
             if (filter.bathrooms != null)

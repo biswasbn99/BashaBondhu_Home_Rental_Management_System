@@ -146,8 +146,14 @@ class _FindHomeView extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 12),
-              
+              const SizedBox(height: 20),
+
+              // -------- Budget & Tenant type --------
+              _SectionLabel(
+                title: l10n.budgetTenantPromptTitle,
+                subtitle: l10n.budgetTenantPromptSubTitle,
+              ),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -167,8 +173,14 @@ class _FindHomeView extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
 
+              // -------- Amenities --------
+              _SectionLabel(
+                title: l10n.amenitiesPromptTitle,
+                subtitle: l10n.amenitiesPromptSubTitle,
+              ),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -214,9 +226,14 @@ class _FindHomeView extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
 
               // -------- Room / Seat count --------
+              _SectionLabel(
+                title: l10n.roomSeatPromptTitle,
+                subtitle: l10n.roomSeatPromptSubTitle,
+              ),
+              const SizedBox(height: 10),
               RoomOrSeatDropdown(
                 hint: provider.roomOrSeatHint(l10n),
                 value: provider.selectedRoomOrSeat,

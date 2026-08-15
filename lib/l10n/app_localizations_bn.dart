@@ -180,4 +180,71 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get app => 'অ্যাপ';
+
+  @override
+  String get postDemand => 'চাহিদা পোস্ট করুন';
+
+  @override
+  String get postDemandPrompt =>
+      'উপরের সকল তথ্য সিলেক্ট করা হলে এবার চাহিদা পোস্ট করুন বাটনে ক্লিক করুন';
+
+  @override
+  String get bannerTitle => 'বাড়িওয়ালা আপনাকে খুঁজে নেবে!';
+
+  @override
+  String get bannerSubtitle =>
+      'সরাসরি বাড়িওয়ালার কল পেতে এবং পছন্দের বাসার সাথে সাথে নোটিফিকেশন পেতে নিচের তথ্যগুলো দিয়ে আপনার চাহিদা জানান';
+
+  @override
+  String get bannerNote =>
+      'নোট: নোটিফিকেশন পেতে হলে নোটিফিকেশন পারমিশন দিতে হবে';
+
+  @override
+  String get noticeQuestion =>
+      'বর্তমান বাসা ছেড়ে দেওয়ার কথা কি জানিয়ে দিয়েছেন বাড়িওয়ালাকে ?';
+
+  @override
+  String get noticeHint => 'বাসা ছেড়ে দেওয়ার কথা জানিয়ে দিয়েছেন ?';
+
+  @override
+  String get enterName => 'আপনার নাম লিখুন';
+
+  @override
+  String get enterMobile => 'মোবাইল নাম্বার লিখুন';
+
+  @override
+  String get enterWhatsApp => 'হোয়াটসঅ্যাপ নাম্বার দিন (যদি থাকে)';
+
+  @override
+  String get yes => 'হ্যাঁ';
+
+  @override
+  String get no => 'না';
+
+  @override
+  String get budgetTenantPromptTitle => 'আপনার বাজেট এবং ভাড়াটিয়ার ধরন কী ?';
+
+  @override
+  String get budgetTenantPromptSubTitle =>
+      'বাজেট এবং ভাড়াটিয়ার ধরন সিলেক্ট করুন';
+
+  @override
+  String get amenitiesPromptTitle =>
+      'আপনি কী ধরণের সুযোগ-সুবিধা এবং ফ্লোর খুঁজছেন ?';
+
+  @override
+  String get amenitiesPromptSubTitle =>
+      'সুযোগ-সুবিধা এবং ফ্লোরের বিবরণ সিলেক্ট করুন';
+
+  @override
+  String get roomSeatPromptTitle => 'রুম অথবা সিট সংখ্যা নির্ধারণ করুন';
+
+  @override
+  String get roomSeatPromptSubTitle => 'প্রয়োজনীয় সংখ্যা সিলেক্ট করুন';
+
+  @override
+  String get contactPromptTitle => 'আপনার যোগাযোগের তথ্য';
+
+  @override
+  String get contactPromptSubTitle => 'আপনার নাম এবং নম্বর প্রদান করুন';
 }

@@ -23,7 +23,7 @@ class BudgetDropdown extends StatelessWidget {
       isRequired: false,
       items: [
         DropdownMenuItem(value: null, child: Text(l10n.budget)),
-        ...ranges.map((r) => DropdownMenuItem(value: r, child: Text(r))),
+        ...ranges.map((r) => DropdownMenuItem(value: r, child: Text("$r ৳"))),
       ],
       onChanged: onChanged,
     );

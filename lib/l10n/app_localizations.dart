@@ -439,6 +439,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App'**
   String get app;
+
+  /// No description provided for @postDemand.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Demand'**
+  String get postDemand;
+
+  /// No description provided for @postDemandPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Once all the above information is selected, click the Post Demand button.'**
+  String get postDemandPrompt;
+
+  /// No description provided for @bannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Landlord will find you!'**
+  String get bannerTitle;
+
+  /// No description provided for @bannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'To get direct calls from landlords and instant notifications for preferred houses, state your demand with the following information.'**
+  String get bannerSubtitle;
+
+  /// No description provided for @bannerNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: Notification permission must be given to receive notifications.'**
+  String get bannerNote;
+
+  /// No description provided for @noticeQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you informed the landlord that you are vacating your current home?'**
+  String get noticeQuestion;
+
+  /// No description provided for @noticeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Have you given notice that you are vacating the house?'**
+  String get noticeHint;
+
+  /// No description provided for @enterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Your Name'**
+  String get enterName;
+
+  /// No description provided for @enterMobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Your Mobile Number'**
+  String get enterMobile;
+
+  /// No description provided for @enterWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter WhatsApp Number (if available)'**
+  String get enterWhatsApp;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @budgetTenantPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is your budget and tenant type?'**
+  String get budgetTenantPromptTitle;
+
+  /// No description provided for @budgetTenantPromptSubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select budget and tenant type.'**
+  String get budgetTenantPromptSubTitle;
+
+  /// No description provided for @amenitiesPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What amenities and floor do you prefer?'**
+  String get amenitiesPromptTitle;
+
+  /// No description provided for @amenitiesPromptSubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select amenities and floor details.'**
+  String get amenitiesPromptSubTitle;
+
+  /// No description provided for @roomSeatPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Specify the number of rooms or seats.'**
+  String get roomSeatPromptTitle;
+
+  /// No description provided for @roomSeatPromptSubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the required number.'**
+  String get roomSeatPromptSubTitle;
+
+  /// No description provided for @contactPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Contact Information'**
+  String get contactPromptTitle;
+
+  /// No description provided for @contactPromptSubTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide your name and number.'**
+  String get contactPromptSubTitle;
 }
 
 class _AppLocalizationsDelegate

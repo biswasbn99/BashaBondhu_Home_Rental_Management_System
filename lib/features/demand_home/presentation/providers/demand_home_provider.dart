@@ -7,8 +7,8 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/data/r
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
-class FindHomeProvider extends ChangeNotifier {
-  FindHomeProvider({LocationRepository? repository})
+class DemandHomeProvider extends ChangeNotifier {
+  DemandHomeProvider({LocationRepository? repository})
       : repository = repository ?? LocationRepository();
 
   final LocationRepository repository;
@@ -121,7 +121,12 @@ class FindHomeProvider extends ChangeNotifier {
   int? selectedFloorNumber;
   bool? hasLift;
   bool? hasParking;
+  bool? hasGivenNotice;
   SortBy selectedSortBy = SortBy.newest;
+
+  String userName = '';
+  String userMobile = '';
+  String userWhatsApp = '';
 
   static List<String> budgetRanges = List.generate(
     50,
@@ -160,6 +165,26 @@ class FindHomeProvider extends ChangeNotifier {
 
   void selectParking(bool? value) {
     hasParking = value;
+    _safeNotifyListeners();
+  }
+
+  void selectNoticeStatus(bool? value) {
+    hasGivenNotice = value;
+    _safeNotifyListeners();
+  }
+
+  void setUserName(String value) {
+    userName = value;
+    _safeNotifyListeners();
+  }
+
+  void setUserMobile(String value) {
+    userMobile = value;
+    _safeNotifyListeners();
+  }
+
+  void setUserWhatsApp(String value) {
+    userWhatsApp = value;
     _safeNotifyListeners();
   }
 
@@ -273,7 +298,9 @@ class FindHomeProvider extends ChangeNotifier {
       selectedDivision != null &&
       selectedDistrict != null &&
       selectedUpazila != null &&
-      selectedRoomOrSeat != null;
+      selectedRoomOrSeat != null &&
+      userName.trim().isNotEmpty &&
+      RegExp(r'^01[3-9]\d{8}$').hasMatch(userMobile);
 
   SearchFilterModel buildFilter() {
     assert(isSearchValid, 'buildFilter() called before all fields are set');
@@ -311,6 +338,10 @@ class FindHomeProvider extends ChangeNotifier {
     selectedFloorNumber = null;
     hasLift = null;
     hasParking = null;
+    hasGivenNotice = null;
+    userName = '';
+    userMobile = '';
+    userWhatsApp = '';
     selectedSortBy = SortBy.newest;
     errorMessage = null;
     isLoadingDivisions = false;

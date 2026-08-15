@@ -15,6 +15,16 @@ class Validators {
     return null;
   }
 
+  static String? validateName(String? value, {String? message}) {
+    if (value == null || value.trim().isEmpty) {
+      return message ?? 'Enter your name';
+    }
+    if (RegExp(r'^[a-zA-Z\s.]+$').hasMatch(value) == false) {
+      return 'Enter a valid name (only letters)';
+    }
+    return null;
+  }
+
   static String? validatePhoneNumber(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Enter your phone number';
