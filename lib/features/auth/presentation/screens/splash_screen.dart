@@ -1,11 +1,14 @@
+import 'package:bashabondhu_home_rental_management_system/app/asset_paths.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
-import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/widgets/app_logo.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/main_nav_holder_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({super.key,this.width=120, this.height=120});
+   final double width;
+  final double height;
 
   static const String name='/';
 
@@ -42,9 +45,14 @@ class _SplashScreenState extends State<SplashScreen> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              Spacer(),
-              AppLogo(),
-              Spacer(),
+              const Spacer(),
+              LottieBuilder.asset(
+                AssetPaths.splashImage,
+                width: widget.width,
+                height: widget.height,
+                fit: BoxFit.scaleDown,
+              ),
+              const Spacer(),
             CircularProgressIndicator(),
             const SizedBox(height: 16),
             Text('${localizations.version} 1.0.0'),
