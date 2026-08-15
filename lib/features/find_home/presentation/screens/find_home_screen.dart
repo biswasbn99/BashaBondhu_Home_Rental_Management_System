@@ -13,6 +13,7 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/parking_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/tenant_type_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -47,9 +48,12 @@ class _FindHomeView extends StatelessWidget {
     final l10n = context.localizations;
 
     return Scaffold(
-      appBar: MainAppBar(
+      appBar: const MainAppBar(
         automaticallyImplyLeading: false,
         titleSpacing: 20,
+        actions: [
+          FreePostButton(),
+        ],
       ),
      
       
@@ -249,7 +253,7 @@ class _FindHomeView extends StatelessWidget {
               ),
              const SizedBox(height: 16),
                   FilledButton(
-                    onPressed: (){},
+                    onPressed: provider.isSearchValid ? () => _search(context, provider) : null,
                     child: Text(l10n.findHomeButton),
                   ),
             ],
@@ -258,9 +262,6 @@ class _FindHomeView extends StatelessWidget {
       ),
     );
   }
-
- 
- 
 
   void _search(BuildContext context, FindHomeProvider provider) {
     Navigator.push(

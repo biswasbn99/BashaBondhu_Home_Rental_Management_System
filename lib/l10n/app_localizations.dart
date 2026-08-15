@@ -559,6 +559,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Provide your name and number.'**
   String get contactPromptSubTitle;
+
+  /// No description provided for @postFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Free'**
+  String get postFree;
+
+  /// No description provided for @postSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'To rent out fast'**
+  String get postSubtitle;
+
+  /// No description provided for @postRentalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post with all details to rent out'**
+  String get postRentalTitle;
+
+  /// No description provided for @home.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// No description provided for @findHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a Home'**
+  String get findHome;
+
+  /// No description provided for @demand.
+  ///
+  /// In en, this message translates to:
+  /// **'Demand'**
+  String get demand;
+
+  /// No description provided for @wishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Wishlist'**
+  String get wishlist;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
 }
 
 class _AppLocalizationsDelegate

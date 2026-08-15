@@ -8,11 +8,13 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.automaticallyImplyLeading = true,
     this.titleSpacing = 16,
     this.actions,
+    this.title,
   });
 
   final bool automaticallyImplyLeading;
   final double titleSpacing;
   final List<Widget>? actions;
+  final Widget? title;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: titleSpacing,
       actions: actions,
       centerTitle: false,
-      title: const Row(
+      title: title ?? const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           AppLogo(height: 32, width: 32),

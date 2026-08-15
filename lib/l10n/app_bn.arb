@@ -75,5 +75,13 @@
   "roomSeatPromptTitle": "রুম অথবা সিট সংখ্যা নির্ধারণ করুন",
   "roomSeatPromptSubTitle": "প্রয়োজনীয় সংখ্যা সিলেক্ট করুন",
   "contactPromptTitle": "আপনার যোগাযোগের তথ্য",
-  "contactPromptSubTitle": "আপনার নাম এবং নম্বর প্রদান করুন"
+  "contactPromptSubTitle": "আপনার নাম এবং নম্বর প্রদান করুন",
+  "postFree": "ফ্রি পোস্ট",
+  "postSubtitle": "দ্রুত ভাড়া দিতে",
+  "postRentalTitle": "বাসাভাড়া দিতে সকল তথ্য দিয়ে পোস্ট করুন",
+  "home": "হোম",
+  "findHome": "বাসা খুঁজুন",
+  "demand": "চাহিদা জানান",
+  "wishlist": "সেভ পোস্ট",
+  "account": "প্রোফাইল"
 }

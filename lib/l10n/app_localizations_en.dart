@@ -249,4 +249,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contactPromptSubTitle => 'Provide your name and number.';
+
+  @override
+  String get postFree => 'Post Free';
+
+  @override
+  String get postSubtitle => 'To rent out fast';
+
+  @override
+  String get postRentalTitle => 'Post with all details to rent out';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get findHome => 'Find a Home';
+
+  @override
+  String get demand => 'Demand';
+
+  @override
+  String get wishlist => 'Wishlist';
+
+  @override
+  String get account => 'Account';
 }

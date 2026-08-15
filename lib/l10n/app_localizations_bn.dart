@@ -247,4 +247,28 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get contactPromptSubTitle => 'আপনার নাম এবং নম্বর প্রদান করুন';
+
+  @override
+  String get postFree => 'ফ্রি পোস্ট';
+
+  @override
+  String get postSubtitle => 'দ্রুত ভাড়া দিতে';
+
+  @override
+  String get postRentalTitle => 'বাসাভাড়া দিতে সকল তথ্য দিয়ে পোস্ট করুন';
+
+  @override
+  String get home => 'হোম';
+
+  @override
+  String get findHome => 'বাসা খুঁজুন';
+
+  @override
+  String get demand => 'চাহিদা জানান';
+
+  @override
+  String get wishlist => 'সেভ পোস্ট';
+
+  @override
+  String get account => 'প্রোফাইল';
 }

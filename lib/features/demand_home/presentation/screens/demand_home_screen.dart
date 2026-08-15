@@ -1,4 +1,3 @@
-import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/app/validators.dart';
 import 'package:bashabondhu_home_rental_management_system/features/demand_home/presentation/providers/demand_home_provider.dart';
@@ -14,6 +13,7 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/parking_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/tenant_type_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/filter_dropdown.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +50,9 @@ class _DemandHomeView extends StatelessWidget {
       appBar: const MainAppBar(
         automaticallyImplyLeading: false,
         titleSpacing: 20,
+        actions: [
+          FreePostButton(),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(

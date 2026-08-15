@@ -75,5 +75,13 @@
   "roomSeatPromptTitle": "Specify the number of rooms or seats.",
   "roomSeatPromptSubTitle": "Select the required number.",
   "contactPromptTitle": "Your Contact Information",
-  "contactPromptSubTitle": "Provide your name and number."
+  "contactPromptSubTitle": "Provide your name and number.",
+  "postFree": "Post Free",
+  "postSubtitle": "To rent out fast",
+  "postRentalTitle": "Post with all details to rent out",
+  "home": "Home",
+  "findHome": "Find a Home",
+  "demand": "Demand",
+  "wishlist": "Wishlist",
+  "account": "Account"
 }
