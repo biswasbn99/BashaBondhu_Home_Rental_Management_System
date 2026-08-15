@@ -13,6 +13,20 @@ class FindHomeProvider extends ChangeNotifier {
 
   final LocationRepository repository;
 
+  bool _isDisposed = false;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  void _safeNotifyListeners() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
+  }
+
   static const List<String> months = [
     'January',
     'February',
@@ -32,7 +46,7 @@ class FindHomeProvider extends ChangeNotifier {
 
   void selectMonth(String? value) {
     selectedMonth = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   static const List<HouseType> houseTypes = HouseType.values;
@@ -42,7 +56,7 @@ class FindHomeProvider extends ChangeNotifier {
   void selectHouseType(HouseType? value) {
     selectedHouseType = value;
     selectedRoomOrSeat = null; // options depend on house type
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   List<String> roomOrSeatOptions(AppLocalizations localizations) {
@@ -79,7 +93,7 @@ class FindHomeProvider extends ChangeNotifier {
 
   void selectRoomOrSeat(String? value) {
     selectedRoomOrSeat = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   bool isLoadingDivisions = false;
@@ -120,42 +134,42 @@ class FindHomeProvider extends ChangeNotifier {
 
   void selectBudget(String? value) {
     selectedBudgetRange = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void selectTenantType(TenantType? value) {
     selectedTenantType = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void selectBathrooms(int? value) {
     selectedBathrooms = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void selectBalconies(int? value) {
     selectedBalconies = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void selectFloor(int? value) {
     selectedFloorNumber = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void selectLift(bool? value) {
     hasLift = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void selectParking(bool? value) {
     hasParking = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   void selectSortBy(SortBy value) {
     selectedSortBy = value;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   Future<void> loadDivisions(AppLocalizations localizations) async {
@@ -164,15 +178,16 @@ class FindHomeProvider extends ChangeNotifier {
     isLoadingAreas = false;
     isLoadingDivisions = true;
     errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       divisions = await repository.getDivisions();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error loading divisions: $e');
       errorMessage = localizations.divisionNoLoadPrompt;
     } finally {
       isLoadingDivisions = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -184,21 +199,22 @@ class FindHomeProvider extends ChangeNotifier {
     districts = [];
     upazilas = [];
     areas = [];
-    notifyListeners();
+    _safeNotifyListeners();
 
     if (division == null) return;
 
     isLoadingDistricts = true;
     errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       districts = await repository.getDistrictsByDivision(division.id);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error loading districts: $e');
       errorMessage = localizations.districtNoLoadPrompt;
     } finally {
       isLoadingDistricts = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -208,21 +224,22 @@ class FindHomeProvider extends ChangeNotifier {
     selectedArea = null;
     upazilas = [];
     areas = [];
-    notifyListeners();
+    _safeNotifyListeners();
 
     if (district == null) return;
 
     isLoadingUpazilas = true;
     errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       upazilas = await repository.getUpazilasByDistrict(district.id);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error loading upazilas: $e');
       errorMessage = localizations.upazilaNoLoadPrompt;
     } finally {
       isLoadingUpazilas = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -230,27 +247,28 @@ class FindHomeProvider extends ChangeNotifier {
     selectedUpazila = upazila;
     selectedArea = null;
     areas = [];
-    notifyListeners();
+    _safeNotifyListeners();
 
     if (upazila == null) return;
 
     isLoadingAreas = true;
     errorMessage = null;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       areas = await repository.getUnionsByUpazila(upazila.id);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error loading areas: $e');
       errorMessage = 'Could not load areas';
     } finally {
       isLoadingAreas = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   void selectArea(UnionModel? area) {
     selectedArea = area;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   bool get isSearchValid =>
@@ -306,6 +324,6 @@ class FindHomeProvider extends ChangeNotifier {
     districts = [];
     upazilas = [];
     areas = [];
-    notifyListeners();
+    _safeNotifyListeners();
   }
 }

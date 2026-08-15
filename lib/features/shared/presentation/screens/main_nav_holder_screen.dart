@@ -1,4 +1,5 @@
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/screens/account_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/demand_home/presentation/screens/demand_home_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/screens/find_home_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class _MainNavHolderScreenState extends State<MainNavHolderScreen> {
   final List<Widget> _screens = [
     HomeScreen(),
    FindHomeScreen(),
-    HomeScreen(),
+    DemandHomeScreen(),
     HomeScreen(),
     AccountScreen(email: 'user@example.com'),
   ];

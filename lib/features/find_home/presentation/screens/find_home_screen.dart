@@ -47,7 +47,7 @@ class _FindHomeView extends StatelessWidget {
     final l10n = context.localizations;
 
     return Scaffold(
-      appBar: const MainAppBar(
+      appBar: MainAppBar(
         automaticallyImplyLeading: false,
         titleSpacing: 20,
       ),
