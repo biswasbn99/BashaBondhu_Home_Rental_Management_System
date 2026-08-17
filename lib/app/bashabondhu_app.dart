@@ -3,9 +3,12 @@ import 'package:bashabondhu_home_rental_management_system/app/app_theme.dart';
 import 'package:bashabondhu_home_rental_management_system/app/providers/locale_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/app/providers/theme_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/app/routes.dart';
+import 'package:bashabondhu_home_rental_management_system/features/admin/data/providers/admin_provider.dart';
+import 'package:bashabondhu_home_rental_management_system/features/admin/presentation/screens/admin_main_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/splash_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -38,6 +41,7 @@ class _BashabondhuAppState extends State<BashabondhuApp> {
         ChangeNotifierProvider.value(value: _localeProvider,),
         ChangeNotifierProvider.value(value: _themeProvider,),
         ChangeNotifierProvider(create: (_) => MainNavHolderProvider()),
+        ChangeNotifierProvider(create: (_) => AdminProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, _, _) {
@@ -46,7 +50,7 @@ class _BashabondhuAppState extends State<BashabondhuApp> {
               return MaterialApp(
             debugShowCheckedModeBanner: false,
             title:'Bashabondhu',
-            initialRoute: SplashScreen.name,
+            initialRoute: kIsWeb ? AdminMainScreen.name : SplashScreen.name,
               localizationsDelegates: [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
