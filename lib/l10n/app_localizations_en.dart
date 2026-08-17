@@ -339,4 +339,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get anotherPhotosHint => 'Add more photos';
+
+  @override
+  String get postedOn => 'Posted on';
+
+  @override
+  String get postIdLabel => 'Post ID';
+
+  @override
+  String get viewDetails => 'View Details';
+
+  @override
+  String get callNow => 'Call Now';
+
+  @override
+  String get whatsapp => 'WhatsApp';
+
+  @override
+  String get descriptionLabel => 'Description';
+
+  @override
+  String get facilitiesLabel => 'Facilities';
+
+  @override
+  String get locationLabel => 'Location';
+
+  @override
+  String get perMonth => 'Per Month';
+
+  @override
+  String get contactInfo => 'Contact Information';
 }

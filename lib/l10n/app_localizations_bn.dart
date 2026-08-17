@@ -337,4 +337,34 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get anotherPhotosHint => 'ছবি যোগ করুন';
+
+  @override
+  String get postedOn => 'পোস্ট করা হয়েছে';
+
+  @override
+  String get postIdLabel => 'পোস্ট আইডি';
+
+  @override
+  String get viewDetails => 'বিস্তারিত দেখুন';
+
+  @override
+  String get callNow => 'কল করুন';
+
+  @override
+  String get whatsapp => 'ওয়াটসঅ্যাপ';
+
+  @override
+  String get descriptionLabel => 'বিবরণ';
+
+  @override
+  String get facilitiesLabel => 'সুযোগ-সুবিধা';
+
+  @override
+  String get locationLabel => 'লোকেশন';
+
+  @override
+  String get perMonth => 'প্রতি মাস';
+
+  @override
+  String get contactInfo => 'যোগাযোগের তথ্য';
 }

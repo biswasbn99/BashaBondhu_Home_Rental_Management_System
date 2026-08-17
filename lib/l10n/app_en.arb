@@ -105,5 +105,15 @@
   "thumbnailLabel": "Thumbnail",
   "addPhotos": "Add Home Photos",
   "thumbnailHint": "This photo will be used as a thumbnail",
-  "anotherPhotosHint": "Add more photos"
+  "anotherPhotosHint": "Add more photos",
+  "postedOn": "Posted on",
+  "postIdLabel": "Post ID",
+  "viewDetails": "View Details",
+  "callNow": "Call Now",
+  "whatsapp": "WhatsApp",
+  "descriptionLabel": "Description",
+  "facilitiesLabel": "Facilities",
+  "locationLabel": "Location",
+  "perMonth": "Per Month",
+  "contactInfo": "Contact Information"
 }

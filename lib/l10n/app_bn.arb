@@ -105,5 +105,15 @@
   "thumbnailLabel": "থাম্বনেইল",
   "addPhotos": "বাসার ছবি যুক্ত করুন",
   "thumbnailHint": "ছবিটি থাম্বনেইল হিসেবে ব্যবহার হবে",
-  "anotherPhotosHint": "ছবি যোগ করুন"
+  "anotherPhotosHint": "ছবি যোগ করুন",
+  "postedOn": "পোস্ট করা হয়েছে",
+  "postIdLabel": "পোস্ট আইডি",
+  "viewDetails": "বিস্তারিত দেখুন",
+  "callNow": "কল করুন",
+  "whatsapp": "ওয়াটসঅ্যাপ",
+  "descriptionLabel": "বিবরণ",
+  "facilitiesLabel": "সুযোগ-সুবিধা",
+  "locationLabel": "লোকেশন",
+  "perMonth": "প্রতি মাস",
+  "contactInfo": "যোগাযোগের তথ্য"
 }

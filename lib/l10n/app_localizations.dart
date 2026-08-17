@@ -739,6 +739,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add more photos'**
   String get anotherPhotosHint;
+
+  /// No description provided for @postedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Posted on'**
+  String get postedOn;
+
+  /// No description provided for @postIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Post ID'**
+  String get postIdLabel;
+
+  /// No description provided for @viewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View Details'**
+  String get viewDetails;
+
+  /// No description provided for @callNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Call Now'**
+  String get callNow;
+
+  /// No description provided for @whatsapp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp'**
+  String get whatsapp;
+
+  /// No description provided for @descriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get descriptionLabel;
+
+  /// No description provided for @facilitiesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Facilities'**
+  String get facilitiesLabel;
+
+  /// No description provided for @locationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get locationLabel;
+
+  /// No description provided for @perMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Per Month'**
+  String get perMonth;
+
+  /// No description provided for @contactInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Information'**
+  String get contactInfo;
 }
 
 class _AppLocalizationsDelegate

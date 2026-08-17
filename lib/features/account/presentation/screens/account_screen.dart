@@ -3,6 +3,7 @@ import 'package:bashabondhu_home_rental_management_system/app/theme_changer.dart
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/screens/account_profile_header.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_up_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/house_owner/tenant_demand/presentation/screens/tenant_demand_show_screen.dart';
 import 'package:flutter/material.dart';
 
 
@@ -123,6 +124,32 @@ class _AccountScreenState extends State<AccountScreen> {
               ThemeChangerDropdown(),
               const SizedBox(height: 16),
               LocaleChangerDropdown(),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => TenantDemandShowScreen()),
+                    );
+                  },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Demand Show'),
+                      Icon(Icons.chevron_right, size: 20),
+                    ],
+                  ),
+                ),
+              ),
             ],
                      ),
            
