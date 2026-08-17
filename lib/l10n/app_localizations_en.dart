@@ -273,4 +273,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get account => 'Account';
+
+  @override
+  String get contactPerson => 'Contact Person';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get commonBathroom => 'Common Bathroom';
+
+  @override
+  String get attachedBathroom => 'Attached Bathroom';
+
+  @override
+  String get kitchen => 'Kitchen';
+
+  @override
+  String get electricityBill => 'Electricity Bill';
+
+  @override
+  String get owner => 'Owner';
+
+  @override
+  String get self => 'Self';
+
+  @override
+  String get withRent => 'With Rent';
+
+  @override
+  String get cctv => 'CCTV';
+
+  @override
+  String get wifi => 'WiFi';
+
+  @override
+  String get generator => 'Generator';
+
+  @override
+  String get securityGuard => 'Security Guard';
+
+  @override
+  String get marketDistance => 'Market Distance (km)';
+
+  @override
+  String get shortAddress => 'Short Address';
+
+  @override
+  String get detailedDescription => 'Detailed Description';
+
+  @override
+  String get postNow => 'Post Now';
+
+  @override
+  String get photoSubtitle => 'Add up to 10 photos';
+
+  @override
+  String get thumbnailLabel => 'Thumbnail';
+
+  @override
+  String get addPhotos => 'Add Home Photos';
+
+  @override
+  String get thumbnailHint => 'This photo will be used as a thumbnail';
+
+  @override
+  String get anotherPhotosHint => 'Add more photos';
 }

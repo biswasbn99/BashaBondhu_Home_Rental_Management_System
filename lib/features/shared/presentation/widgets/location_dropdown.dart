@@ -5,7 +5,7 @@ import '../../data/models/district_model.dart';
 import '../../data/models/division_model.dart';
 import '../../data/models/area_model.dart';
 import '../../data/models/sub_area_model.dart';
-import 'filter_dropdown.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/filter_dropdown.dart';
 
 
 class DivisionDropdown extends StatelessWidget {

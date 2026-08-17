@@ -1,14 +1,15 @@
+import 'dart:io';
+import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/area_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/district_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/division_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/search_filter_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/area_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/sub_area_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/repository/location_repository.dart';
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
-class DemandHomeProvider extends ChangeNotifier {
-  DemandHomeProvider({LocationRepository? repository})
+class HomeRentPostProvider extends ChangeNotifier {
+  HomeRentPostProvider({LocationRepository? repository})
       : repository = repository ?? LocationRepository();
 
   final LocationRepository repository;
@@ -42,22 +43,7 @@ class DemandHomeProvider extends ChangeNotifier {
     'December'
   ];
 
-  String? selectedMonth;
-
-  void selectMonth(String? value) {
-    selectedMonth = value;
-    _safeNotifyListeners();
-  }
-
   static const List<HouseType> houseTypes = HouseType.values;
-
-  HouseType? selectedHouseType;
-
-  void selectHouseType(HouseType? value) {
-    selectedHouseType = value;
-    selectedRoomOrSeat = null; // options depend on house type
-    _safeNotifyListeners();
-  }
 
   List<String> roomOrSeatOptions(AppLocalizations localizations) {
     switch (selectedHouseType) {
@@ -89,111 +75,76 @@ class DemandHomeProvider extends ChangeNotifier {
     }
   }
 
-  String? selectedRoomOrSeat;
+  // --- Photos ---
+  final List<File> _images = [];
+  List<File> get images => _images;
 
-  void selectRoomOrSeat(String? value) {
-    selectedRoomOrSeat = value;
-    _safeNotifyListeners();
+  void addImage(File image) {
+    if (_images.length < 10) {
+      _images.add(image);
+      _safeNotifyListeners();
+    }
   }
 
-  bool isLoadingDivisions = false;
-  bool isLoadingDistricts = false;
-  bool isLoadingUpazilas = false;
-  bool isLoadingAreas = false;
+  void removeImage(int index) {
+    if (index >= 0 && index < _images.length) {
+      _images.removeAt(index);
+      _safeNotifyListeners();
+    }
+  }
 
-  String? errorMessage;
+  // --- Basic Info ---
+  String? selectedMonth;
+  HouseType? selectedHouseType;
+  String? selectedRoomOrSeat;
+  String contactName = '';
+  String amount = '';
+  String userMobile = '';
+  String userWhatsApp = '';
 
-  List<DivisionModel> divisions = [];
-  List<DistrictModel> districts = [];
-  List<UpazilaModel> upazilas = [];
-  List<UnionModel> areas = [];
-
+  // --- Location ---
   DivisionModel? selectedDivision;
   DistrictModel? selectedDistrict;
   UpazilaModel? selectedUpazila;
   UnionModel? selectedArea;
+  String shortAddress = '';
+  String detailedDescription = '';
 
-  // Filters & State
-  String? selectedBudgetRange;
-  TenantType? selectedTenantType;
-  int? selectedBathrooms;
+  // --- Amenities & Counts ---
+  int? commonBathrooms;
   int? attachedBathrooms;
-  int? selectedBalconies;
-  int? selectedFloorNumber;
   int? kitchenCount;
-  bool? hasLift;
-  bool? hasParking;
-  bool? hasGivenNotice;
+  int? balconies;
+  int? floorNumber;
   String? electricityBillType;
   bool? hasCctv;
   bool? hasWifi;
   bool? hasGenerator;
   bool? hasSecurityGuard;
+  bool? hasLift;
+  bool? hasParking;
   String? marketDistance;
-  String userName = '';
-  String userMobile = '';
-  String userWhatsApp = '';
-  String shortAddress = '';
-  String detailedDescription = '';
-  SortBy selectedSortBy = SortBy.newest;
 
-  static List<String> budgetRanges = List.generate(
-    50,
-    (index) => ((index + 1) * 1000).toString(),
-  );
+  // --- Lists ---
+  List<DivisionModel> divisions = [];
+  List<DistrictModel> districts = [];
+  List<UpazilaModel> upazilas = [];
+  List<UnionModel> areas = [];
 
-  void selectBudget(String? value) {
-    selectedBudgetRange = value;
+  bool isLoadingDivisions = false;
+  bool isLoadingDistricts = false;
+  bool isLoadingUpazilas = false;
+  bool isLoadingAreas = false;
+  String? errorMessage;
+
+  // --- Setters ---
+  void setContactName(String value) {
+    contactName = value;
     _safeNotifyListeners();
   }
 
-  void selectTenantType(TenantType? value) {
-    selectedTenantType = value;
-    _safeNotifyListeners();
-  }
-
-  void selectBathrooms(int? value) {
-    selectedBathrooms = value;
-    _safeNotifyListeners();
-  }
-
-  void selectAttachedBathrooms(int? value) {
-    attachedBathrooms = value;
-    _safeNotifyListeners();
-  }
-
-  void selectBalconies(int? value) {
-    selectedBalconies = value;
-    _safeNotifyListeners();
-  }
-
-  void selectFloor(int? value) {
-    selectedFloorNumber = value;
-    _safeNotifyListeners();
-  }
-
-  void selectKitchenCount(int? value) {
-    kitchenCount = value;
-    _safeNotifyListeners();
-  }
-
-  void selectLift(bool? value) {
-    hasLift = value;
-    _safeNotifyListeners();
-  }
-
-  void selectParking(bool? value) {
-    hasParking = value;
-    _safeNotifyListeners();
-  }
-
-  void selectNoticeStatus(bool? value) {
-    hasGivenNotice = value;
-    _safeNotifyListeners();
-  }
-
-  void setUserName(String value) {
-    userName = value;
+  void setAmount(String value) {
+    amount = value;
     _safeNotifyListeners();
   }
 
@@ -204,6 +155,57 @@ class DemandHomeProvider extends ChangeNotifier {
 
   void setUserWhatsApp(String value) {
     userWhatsApp = value;
+    _safeNotifyListeners();
+  }
+
+  void setShortAddress(String value) {
+    shortAddress = value;
+    _safeNotifyListeners();
+  }
+
+  void setDetailedDescription(String value) {
+    detailedDescription = value;
+    _safeNotifyListeners();
+  }
+
+  void selectMonth(String? value) {
+    selectedMonth = value;
+    _safeNotifyListeners();
+  }
+
+  void selectHouseType(HouseType? value) {
+    selectedHouseType = value;
+    selectedRoomOrSeat = null;
+    _safeNotifyListeners();
+  }
+
+  void selectRoomOrSeat(String? value) {
+    selectedRoomOrSeat = value;
+    _safeNotifyListeners();
+  }
+
+  void selectCommonBathrooms(int? value) {
+    commonBathrooms = value;
+    _safeNotifyListeners();
+  }
+
+  void selectAttachedBathrooms(int? value) {
+    attachedBathrooms = value;
+    _safeNotifyListeners();
+  }
+
+  void selectKitchenCount(int? value) {
+    kitchenCount = value;
+    _safeNotifyListeners();
+  }
+
+  void selectBalconies(int? value) {
+    balconies = value;
+    _safeNotifyListeners();
+  }
+
+  void selectFloor(int? value) {
+    floorNumber = value;
     _safeNotifyListeners();
   }
 
@@ -232,38 +234,29 @@ class DemandHomeProvider extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
+  void selectLift(bool? value) {
+    hasLift = value;
+    _safeNotifyListeners();
+  }
+
+  void selectParking(bool? value) {
+    hasParking = value;
+    _safeNotifyListeners();
+  }
+
   void selectMarketDistance(String? value) {
     marketDistance = value;
     _safeNotifyListeners();
   }
 
-  void setShortAddress(String value) {
-    shortAddress = value;
-    _safeNotifyListeners();
-  }
-
-  void setDetailedDescription(String value) {
-    detailedDescription = value;
-    _safeNotifyListeners();
-  }
-
-  void selectSortBy(SortBy value) {
-    selectedSortBy = value;
-    _safeNotifyListeners();
-  }
-
+  // --- Location Actions ---
   Future<void> loadDivisions(AppLocalizations localizations) async {
-    isLoadingDistricts = false;
-    isLoadingUpazilas = false;
-    isLoadingAreas = false;
     isLoadingDivisions = true;
     errorMessage = null;
     _safeNotifyListeners();
-
     try {
       divisions = await repository.getDivisions();
     } catch (e) {
-      debugPrint('Error loading divisions: $e');
       errorMessage = localizations.divisionNoLoadPrompt;
     } finally {
       isLoadingDivisions = false;
@@ -282,15 +275,10 @@ class DemandHomeProvider extends ChangeNotifier {
     _safeNotifyListeners();
 
     if (division == null) return;
-
     isLoadingDistricts = true;
-    errorMessage = null;
-    _safeNotifyListeners();
-
     try {
       districts = await repository.getDistrictsByDivision(division.id);
     } catch (e) {
-      debugPrint('Error loading districts: $e');
       errorMessage = localizations.districtNoLoadPrompt;
     } finally {
       isLoadingDistricts = false;
@@ -307,15 +295,10 @@ class DemandHomeProvider extends ChangeNotifier {
     _safeNotifyListeners();
 
     if (district == null) return;
-
     isLoadingUpazilas = true;
-    errorMessage = null;
-    _safeNotifyListeners();
-
     try {
       upazilas = await repository.getUpazilasByDistrict(district.id);
     } catch (e) {
-      debugPrint('Error loading upazilas: $e');
       errorMessage = localizations.upazilaNoLoadPrompt;
     } finally {
       isLoadingUpazilas = false;
@@ -330,16 +313,11 @@ class DemandHomeProvider extends ChangeNotifier {
     _safeNotifyListeners();
 
     if (upazila == null) return;
-
     isLoadingAreas = true;
-    errorMessage = null;
-    _safeNotifyListeners();
-
     try {
       areas = await repository.getUnionsByUpazila(upazila.id);
     } catch (e) {
-      debugPrint('Error loading areas: $e');
-      errorMessage = 'Could not load areas';
+      errorMessage = 'Could not load sub-areas';
     } finally {
       isLoadingAreas = false;
       _safeNotifyListeners();
@@ -351,75 +329,19 @@ class DemandHomeProvider extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  bool get isSearchValid =>
-      selectedMonth != null &&
-      selectedHouseType != null &&
-      selectedDivision != null &&
-      selectedDistrict != null &&
-      selectedUpazila != null &&
-      selectedRoomOrSeat != null &&
-      userName.trim().isNotEmpty &&
-      RegExp(r'^01[3-9]\d{8}$').hasMatch(userMobile);
-
-  SearchFilterModel buildFilter() {
-    assert(isSearchValid, 'buildFilter() called before all fields are set');
-    return SearchFilterModel(
-      month: selectedMonth!,
-      houseType: selectedHouseType!,
-      division: selectedDivision!,
-      district: selectedDistrict!,
-      upazila: selectedUpazila!,
-      area: selectedArea,
-      roomOrSeat: selectedRoomOrSeat!,
-      budgetRange: selectedBudgetRange,
-      tenantType: selectedTenantType,
-      bathrooms: selectedBathrooms,
-      balconies: selectedBalconies,
-      floorNumber: selectedFloorNumber,
-      hasLift: hasLift,
-      hasParking: hasParking,
-      sortBy: selectedSortBy,
-    );
-  }
-
-  void resetFilters() {
-    selectedMonth = null;
-    selectedHouseType = null;
-    selectedDivision = null;
-    selectedDistrict = null;
-    selectedUpazila = null;
-    selectedArea = null;
-    selectedRoomOrSeat = null;
-    selectedBudgetRange = null;
-    selectedTenantType = null;
-    selectedBathrooms = null;
-    attachedBathrooms = null;
-    selectedBalconies = null;
-    selectedFloorNumber = null;
-    kitchenCount = null;
-    hasLift = null;
-    hasParking = null;
-    hasGivenNotice = null;
-    userName = '';
-    userMobile = '';
-    userWhatsApp = '';
-    electricityBillType = null;
-    hasCctv = null;
-    hasWifi = null;
-    hasGenerator = null;
-    hasSecurityGuard = null;
-    marketDistance = null;
-    shortAddress = '';
-    detailedDescription = '';
-    selectedSortBy = SortBy.newest;
-    errorMessage = null;
-    isLoadingDivisions = false;
-    isLoadingDistricts = false;
-    isLoadingUpazilas = false;
-    isLoadingAreas = false;
-    districts = [];
-    upazilas = [];
-    areas = [];
-    _safeNotifyListeners();
+  // --- Validation ---
+  bool get isFormValid {
+    return _images.isNotEmpty &&
+        selectedMonth != null &&
+        selectedHouseType != null &&
+        selectedDivision != null &&
+        selectedDistrict != null &&
+        selectedUpazila != null &&
+        selectedRoomOrSeat != null &&
+        contactName.trim().isNotEmpty &&
+        amount.trim().isNotEmpty &&
+        userMobile.trim().isNotEmpty &&
+        shortAddress.trim().isNotEmpty &&
+        detailedDescription.trim().isNotEmpty;
   }
 }

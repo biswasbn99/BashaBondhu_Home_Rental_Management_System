@@ -1,3 +1,4 @@
+import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/app/validators.dart';
 import 'package:bashabondhu_home_rental_management_system/features/demand_home/presentation/providers/demand_home_provider.dart';
@@ -15,6 +16,7 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/filter_dropdown.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -68,7 +70,7 @@ class _DemandHomeView extends StatelessWidget {
               _buildOrangeBanner(context),
               const SizedBox(height: 20),
               // -------- Month + House type --------
-              _SectionLabel(
+              DecoratedSectionHeader(
                 title: l10n.accommodationPromptTitle,
                 subtitle: l10n.accommodationPromptSubTitle,
               ),
@@ -96,7 +98,7 @@ class _DemandHomeView extends StatelessWidget {
               const SizedBox(height: 20),
 
               // -------- Location --------
-              _SectionLabel(
+              DecoratedSectionHeader(
                 title: l10n.locationPromptTitle,
                 subtitle: l10n.locationPromptSubTitle,
               ),
@@ -151,7 +153,7 @@ class _DemandHomeView extends StatelessWidget {
               const SizedBox(height: 20),
 
               // -------- Budget & Tenant type --------
-              _SectionLabel(
+              DecoratedSectionHeader(
                 title: l10n.budgetTenantPromptTitle,
                 subtitle: l10n.budgetTenantPromptSubTitle,
               ),
@@ -178,7 +180,7 @@ class _DemandHomeView extends StatelessWidget {
               const SizedBox(height: 20),
 
               // -------- Amenities --------
-              _SectionLabel(
+              DecoratedSectionHeader(
                 title: l10n.amenitiesPromptTitle,
                 subtitle: l10n.amenitiesPromptSubTitle,
               ),
@@ -231,7 +233,7 @@ class _DemandHomeView extends StatelessWidget {
               const SizedBox(height: 20),
 
               // -------- Room / Seat count --------
-              _SectionLabel(
+              DecoratedSectionHeader(
                 title: l10n.roomSeatPromptTitle,
                 subtitle: l10n.roomSeatPromptSubTitle,
               ),
@@ -262,7 +264,7 @@ class _DemandHomeView extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              _SectionLabel(
+              DecoratedSectionHeader(
                 title: l10n.contactPromptTitle,
                 subtitle: l10n.contactPromptSubTitle,
               ),
@@ -270,6 +272,7 @@ class _DemandHomeView extends StatelessWidget {
 
               _buildTextField(
                 hint: l10n.enterName,
+                prefixIcon: Icons.person_outline_rounded,
                 initialValue: provider.userName,
                 onChanged: provider.setUserName,
                 validator: (val) => Validators.validateName(val),
@@ -279,6 +282,7 @@ class _DemandHomeView extends StatelessWidget {
 
               _buildTextField(
                 hint: l10n.enterMobile,
+                prefixIcon: Icons.phone_android_rounded,
                 initialValue: provider.userMobile,
                 keyboardType: TextInputType.phone,
                 onChanged: provider.setUserMobile,
@@ -289,6 +293,7 @@ class _DemandHomeView extends StatelessWidget {
 
               _buildTextField(
                 hint: l10n.enterWhatsApp,
+                prefixIcon: Icons.message_outlined,
                 initialValue: provider.userWhatsApp,
                 keyboardType: TextInputType.phone,
                 onChanged: provider.setUserWhatsApp,
@@ -309,8 +314,16 @@ class _DemandHomeView extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: (){},
-                  child: Text(l10n.postDemand),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.themeColor,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: provider.isSearchValid ? () {} : null,
+                  child: Text(
+                    l10n.postDemand,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
@@ -397,6 +410,7 @@ class _DemandHomeView extends StatelessWidget {
     required String hint,
     required String initialValue,
     required ValueChanged<String> onChanged,
+    IconData? prefixIcon,
     String? Function(String?)? validator,
     TextInputType? keyboardType,
   }) {
@@ -408,26 +422,7 @@ class _DemandHomeView extends StatelessWidget {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(
         hintText: hint,
-      ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.title, required this.subtitle});
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        style: const TextStyle(fontSize: 14.5, color: Color(0xFF6B7280)),
-        children: [
-          TextSpan(text: '$title '),
-          TextSpan(text: subtitle),
-        ],
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppColors.themeColor) : null,
       ),
     );
   }

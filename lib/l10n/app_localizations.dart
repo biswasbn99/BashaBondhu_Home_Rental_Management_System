@@ -607,6 +607,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Account'**
   String get account;
+
+  /// No description provided for @contactPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Person'**
+  String get contactPerson;
+
+  /// No description provided for @amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amount;
+
+  /// No description provided for @commonBathroom.
+  ///
+  /// In en, this message translates to:
+  /// **'Common Bathroom'**
+  String get commonBathroom;
+
+  /// No description provided for @attachedBathroom.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached Bathroom'**
+  String get attachedBathroom;
+
+  /// No description provided for @kitchen.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen'**
+  String get kitchen;
+
+  /// No description provided for @electricityBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Electricity Bill'**
+  String get electricityBill;
+
+  /// No description provided for @owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get owner;
+
+  /// No description provided for @self.
+  ///
+  /// In en, this message translates to:
+  /// **'Self'**
+  String get self;
+
+  /// No description provided for @withRent.
+  ///
+  /// In en, this message translates to:
+  /// **'With Rent'**
+  String get withRent;
+
+  /// No description provided for @cctv.
+  ///
+  /// In en, this message translates to:
+  /// **'CCTV'**
+  String get cctv;
+
+  /// No description provided for @wifi.
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi'**
+  String get wifi;
+
+  /// No description provided for @generator.
+  ///
+  /// In en, this message translates to:
+  /// **'Generator'**
+  String get generator;
+
+  /// No description provided for @securityGuard.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Guard'**
+  String get securityGuard;
+
+  /// No description provided for @marketDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Market Distance (km)'**
+  String get marketDistance;
+
+  /// No description provided for @shortAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Short Address'**
+  String get shortAddress;
+
+  /// No description provided for @detailedDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed Description'**
+  String get detailedDescription;
+
+  /// No description provided for @postNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Now'**
+  String get postNow;
+
+  /// No description provided for @photoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add up to 10 photos'**
+  String get photoSubtitle;
+
+  /// No description provided for @thumbnailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnail'**
+  String get thumbnailLabel;
+
+  /// No description provided for @addPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Home Photos'**
+  String get addPhotos;
+
+  /// No description provided for @thumbnailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo will be used as a thumbnail'**
+  String get thumbnailHint;
+
+  /// No description provided for @anotherPhotosHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add more photos'**
+  String get anotherPhotosHint;
 }
 
 class _AppLocalizationsDelegate

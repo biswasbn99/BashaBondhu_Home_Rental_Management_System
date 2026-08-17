@@ -271,4 +271,70 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get account => 'প্রোফাইল';
+
+  @override
+  String get contactPerson => 'যার সাথে যোগাযোগ করবে তার নাম';
+
+  @override
+  String get amount => 'টাকার পরিমাণ';
+
+  @override
+  String get commonBathroom => 'কমন বাথরুম সংখ্যা';
+
+  @override
+  String get attachedBathroom => 'এটাচ বাথরুম সংখ্যা';
+
+  @override
+  String get kitchen => 'কিচেন-রুম সংখ্যা';
+
+  @override
+  String get electricityBill => 'বিদ্যুৎ বিল';
+
+  @override
+  String get owner => 'মালিকের';
+
+  @override
+  String get self => 'নিজের';
+
+  @override
+  String get withRent => 'ভাড়ার সাথে';
+
+  @override
+  String get cctv => 'সিসি ক্যামেরা';
+
+  @override
+  String get wifi => 'ওয়াই-ফাই';
+
+  @override
+  String get generator => 'জেনারেটর';
+
+  @override
+  String get securityGuard => 'সিকিউরিটি গার্ড';
+
+  @override
+  String get marketDistance => 'বাজারের দূরত্ব কিলোমিটারে';
+
+  @override
+  String get shortAddress => 'বাড়ির সংক্ষিপ্ত ঠিকানা';
+
+  @override
+  String get detailedDescription => 'বাসার বিস্তারিত বর্ণনা লিখুন';
+
+  @override
+  String get postNow => 'পোস্ট করুন';
+
+  @override
+  String get photoSubtitle => 'সর্বোচ্চ ১০টি ছবি যোগ করুন';
+
+  @override
+  String get thumbnailLabel => 'থাম্বনেইল';
+
+  @override
+  String get addPhotos => 'বাসার ছবি যুক্ত করুন';
+
+  @override
+  String get thumbnailHint => 'ছবিটি থাম্বনেইল হিসেবে ব্যবহার হবে';
+
+  @override
+  String get anotherPhotosHint => 'ছবি যোগ করুন';
 }

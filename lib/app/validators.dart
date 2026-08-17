@@ -35,6 +35,16 @@ class Validators {
     return null;
   }
 
+  static String? validateNumber(String? value, {String? message}) {
+    if (value == null || value.trim().isEmpty) {
+      return message ?? 'Enter a valid number';
+    }
+    if (double.tryParse(value) == null) {
+      return 'Please enter only numbers';
+    }
+    return null;
+  }
+
   static String? validatePassword(String? value) {
     if (value == null) {
       return 'Enter your password';

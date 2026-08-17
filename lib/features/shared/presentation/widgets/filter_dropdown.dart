@@ -1,7 +1,6 @@
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:flutter/material.dart';
 
-
 class FilterDropdown<T> extends StatelessWidget {
   const FilterDropdown({
     super.key,
