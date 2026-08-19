@@ -367,4 +367,10 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get contactInfo => 'যোগাযোগের তথ্য';
+
+  @override
+  String get guestUser => 'অতিথি ব্যবহারকারী';
+
+  @override
+  String get logout => 'লগআউট';
 }

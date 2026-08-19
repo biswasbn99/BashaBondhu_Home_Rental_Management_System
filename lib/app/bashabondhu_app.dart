@@ -5,6 +5,7 @@ import 'package:bashabondhu_home_rental_management_system/app/providers/theme_pr
 import 'package:bashabondhu_home_rental_management_system/app/routes.dart';
 import 'package:bashabondhu_home_rental_management_system/features/admin/data/providers/admin_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/admin/presentation/screens/admin_main_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/splash_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
@@ -42,6 +43,7 @@ class _BashabondhuAppState extends State<BashabondhuApp> {
         ChangeNotifierProvider.value(value: _themeProvider,),
         ChangeNotifierProvider(create: (_) => MainNavHolderProvider()),
         ChangeNotifierProvider(create: (_) => AdminProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, _, _) {

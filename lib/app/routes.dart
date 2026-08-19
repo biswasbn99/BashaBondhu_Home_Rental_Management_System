@@ -15,7 +15,6 @@ import '../features/auth/presentation/screens/splash_screen.dart';
 class AppRoutes {
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     // Strict Separation: If on Web, only allow Admin routes.
-    // If a mobile route is requested on web, redirect to Admin.
     if (kIsWeb && settings.name != AdminMainScreen.name) {
       return MaterialPageRoute(builder: (_) => const AdminMainScreen());
     }

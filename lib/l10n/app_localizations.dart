@@ -799,6 +799,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contact Information'**
   String get contactInfo;
+
+  /// No description provided for @guestUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest User'**
+  String get guestUser;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logout;
 }
 
 class _AppLocalizationsDelegate

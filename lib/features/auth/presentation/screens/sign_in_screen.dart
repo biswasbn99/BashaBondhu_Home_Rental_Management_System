@@ -1,6 +1,10 @@
 
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/services/auth_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_up_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../../app/validators.dart';
@@ -17,9 +21,9 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
-  
   String? _selectedUserType;
-   bool _isPasswordObscured = true;
+  bool _isPasswordObscured = true;
+  bool _isLoading = false;
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
 
@@ -104,9 +108,21 @@ class _SignInScreenState extends State<SignInScreen> {
                     validator: Validators.validatePassword,
                   ),
                   const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: _onTapSignInButton,
-                    child: const Text('Sign In'),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _isLoading ? null : _onTapSignInButton,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Sign In'),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -131,9 +147,49 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  void _onTapSignInButton() {
+  Future<void> _onTapSignInButton() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement actual sign in logic
+      setState(() => _isLoading = true);
+      try {
+        final credential = await AuthService().signIn(
+          email: _emailTEController.text.trim(),
+          password: _passwordTEController.text,
+        );
+
+        if (credential?.user != null) {
+          final userType = await AuthService().getUserType(credential!.user!.uid);
+          
+          if (!mounted) return;
+
+          if (userType == _selectedUserType) {
+            // Reset nav index before popping
+            context.read<MainNavHolderProvider>().resetIndex();
+            
+            if (mounted) {
+              Navigator.popUntil(context, (route) => route.isFirst);
+            }
+          } else {
+            await AuthService().signOut();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Unauthorized access. Please login as $_selectedUserType.')),
+              );
+            }
+          }
+        }
+      } on FirebaseAuthException catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'Login failed')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception:', '').trim())),
+        );
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 

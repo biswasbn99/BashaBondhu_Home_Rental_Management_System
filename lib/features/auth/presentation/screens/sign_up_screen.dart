@@ -1,5 +1,7 @@
 
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/services/auth_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_in_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/extensions/utility_extension.dart';
@@ -19,6 +21,7 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   String? _selectedUserType;
   bool _isPasswordObscured = true;
+  bool _isLoading = false;
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _firstNameTEController = TextEditingController();
   final TextEditingController _lastNameTEController = TextEditingController();
@@ -143,9 +146,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     validator: Validators.validatePassword,
                   ),
                   const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: _onTapSignUpButton,
-                    child: Text('Sign Up'),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _isLoading ? null : _onTapSignUpButton,
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(context.localizations.signUp),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -170,7 +185,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _onTapSignUpButton() {}
+  Future<void> _onTapSignUpButton() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      try {
+        await AuthService().signUp(
+          email: _emailTEController.text.trim(),
+          password: _passwordTEController.text,
+          firstName: _firstNameTEController.text.trim(),
+          lastName: _lastNameTEController.text.trim(),
+          mobile: _mobileTEController.text.trim(),
+          city: _cityTEController.text.trim(),
+          userType: _selectedUserType!,
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration successful! Please sign in.')),
+        );
+        Navigator.pushReplacementNamed(context, SignInScreen.name);
+      } on FirebaseAuthException catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'An error occurred during registration')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception:', '').trim())),
+        );
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    }
+  }
   void _onTapSignInButton() {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>SignInScreen()));
   }

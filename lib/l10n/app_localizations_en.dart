@@ -369,4 +369,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contactInfo => 'Contact Information';
+
+  @override
+  String get guestUser => 'Guest User';
+
+  @override
+  String get logout => 'Logout';
 }

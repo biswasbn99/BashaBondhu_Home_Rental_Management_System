@@ -115,5 +115,7 @@
   "facilitiesLabel": "সুযোগ-সুবিধা",
   "locationLabel": "লোকেশন",
   "perMonth": "প্রতি মাস",
-  "contactInfo": "যোগাযোগের তথ্য"
+  "contactInfo": "যোগাযোগের তথ্য",
+  "guestUser": "অতিথি ব্যবহারকারী",
+  "logout": "লগআউট"
 }

@@ -115,5 +115,7 @@
   "facilitiesLabel": "Facilities",
   "locationLabel": "Location",
   "perMonth": "Per Month",
-  "contactInfo": "Contact Information"
+  "contactInfo": "Contact Information",
+  "guestUser": "Guest User",
+  "logout": "Logout"
 }
