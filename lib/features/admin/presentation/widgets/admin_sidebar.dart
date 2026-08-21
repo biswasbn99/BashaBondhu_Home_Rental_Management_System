@@ -1,5 +1,4 @@
 import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
-import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/features/admin/data/providers/admin_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -57,6 +56,12 @@ class AdminSidebar extends StatelessWidget {
                   label: 'Properties',
                   module: AdminModule.properties,
                   isSelected: adminProvider.currentModule == AdminModule.properties,
+                ),
+                _SidebarItem(
+                  icon: Icons.location_on_rounded,
+                  label: 'Locations',
+                  module: AdminModule.locations,
+                  isSelected: adminProvider.currentModule == AdminModule.locations,
                 ),
                 _SidebarItem(
                   icon: Icons.category_rounded,

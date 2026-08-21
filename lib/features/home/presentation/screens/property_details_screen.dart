@@ -3,6 +3,7 @@ import 'package:bashabondhu_home_rental_management_system/app/extensions/utility
 import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
+import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class PropertyDetailsScreen extends StatelessWidget {
@@ -57,7 +58,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                     spacing: 12,
                     runSpacing: 12,
                     children: [
-                      _buildAmenityChip(Icons.bed_outlined, "${property.roomOrSeat}"),
+                      _buildAmenityChip(Icons.bed_outlined, property.roomOrSeat),
                       if (property.commonBathrooms != null)
                         _buildAmenityChip(Icons.bathtub_outlined, "${property.commonBathrooms} ${l10n.commonBathroom}"),
                       if (property.hasWifi == true)
@@ -99,7 +100,7 @@ class PropertyDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPriceSection(var l10n) {
+  Widget _buildPriceSection(AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -156,7 +157,7 @@ class PropertyDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContactButtons(var l10n) {
+  Widget _buildContactButtons(AppLocalizations l10n) {
     return Row(
       children: [
         Expanded(

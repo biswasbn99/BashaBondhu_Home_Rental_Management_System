@@ -138,7 +138,7 @@ class MultiImagePickerWidget extends StatelessWidget {
               ),
             );
           }),
-          if (images.length > 0 && images.length < 10)
+          if (images.isNotEmpty && images.length < 10)
             _AddSmallPlaceholder(
               onTap: () => _pickImage(context),
               hint: l10n.anotherPhotosHint,

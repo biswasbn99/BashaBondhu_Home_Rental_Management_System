@@ -1,8 +1,8 @@
 import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/app/validators.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home_rent_post/data/providers/home_rent_post_provider.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/month_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/house_type_dropdown_button.dart';
@@ -19,6 +19,7 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/parking_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home_rent_post/presentations/widgets/validated_text_area.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -49,19 +50,21 @@ class _HomeRentPostView extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<HomeRentPostProvider>();
     final l10n = context.localizations;
+    final userProvider = Provider.of<UserProvider>(context);
+    final bool isGuest = userProvider.isGuest;
 
     return Scaffold(
       appBar: MainAppBar(
         automaticallyImplyLeading: true,
-        title: Text(
-          l10n.postRentalTitle,
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w900,
-            color: Theme.of(context).colorScheme.primary, // Adapts to Dark/Light mode
-            letterSpacing: -0.5,
-          ),
-        ),
+        titleSpacing: isGuest ? 12 : 20,
+        actions: isGuest
+            ? [
+                const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: FreePostButton(),
+                ),
+              ]
+            : null,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -364,28 +367,6 @@ class _HomeRentPostView extends StatelessWidget {
             const SizedBox(height: 32),
           ],
         ),
-      ),
-      bottomNavigationBar: Consumer<MainNavHolderProvider>(
-        builder: (context, navProvider, _) {
-          return BottomNavigationBar(
-            currentIndex: navProvider.selectedIndex,
-            onTap: (index) {
-              navProvider.changeIndex(index);
-              Navigator.popUntil(context, (route) => route.isFirst);
-            },
-            selectedItemColor: AppColors.themeColor,
-            unselectedItemColor: Colors.grey,
-            showUnselectedLabels: true,
-            type: BottomNavigationBarType.fixed,
-            items: [
-              BottomNavigationBarItem(icon: const Icon(Icons.home), label: l10n.home),
-              BottomNavigationBarItem(icon: const Icon(Icons.search), label: l10n.findHome),
-              BottomNavigationBarItem(icon: const Icon(Icons.domain_add), label: l10n.demand),
-              BottomNavigationBarItem(icon: const Icon(Icons.favorite), label: l10n.wishlist),
-              BottomNavigationBarItem(icon: const Icon(Icons.person), label: l10n.account),
-            ],
-          );
-        },
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/app/validators.dart';
 import 'package:bashabondhu_home_rental_management_system/features/demand_home/presentation/providers/demand_home_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/month_dropdown_button.dart';
@@ -45,16 +46,23 @@ class _DemandHomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<DemandHomeProvider>();
+    final provider = Provider.of<DemandHomeProvider>(context);
     final l10n = context.localizations;
+    final userProvider = Provider.of<UserProvider>(context);
+    final bool isGuest = userProvider.isGuest;
 
     return Scaffold(
-      appBar: const MainAppBar(
+      appBar: MainAppBar(
         automaticallyImplyLeading: false,
-        titleSpacing: 20,
-        actions: [
-          FreePostButton(),
-        ],
+        titleSpacing: isGuest ? 12 : 20,
+        actions: isGuest
+            ? [
+                const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: FreePostButton(),
+                ),
+              ]
+            : null,
       ),
       body: SafeArea(
         child: SingleChildScrollView(

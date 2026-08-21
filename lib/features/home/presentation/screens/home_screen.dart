@@ -2,6 +2,7 @@ import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home/presentation/widgets/property_card.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/district_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/division_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/search_filter_model.dart';
@@ -9,6 +10,7 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/data/m
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -19,6 +21,8 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.localizations;
     final theme = Theme.of(context);
+    final userProvider = Provider.of<UserProvider>(context);
+    final bool isGuest = userProvider.isGuest;
 
     // Dummy Data for demonstration
     final List<PropertyModel> properties = [
@@ -34,7 +38,7 @@ class HomeScreen extends StatelessWidget {
         userWhatsApp: '01700000000',
         division: DivisionModel(id: '1', name: 'Dhaka', bnName: 'ঢাকা'),
         district: DistrictModel(id: '1', divisionId: '1', name: 'Dhaka', bnName: 'ঢাকা'),
-        area: UpazilaModel(id: '1', districtId: '1', name: 'Bashundhara', bnName: 'বসুন্ধরা'),
+        area: UpazilaModel(id: '1', districtId: '1', name: 'Uttara', bnName: 'উত্তরা'),
         shortAddress: 'Block D, Road 5, Bashundhara RA',
         detailedDescription: 'Luxury 4 bedroom flat with modern fittings. Available from next month.',
         commonBathrooms: 2,
@@ -66,12 +70,17 @@ class HomeScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      appBar: const MainAppBar(
+      appBar: MainAppBar(
         automaticallyImplyLeading: false,
-        titleSpacing: 20,
-        actions: [
-          FreePostButton(),
-        ],
+        titleSpacing: isGuest ? 12 : 20,
+        actions: isGuest
+            ? [
+                const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: FreePostButton(),
+                ),
+              ]
+            : null,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),

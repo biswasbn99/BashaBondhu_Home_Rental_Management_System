@@ -18,13 +18,23 @@ class UpazilaModel {
 
   factory UpazilaModel.fromJson(Map<String, dynamic> json) {
     return UpazilaModel(
-      id: json['id'].toString(),
-      name: (json['name'] ?? '').toString(),
-      bnName: (json['bn_name'] ?? '').toString(),
-      districtId: json['district_id']?.toString(),
+      id: (json['id'] ?? '').toString(),
+      name: (json['name_en'] ?? json['name'] ?? '').toString(),
+      bnName: (json['name_bn'] ?? json['bn_name'] ?? json['name'] ?? '').toString(),
+      districtId: (json['district_id'] ?? json['districtId'])?.toString(),
       coordinates: json['coordinates']?.toString(),
     );
   }
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'bn_name': bnName,
+    'name_en': name,
+    'name_bn': bnName,
+    if (districtId != null) 'district_id': districtId,
+    if (coordinates != null) 'coordinates': coordinates,
+  };
 
   @override
   bool operator ==(Object other) => other is UpazilaModel && other.id == id;

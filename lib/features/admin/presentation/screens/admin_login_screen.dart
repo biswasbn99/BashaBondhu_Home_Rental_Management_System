@@ -20,7 +20,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
+      backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       body: Center(
         child: Container(
           width: 400,

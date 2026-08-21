@@ -4,6 +4,7 @@ enum AdminModule {
   dashboard,
   users,
   properties,
+  locations,
   categories,
   reports,
   faq,

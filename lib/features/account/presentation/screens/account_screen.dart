@@ -10,6 +10,8 @@ import 'package:bashabondhu_home_rental_management_system/features/auth/presenta
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/tenant_demand/presentation/screens/tenant_demand_show_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/main_nav_holder_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -27,22 +29,23 @@ class AccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = context.watch<UserProvider>();
+    final userProvider = Provider.of<UserProvider>(context);
     final l10n = context.localizations;
     final theme = Theme.of(context);
+    final bool isGuest = userProvider.isGuest;
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
+      appBar: MainAppBar(
         automaticallyImplyLeading: false,
-        titleSpacing: 20,
-        title: Text(
-          l10n.account,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
+        titleSpacing: isGuest ? 12 : 20,
+        actions: isGuest
+            ? [
+                const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: FreePostButton(),
+                ),
+              ]
+            : null,
       ),
       body: SafeArea(
         child: SingleChildScrollView(

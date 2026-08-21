@@ -44,7 +44,7 @@ class PropertyCard extends StatelessWidget {
                     ? Image.network(
                         property.images[0], // Assuming URL
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
                       )
                     : _buildPlaceholder(),
               ),

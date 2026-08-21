@@ -1,12 +1,15 @@
 import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/tenant_demand/data/models/tenant_demand_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/tenant_demand/presentation/screens/show_demand_details_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/area_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/district_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/division_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/area_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class TenantDemandShowScreen extends StatelessWidget {
   const TenantDemandShowScreen({super.key});
@@ -15,8 +18,9 @@ class TenantDemandShowScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.localizations;
-    final theme = Theme.of(context);
+    final userProvider = Provider.of<UserProvider>(context);
+    final bool isGuest = userProvider.isGuest;
+    final bool isOwner = userProvider.user?.userType == 'House Owner';
 
     // Dummy Data for demonstration
     final List<TenantDemandModel> demands = [
@@ -25,9 +29,9 @@ class TenantDemandShowScreen extends StatelessWidget {
         month: 'September',
         houseType: HouseType.flat,
         roomOrSeat: '3 Bed',
-        division: DivisionModel(id: '1', name: 'Dhaka', bnName: 'ঢাকা'),
-        district: DistrictModel(id: '1', divisionId: '1', name: 'Dhaka', bnName: 'ঢাকা'),
-        area: UpazilaModel(id: '1', districtId: '1', name: 'Uttara', bnName: 'উত্তরা'),
+        division: const DivisionModel(id: '1', name: 'Dhaka', bnName: 'ঢাকা'),
+        district: const DistrictModel(id: '1', divisionId: '1', name: 'Dhaka', bnName: 'ঢাকা'),
+        area: const UpazilaModel(id: '1', districtId: '1', name: 'Uttara', bnName: 'উত্তরা'),
         budgetRange: '25000',
         tenantType: TenantType.family,
         userName: 'Ariful Islam',
@@ -45,9 +49,9 @@ class TenantDemandShowScreen extends StatelessWidget {
         month: 'October',
         houseType: HouseType.room,
         roomOrSeat: '1 Room',
-        division: DivisionModel(id: '1', name: 'Dhaka', bnName: 'ঢাকা'),
-        district: DistrictModel(id: '1', divisionId: '1', name: 'Dhaka', bnName: 'ঢাকা'),
-        area: UpazilaModel(id: '2', districtId: '1', name: 'Mirpur', bnName: 'মিরপুর'),
+        division: const DivisionModel(id: '1', name: 'Dhaka', bnName: 'ঢাকা'),
+        district: const DistrictModel(id: '1', divisionId: '1', name: 'Dhaka', bnName: 'ঢাকা'),
+        area: const UpazilaModel(id: '2', districtId: '1', name: 'Mirpur', bnName: 'মিরপুর'),
         budgetRange: '8000',
         tenantType: TenantType.bachelorMale,
         userName: 'Sabbir Ahmed',
@@ -63,14 +67,15 @@ class TenantDemandShowScreen extends StatelessWidget {
     return Scaffold(
       appBar: MainAppBar(
         automaticallyImplyLeading: true,
-        title: Text(
-          l10n.demand,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            color: theme.colorScheme.primary,
-          ),
-        ),
+        titleSpacing: (isGuest || isOwner) ? 12 : 20,
+        actions: isGuest
+            ? [
+                const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: FreePostButton(),
+                ),
+              ]
+            : null,
       ),
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),

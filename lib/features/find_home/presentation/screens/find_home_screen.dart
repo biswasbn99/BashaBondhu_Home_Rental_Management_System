@@ -1,4 +1,5 @@
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/providers/find_home_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/screens/search_result.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/month_dropdown_button.dart';
@@ -16,8 +17,6 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-
 
 class FindHomeScreen extends StatelessWidget {
   const FindHomeScreen({super.key});
@@ -44,19 +43,24 @@ class _FindHomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<FindHomeProvider>();
+    final provider = Provider.of<FindHomeProvider>(context);
     final l10n = context.localizations;
+    final userProvider = Provider.of<UserProvider>(context);
+    final bool isGuest = userProvider.isGuest;
 
     return Scaffold(
-      appBar: const MainAppBar(
+      appBar: MainAppBar(
         automaticallyImplyLeading: false,
-        titleSpacing: 20,
-        actions: [
-          FreePostButton(),
-        ],
+        titleSpacing: isGuest ? 12 : 20,
+        actions: isGuest
+            ? [
+                const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: FreePostButton(),
+                ),
+              ]
+            : null,
       ),
-     
-      
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -272,7 +276,6 @@ class _FindHomeView extends StatelessWidget {
     );
   }
 }
-
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel({required this.title, required this.subtitle});
