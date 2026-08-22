@@ -55,20 +55,23 @@ class AdminDashboardView extends StatelessWidget {
                 final recentProperties = properties.take(5).toList();
 
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.all(28),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header with Language Switcher
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      // Header with Responsive Wrap
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 16,
+                        runSpacing: 12,
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 isBn ? 'অ্যাডমিন ড্যাশবোর্ড ওভারভিউ' : 'Dashboard Overview',
-                                style: theme.textTheme.headlineMedium?.copyWith(
+                                style: theme.textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.w900,
                                   color: AppColors.themeColor,
                                 ),
@@ -78,18 +81,22 @@ class AdminDashboardView extends StatelessWidget {
                                 isBn
                                     ? 'স্বাগতম, অ্যাডমিন। রিয়েল-টাইম সিস্টেম ডেটা ও পরিসংখ্যান।'
                                     : 'Welcome back, Admin. Real-time statistics from Cloud Firestore.',
-                                style: TextStyle(color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88),
+                                ),
                               ),
                             ],
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
                               color: theme.colorScheme.surface,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[300]!),
                             ),
                             child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   isBn ? 'বাংলা' : 'English',
@@ -99,27 +106,29 @@ class AdminDashboardView extends StatelessWidget {
                                 Switch.adaptive(
                                   value: isBn,
                                   activeTrackColor: AppColors.themeColor,
-                                  onChanged: (val) => adminProvider.toggleLanguage(),
+                                  onChanged: (_) => adminProvider.toggleLanguage(),
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
 
                       // User Statistics Group
                       _buildSectionTitle(isBn ? '👥 ইউজার পরিসংখ্যান (Users Analytics)' : '👥 Users Analytics', isDark),
                       const SizedBox(height: 12),
                       LayoutBuilder(
                         builder: (context, constraints) {
-                          final int crossAxisCount = constraints.maxWidth > 900 ? 4 : (constraints.maxWidth > 600 ? 2 : 1);
+                          final int crossAxisCount = constraints.maxWidth > 950 ? 4 : (constraints.maxWidth > 580 ? 2 : 1);
+                          final double aspectRatio = constraints.maxWidth > 950 ? 1.5 : (constraints.maxWidth > 580 ? 1.4 : 2.2);
+
                           return GridView.count(
                             crossAxisCount: crossAxisCount,
                             shrinkWrap: true,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 1.6,
+                            crossAxisSpacing: 14,
+                            mainAxisSpacing: 14,
+                            childAspectRatio: aspectRatio,
                             physics: const NeverScrollableScrollPhysics(),
                             children: [
                               _StatCard(
@@ -154,20 +163,22 @@ class AdminDashboardView extends StatelessWidget {
                           );
                         },
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
 
                       // Property & Reports Statistics Group
                       _buildSectionTitle(isBn ? '🏠 প্রপার্টি ও রিপোর্ট পরিসংখ্যান (Listings & Reports)' : '🏠 Properties & Reports', isDark),
                       const SizedBox(height: 12),
                       LayoutBuilder(
                         builder: (context, constraints) {
-                          final int crossAxisCount = constraints.maxWidth > 1100 ? 5 : (constraints.maxWidth > 800 ? 3 : (constraints.maxWidth > 500 ? 2 : 1));
+                          final int crossAxisCount = constraints.maxWidth > 1100 ? 5 : (constraints.maxWidth > 750 ? 3 : (constraints.maxWidth > 500 ? 2 : 1));
+                          final double aspectRatio = constraints.maxWidth > 1100 ? 1.45 : (constraints.maxWidth > 750 ? 1.4 : (constraints.maxWidth > 500 ? 1.35 : 2.2));
+
                           return GridView.count(
                             crossAxisCount: crossAxisCount,
                             shrinkWrap: true,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 1.5,
+                            crossAxisSpacing: 14,
+                            mainAxisSpacing: 14,
+                            childAspectRatio: aspectRatio,
                             physics: const NeverScrollableScrollPhysics(),
                             children: [
                               _StatCard(
@@ -209,7 +220,7 @@ class AdminDashboardView extends StatelessWidget {
                           );
                         },
                       ),
-                      const SizedBox(height: 36),
+                      const SizedBox(height: 30),
 
                       // Tables Section (Recent Submissions & Pending Verifications)
                       LayoutBuilder(
@@ -222,7 +233,7 @@ class AdminDashboardView extends StatelessWidget {
                                   flex: 6,
                                   child: _buildRecentPropertiesCard(context, recentProperties, isBn, isDark, adminService),
                                 ),
-                                const SizedBox(width: 24),
+                                const SizedBox(width: 20),
                                 Expanded(
                                   flex: 5,
                                   child: _buildPendingVerificationsCard(context, pendingUsers, isBn, isDark, adminService),
@@ -233,7 +244,7 @@ class AdminDashboardView extends StatelessWidget {
                             return Column(
                               children: [
                                 _buildRecentPropertiesCard(context, recentProperties, isBn, isDark, adminService),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 20),
                                 _buildPendingVerificationsCard(context, pendingUsers, isBn, isDark, adminService),
                               ],
                             );
@@ -254,7 +265,7 @@ class AdminDashboardView extends StatelessWidget {
   Widget _buildSectionTitle(String title, bool isDark) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
     );
   }
 
@@ -266,7 +277,7 @@ class AdminDashboardView extends StatelessWidget {
     AdminFirestoreService adminService,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E2625) : Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -278,9 +289,13 @@ class AdminDashboardView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                isBn ? 'সাম্প্রতিক বাসাভাড়ার বিজ্ঞাপন' : 'Recent Property Submissions',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              Flexible(
+                child: Text(
+                  isBn ? 'সাম্প্রতিক বাসাভাড়ার বিজ্ঞাপন' : 'Recent Submissions',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
               ),
               TextButton(
                 onPressed: () => context.read<AdminProvider>().changeModule(AdminModule.properties),
@@ -288,7 +303,7 @@ class AdminDashboardView extends StatelessWidget {
               ),
             ],
           ),
-          const Divider(height: 16),
+          const Divider(height: 12),
           if (properties.isEmpty)
             Padding(
               padding: const EdgeInsets.all(20),
@@ -307,28 +322,30 @@ class AdminDashboardView extends StatelessWidget {
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: SizedBox(
-                      width: 48,
-                      height: 48,
+                      width: 44,
+                      height: 44,
                       child: prop.images.isNotEmpty
-                          ? _buildImage(prop.images.first, 48, 48)
-                          : Container(color: Colors.grey[300], child: const Icon(Icons.home)),
+                          ? _buildImage(prop.images.first, 44, 44)
+                          : Container(color: Colors.grey[300], child: const Icon(Icons.home, size: 20)),
                     ),
                   ),
                   title: Text(
                     prop.shortAddress.isNotEmpty ? prop.shortAddress : prop.houseType.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                   ),
                   subtitle: Text(
                     "${prop.amount} ৳ • ${prop.area.name}, ${prop.district.name}",
-                    style: const TextStyle(fontSize: 12, color: AppColors.themeColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11.5, color: AppColors.themeColor),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 22),
+                        icon: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20),
                         tooltip: isBn ? 'অনুমোদন করুন' : 'Approve',
                         onPressed: () async {
                           await adminService.updatePropertyApproval(prop.id, 'approved');
@@ -340,7 +357,7 @@ class AdminDashboardView extends StatelessWidget {
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.cancel_rounded, color: Colors.redAccent, size: 22),
+                        icon: const Icon(Icons.cancel_rounded, color: Colors.redAccent, size: 20),
                         tooltip: isBn ? 'প্রত্যাখ্যান করুন' : 'Reject',
                         onPressed: () => _showRejectDialog(context, prop.id, adminService, isBn),
                       ),
@@ -362,7 +379,7 @@ class AdminDashboardView extends StatelessWidget {
     AdminFirestoreService adminService,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E2625) : Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -374,9 +391,13 @@ class AdminDashboardView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                isBn ? 'এনআইডি ভেরিফিকেশন আবেদন' : 'Pending Verifications',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              Flexible(
+                child: Text(
+                  isBn ? 'এনআইডি ভেরিফিকেশন আবেদন' : 'Pending Verifications',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
               ),
               TextButton(
                 onPressed: () => context.read<AdminProvider>().changeModule(AdminModule.users),
@@ -384,7 +405,7 @@ class AdminDashboardView extends StatelessWidget {
               ),
             ],
           ),
-          const Divider(height: 16),
+          const Divider(height: 12),
           if (users.isEmpty)
             Padding(
               padding: const EdgeInsets.all(20),
@@ -402,16 +423,23 @@ class AdminDashboardView extends StatelessWidget {
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
+                    radius: 18,
                     backgroundColor: AppColors.themeColor.withValues(alpha: 0.12),
-                    child: Text(user.initials, style: const TextStyle(color: AppColors.themeColor, fontWeight: FontWeight.bold)),
+                    child: Text(user.initials, style: const TextStyle(color: AppColors.themeColor, fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
-                  title: Text(name.isNotEmpty ? name : 'User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                  subtitle: Text('${user.userType} • ${user.mobile.isNotEmpty ? user.mobile : user.email}', style: const TextStyle(fontSize: 11.5)),
+                  title: Text(name.isNotEmpty ? name : 'User', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  subtitle: Text(
+                    '${user.userType} • ${user.mobile.isNotEmpty ? user.mobile : user.email}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11),
+                  ),
                   trailing: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      minimumSize: Size.zero,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     onPressed: () async {
@@ -422,7 +450,7 @@ class AdminDashboardView extends StatelessWidget {
                         );
                       }
                     },
-                    child: Text(isBn ? 'ভেরিফাই' : 'Verify', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    child: Text(isBn ? 'ভেরিফাই' : 'Verify', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
                   ),
                 );
               }).toList(),
@@ -442,7 +470,7 @@ class AdminDashboardView extends StatelessWidget {
         content: TextField(
           controller: reasonController,
           decoration: InputDecoration(
-            hintText: isBn ? 'প্রত্যাখ্যানের কারণ লিখুন (যেমন: অসম্পূর্ণ তথ্য)' : 'Enter rejection reason (e.g. invalid pictures)',
+            hintText: isBn ? 'প্রত্যাখ্যানের কারণ লিখুন' : 'Enter rejection reason',
           ),
           maxLines: 2,
         ),
@@ -468,14 +496,14 @@ class AdminDashboardView extends StatelessWidget {
 
   Widget _buildImage(String src, double width, double height) {
     if (src.isEmpty) {
-      return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image));
+      return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image, size: 20));
     }
     if (src.startsWith('data:image')) {
       try {
         final base64Str = src.split(',').last;
         return Image.memory(base64Decode(base64Str), width: width, height: height, fit: BoxFit.cover);
       } catch (_) {
-        return const Icon(Icons.broken_image);
+        return const Icon(Icons.broken_image, size: 20);
       }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
       return Image.network(src, width: width, height: height, fit: BoxFit.cover);
@@ -503,50 +531,54 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E2625) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: isDark ? 0.1 : 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: isDark ? 0.25 : 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: color, size: 22),
+                child: Icon(icon, color: color, size: 20),
               ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: color,
+              Flexible(
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: color,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 6),
           Text(
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
           ),
         ],
       ),

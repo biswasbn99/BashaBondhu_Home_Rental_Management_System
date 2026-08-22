@@ -28,20 +28,23 @@ class _FaqManagementViewState extends State<FaqManagementView> {
         final faqs = snapshot.data ?? [];
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header & Add Button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Header & Add Button with Wrap
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 16,
+                runSpacing: 12,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         isBn ? 'সচরাচর জিজ্ঞাসা (FAQ Management)' : 'FAQ Management',
-                        style: theme.textTheme.headlineMedium?.copyWith(
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
                           color: AppColors.themeColor,
                         ),
@@ -49,25 +52,25 @@ class _FaqManagementViewState extends State<FaqManagementView> {
                       const SizedBox(height: 4),
                       Text(
                         isBn
-                            ? 'ব্যবহারকারীদের প্রশ্নের উত্তর ও গাইড পরিচালনা করুন (${faqs.length} টি প্রশ্নোত্তর)'
+                            ? 'ব্যবহারকারীদের প্রশ্নোত্তর ও গাইড পরিচালনা করুন (${faqs.length} টি FAQ)'
                             : 'Manage frequently asked questions and user guides (${faqs.length} FAQs)',
-                        style: TextStyle(color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                        style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
                       ),
                     ],
                   ),
                   FilledButton.icon(
                     onPressed: () => _showAddOrEditFaqDialog(context, null, isBn),
-                    icon: const Icon(Icons.add_rounded),
-                    label: Text(isBn ? 'নতুন FAQ যোগ করুন' : 'Add FAQ'),
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    label: Text(isBn ? 'নতুন FAQ' : 'Add FAQ'),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.themeColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
               // FAQ List
               if (faqs.isEmpty)
@@ -104,16 +107,19 @@ class _FaqManagementViewState extends State<FaqManagementView> {
                       ),
                       child: ExpansionTile(
                         leading: CircleAvatar(
+                          radius: 16,
                           backgroundColor: AppColors.themeColor.withValues(alpha: 0.12),
-                          child: const Icon(Icons.question_mark_rounded, color: AppColors.themeColor, size: 18),
+                          child: const Icon(Icons.question_mark_rounded, color: AppColors.themeColor, size: 16),
                         ),
                         title: Text(
                           isBn ? qBn : qEn,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                         ),
                         subtitle: Text(
                           '${isBn ? "ক্যাটাগরি:" : "Category:"} $cat',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -132,25 +138,25 @@ class _FaqManagementViewState extends State<FaqManagementView> {
                         ),
                         children: [
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                            padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Divider(),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 4),
                                 Text(
                                   isBn ? aBn : aEn,
                                   style: TextStyle(
-                                    fontSize: 13.5,
+                                    fontSize: 13,
                                     color: isDark ? Colors.grey[300] : const Color(0xFF4A5A58),
-                                    height: 1.5,
+                                    height: 1.4,
                                   ),
                                 ),
                                 if (qEn.isNotEmpty && qBn.isNotEmpty) ...[
-                                  const SizedBox(height: 10),
+                                  const SizedBox(height: 8),
                                   Text(
                                     isBn ? "English: $qEn\n$aEn" : "বাংলা: $qBn\n$aBn",
-                                    style: const TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+                                    style: const TextStyle(fontSize: 11.5, color: Colors.grey, fontStyle: FontStyle.italic),
                                   ),
                                 ],
                               ],
@@ -182,7 +188,7 @@ class _FaqManagementViewState extends State<FaqManagementView> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(isEditing ? (isBn ? 'FAQ সম্পাদনা' : 'Edit FAQ') : (isBn ? 'নতুন FAQ যোগ করুন' : 'Add New FAQ')),
         content: SizedBox(
-          width: 500,
+          width: 480,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -193,30 +199,30 @@ class _FaqManagementViewState extends State<FaqManagementView> {
                     labelText: isBn ? 'প্রশ্ন (English)' : 'Question (English)',
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 TextField(
                   controller: qBnController,
                   decoration: InputDecoration(
                     labelText: isBn ? 'প্রশ্ন (বাংলা)' : 'Question (Bangla)',
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 TextField(
                   controller: aEnController,
-                  maxLines: 3,
+                  maxLines: 2,
                   decoration: InputDecoration(
                     labelText: isBn ? 'উত্তর (English)' : 'Answer (English)',
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 TextField(
                   controller: aBnController,
-                  maxLines: 3,
+                  maxLines: 2,
                   decoration: InputDecoration(
                     labelText: isBn ? 'উত্তর (বাংলা)' : 'Answer (Bangla)',
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 TextField(
                   controller: catController,
                   decoration: InputDecoration(

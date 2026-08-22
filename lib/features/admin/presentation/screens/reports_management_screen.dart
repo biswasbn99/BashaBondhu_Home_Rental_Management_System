@@ -36,20 +36,23 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
         }).toList();
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Header with Wrap
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 16,
+                runSpacing: 12,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         isBn ? 'রিপোর্ট ও অভিযোগ ম্যানেজমেন্ট' : 'Reports Management',
-                        style: theme.textTheme.headlineMedium?.copyWith(
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
                           color: AppColors.themeColor,
                         ),
@@ -57,16 +60,16 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
                       const SizedBox(height: 4),
                       Text(
                         isBn
-                            ? 'ভুয়া বিজ্ঞাপন, স্প্যাম ও সমস্যা সংক্রান্ত অভিযোগসমূহ পরিচালনা করুন (${filteredReports.length} টি রিপোর্ট)'
-                            : 'Review and resolve fake listings, spam, and user reports (${filteredReports.length} reports)',
-                        style: TextStyle(color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                            ? 'ভুয়া বিজ্ঞাপন, স্প্যাম ও অভিযোগ পরিচালনা করুন (${filteredReports.length} টি রিপোর্ট)'
+                            : 'Review and resolve fake listings and spam reports (${filteredReports.length} reports)',
+                        style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
                       ),
                     ],
                   ),
                   _buildFilterDropdown(isBn, isDark),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Reports Table / List
               Container(
@@ -82,11 +85,11 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
                         child: Center(
                           child: Column(
                             children: [
-                              const Icon(Icons.check_circle_outline_rounded, size: 48, color: Colors.green),
-                              const SizedBox(height: 12),
+                              const Icon(Icons.check_circle_outline_rounded, size: 44, color: Colors.green),
+                              const SizedBox(height: 10),
                               Text(
                                 isBn ? 'কোনো নতুন রিপোর্ট বা অভিযোগ নেই' : 'No reports found',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                               ),
                             ],
                           ),
@@ -107,78 +110,106 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
                           final status = report['status']?.toString() ?? 'pending';
                           final isResolved = status == 'resolved';
 
-                          return ListTile(
-                            contentPadding: const EdgeInsets.all(16),
-                            leading: CircleAvatar(
-                              backgroundColor: (isResolved ? Colors.green : Colors.redAccent).withValues(alpha: 0.12),
-                              child: Icon(
-                                isResolved ? Icons.check_circle_rounded : Icons.report_problem_rounded,
-                                color: isResolved ? Colors.green : Colors.redAccent,
-                              ),
-                            ),
-                            title: Row(
-                              children: [
-                                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: (isResolved ? Colors.green : Colors.redAccent).withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    isResolved ? (isBn ? 'নিষ্পন্ন' : 'Resolved') : (isBn ? 'পেন্ডিং' : 'Pending'),
-                                    style: TextStyle(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.bold,
-                                      color: isResolved ? Colors.green : Colors.redAccent,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            subtitle: Column(
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 4),
-                                Text("${isBn ? 'কারণ:' : 'Reason:'} $reason", style: const TextStyle(fontSize: 12.5)),
-                                Text("${isBn ? 'টার্গেট আইডি:' : 'Target ID:'} $targetId • ${isBn ? 'রিপোর্টার:' : 'Reporter:'} $reporter", style: const TextStyle(fontSize: 11.5, color: Colors.grey)),
-                              ],
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (!isResolved)
-                                  ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                    icon: const Icon(Icons.check, size: 16),
-                                    label: Text(isBn ? 'সমাধান' : 'Resolve'),
-                                    onPressed: () async {
-                                      await _adminService.updateReportStatus(id, 'resolved');
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text(isBn ? 'রিপোর্ট সমাধান করা হয়েছে!' : 'Report resolved!'), backgroundColor: Colors.green),
-                                        );
-                                      }
-                                    },
+                                CircleAvatar(
+                                  radius: 18,
+                                  backgroundColor: (isResolved ? Colors.green : Colors.redAccent).withValues(alpha: 0.12),
+                                  child: Icon(
+                                    isResolved ? Icons.check_circle_rounded : Icons.report_problem_rounded,
+                                    color: isResolved ? Colors.green : Colors.redAccent,
+                                    size: 18,
                                   ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              title,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: (isResolved ? Colors.green : Colors.redAccent).withValues(alpha: 0.12),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              isResolved ? (isBn ? 'নিষ্পন্ন' : 'Resolved') : (isBn ? 'পেন্ডিং' : 'Pending'),
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: isResolved ? Colors.green : Colors.redAccent,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "${isBn ? 'কারণ:' : 'Reason:'} $reason",
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        "${isBn ? 'টার্গেট:' : 'Target:'} $targetId • ${isBn ? 'রিপোর্টার:' : 'By:'} $reporter",
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 const SizedBox(width: 8),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-                                  tooltip: isBn ? 'রিপোর্ট মুছুন' : 'Delete Report',
-                                  onPressed: () async {
-                                    await _adminService.deleteReport(id);
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(isBn ? 'রিপোর্ট মুছে ফেলা হয়েছে।' : 'Report deleted.'), backgroundColor: Colors.redAccent),
-                                      );
-                                    }
-                                  },
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (!isResolved)
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                          minimumSize: Size.zero,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        ),
+                                        onPressed: () async {
+                                          await _adminService.updateReportStatus(id, 'resolved');
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text(isBn ? 'রিপোর্ট সমাধান করা হয়েছে!' : 'Report resolved!'), backgroundColor: Colors.green),
+                                            );
+                                          }
+                                        },
+                                        child: Text(isBn ? 'সমাধান' : 'Resolve', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                      ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
+                                      tooltip: isBn ? 'রিপোর্ট মুছুন' : 'Delete Report',
+                                      onPressed: () async {
+                                        await _adminService.deleteReport(id);
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text(isBn ? 'রিপোর্ট মুছে ফেলা হয়েছে।' : 'Report deleted.'), backgroundColor: Colors.redAccent),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -195,7 +226,7 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
 
   Widget _buildFilterDropdown(bool isBn, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF161C1B) : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),

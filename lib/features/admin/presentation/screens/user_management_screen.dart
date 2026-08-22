@@ -65,75 +65,91 @@ class _UserManagementViewState extends State<UserManagementView> {
               return u.nidFrontImageUrl.isNotEmpty;
             case 'Pending':
               return u.nidFrontImageUrl.isEmpty;
-            case 'Blocked':
-              return false; // Will check when isBlocked flag is added
             default:
               return true;
           }
         }).toList();
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isBn ? 'ইউজার ম্যানেজমেন্ট' : 'User Management',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.themeColor,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        isBn
-                            ? 'বাড়িওয়ালা, ভাড়াটিয়া ও এনআইডি ভেরিফিকেশন ম্যানেজ করুন (${filteredUsers.length} জন ইউজার)'
-                            : 'Manage Owners, Tenants, and NID Verifications (${filteredUsers.length} users)',
-                        style: TextStyle(color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
-                      ),
-                    ],
-                  ),
-                ],
+              Text(
+                isBn ? 'ইউজার ম্যানেজমেন্ট' : 'User Management',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.themeColor,
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 4),
+              Text(
+                isBn
+                    ? 'বাড়িওয়ালা, ভাড়াটিয়া ও এনআইডি ভেরিফিকেশন ম্যানেজ করুন (${filteredUsers.length} জন ইউজার)'
+                    : 'Manage Owners, Tenants, and NID Verifications (${filteredUsers.length} users)',
+                style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+              ),
+              const SizedBox(height: 20),
 
-              // Search and Filter Bar
+              // Search and Filter Bar with Responsive LayoutBuilder
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1E2625) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: (val) => setState(() => _searchQuery = val),
-                        decoration: InputDecoration(
-                          hintText: isBn
-                              ? 'নাম, ইমেইল, মোবাইল বা ইউজার আইডি দিয়ে খুঁজুন...'
-                              : 'Search by Name, Email, Phone, or UID...',
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    _buildFilterDropdown(isBn, isDark),
-                  ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth > 550) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              onChanged: (val) => setState(() => _searchQuery = val),
+                              decoration: InputDecoration(
+                                hintText: isBn
+                                    ? 'নাম, ইমেইল, মোবাইল দিয়ে খুঁজুন...'
+                                    : 'Search by Name, Email, Phone...',
+                                prefixIcon: const Icon(Icons.search_rounded),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          _buildFilterDropdown(isBn, isDark),
+                        ],
+                      );
+                    } else {
+                      return Column(
+                        children: [
+                          TextField(
+                            controller: _searchController,
+                            onChanged: (val) => setState(() => _searchQuery = val),
+                            decoration: InputDecoration(
+                              hintText: isBn
+                                  ? 'নাম, ইমেইল, মোবাইল দিয়ে খুঁজুন...'
+                                  : 'Search by Name, Email, Phone...',
+                              prefixIcon: const Icon(Icons.search_rounded),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: _buildFilterDropdown(isBn, isDark),
+                          ),
+                        ],
+                      );
+                    }
+                  },
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Users DataTable
               Container(
@@ -149,11 +165,11 @@ class _UserManagementViewState extends State<UserManagementView> {
                         child: Center(
                           child: Column(
                             children: [
-                              const Icon(Icons.person_off_rounded, size: 48, color: Colors.grey),
-                              const SizedBox(height: 12),
+                              const Icon(Icons.person_off_rounded, size: 44, color: Colors.grey),
+                              const SizedBox(height: 10),
                               Text(
                                 isBn ? 'কোনো ইউজার পাওয়া যায়নি' : 'No users found matching query',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                               ),
                             ],
                           ),
@@ -162,8 +178,8 @@ class _UserManagementViewState extends State<UserManagementView> {
                     : SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: DataTable(
-                          columnSpacing: 24,
-                          horizontalMargin: 20,
+                          columnSpacing: 20,
+                          horizontalMargin: 16,
                           columns: [
                             DataColumn(label: Text(isBn ? 'ইউজার' : 'User', style: const TextStyle(fontWeight: FontWeight.bold))),
                             DataColumn(label: Text(isBn ? 'রোল' : 'Role', style: const TextStyle(fontWeight: FontWeight.bold))),
@@ -182,18 +198,31 @@ class _UserManagementViewState extends State<UserManagementView> {
                                   Row(
                                     children: [
                                       CircleAvatar(
-                                        radius: 18,
+                                        radius: 16,
                                         backgroundColor: AppColors.themeColor.withValues(alpha: 0.12),
-                                        child: Text(user.initials, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.themeColor)),
+                                        child: Text(user.initials, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.themeColor)),
                                       ),
                                       const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(name.isNotEmpty ? name : 'User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                          Text(user.email, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                                        ],
+                                      ConstrainedBox(
+                                        constraints: const BoxConstraints(maxWidth: 160),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              name.isNotEmpty ? name : 'User',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                                            ),
+                                            Text(
+                                              user.email,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontSize: 10.5, color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -208,14 +237,14 @@ class _UserManagementViewState extends State<UserManagementView> {
                                     child: Text(
                                       user.userType,
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 10.5,
                                         fontWeight: FontWeight.bold,
                                         color: user.userType == 'House Owner' ? AppColors.themeColor : Colors.purple,
                                       ),
                                     ),
                                   ),
                                 ),
-                                DataCell(Text(user.mobile.isNotEmpty ? user.mobile : 'N/A', style: const TextStyle(fontSize: 12))),
+                                DataCell(Text(user.mobile.isNotEmpty ? user.mobile : 'N/A', style: const TextStyle(fontSize: 11.5))),
                                 DataCell(
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -226,7 +255,7 @@ class _UserManagementViewState extends State<UserManagementView> {
                                     child: Text(
                                       isVerified ? (isBn ? 'ভেরিফাইড' : 'Verified') : (isBn ? 'পেন্ডিং' : 'Pending'),
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 10.5,
                                         fontWeight: FontWeight.bold,
                                         color: isVerified ? Colors.green : Colors.amber.shade800,
                                       ),
@@ -237,7 +266,7 @@ class _UserManagementViewState extends State<UserManagementView> {
                                   Text(
                                     '${user.profileCompletionPercentage}%',
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 11.5,
                                       fontWeight: FontWeight.bold,
                                       color: user.profileCompletionPercentage == 100 ? Colors.green : Colors.orange,
                                     ),
@@ -250,7 +279,7 @@ class _UserManagementViewState extends State<UserManagementView> {
                                       IconButton(
                                         icon: const Icon(Icons.visibility_outlined, size: 18, color: Colors.blueAccent),
                                         tooltip: isBn ? 'ডিটেইলস দেখুন' : 'View Details',
-                                        onPressed: () => _showUserDetailsModal(context, user, isBn, isDark),
+                                        onPressed: () => _showUserDetailsModal(context, user, isBn),
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.verified_user_outlined, size: 18, color: Colors.green),
@@ -285,7 +314,7 @@ class _UserManagementViewState extends State<UserManagementView> {
 
   Widget _buildFilterDropdown(bool isBn, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF161C1B) : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
@@ -294,6 +323,7 @@ class _UserManagementViewState extends State<UserManagementView> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedFilter,
+          isExpanded: true,
           items: [
             DropdownMenuItem(value: 'All', child: Text(isBn ? 'সকল ইউজার (All)' : 'All Users')),
             DropdownMenuItem(value: 'Owners', child: Text(isBn ? 'বাড়িওয়ালা (Owners)' : 'House Owners')),
@@ -307,15 +337,15 @@ class _UserManagementViewState extends State<UserManagementView> {
     );
   }
 
-  void _showUserDetailsModal(BuildContext context, UserModel user, bool isBn, bool isDark) {
+  void _showUserDetailsModal(BuildContext context, UserModel user, bool isBn) {
     final name = user.fullName.isNotEmpty ? user.fullName : "${user.firstName} ${user.lastName}".trim();
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
-          width: 550,
-          padding: const EdgeInsets.all(28),
+          constraints: const BoxConstraints(maxWidth: 520),
+          padding: const EdgeInsets.all(22),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,77 +354,81 @@ class _UserManagementViewState extends State<UserManagementView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      isBn ? 'ইউজার প্রোফাইল বিবরণ' : 'User Profile Details',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    Flexible(
+                      child: Text(
+                        isBn ? 'ইউজার প্রোফাইল বিবরণ' : 'User Profile Details',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
                     ),
                     IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
                   ],
                 ),
                 const Divider(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     CircleAvatar(
-                      radius: 36,
+                      radius: 30,
                       backgroundColor: AppColors.themeColor.withValues(alpha: 0.12),
                       child: user.profileImageUrl.isNotEmpty
-                          ? ClipOval(child: _buildImage(user.profileImageUrl, 72, 72))
-                          : Text(user.initials, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.themeColor)),
+                          ? ClipOval(child: _buildImage(user.profileImageUrl, 60, 60))
+                          : Text(user.initials, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.themeColor)),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(name.isNotEmpty ? name : 'User', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                          Text(user.email, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                          Text('${user.userType} • ${user.mobile.isNotEmpty ? user.mobile : "No Phone"}', style: const TextStyle(fontSize: 12)),
+                          Text(name.isNotEmpty ? name : 'User', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                          Text(user.email, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                          Text('${user.userType} • ${user.mobile.isNotEmpty ? user.mobile : "No Phone"}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5)),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 _buildInfoRow('UID', user.uid),
                 _buildInfoRow(isBn ? 'লিঙ্গ' : 'Gender', user.gender.isNotEmpty ? user.gender : 'N/A'),
                 _buildInfoRow(isBn ? 'জন্ম তারিখ' : 'Date of Birth', user.dateOfBirth.isNotEmpty ? user.dateOfBirth : 'N/A'),
                 _buildInfoRow(isBn ? 'প্রোফাইল সম্পূর্ণতা' : 'Profile Completion', '${user.profileCompletionPercentage}%'),
                 _buildInfoRow(isBn ? 'যোগদানের তারিখ' : 'Registered Date', user.createdAt),
-                const SizedBox(height: 20),
-                Text(isBn ? 'জাতীয় পরিচয়পত্র (NID Images):' : 'National ID (NID Images):', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
+                Text(isBn ? 'জাতীয় পরিচয়পত্র (NID Images):' : 'National ID (NID Images):', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(isBn ? 'সামনের দিক (Front):' : 'Front Side:', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                          const SizedBox(height: 6),
+                          Text(isBn ? 'সামনের দিক (Front):' : 'Front Side:', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          const SizedBox(height: 4),
                           Container(
-                            height: 130,
+                            height: 110,
                             decoration: BoxDecoration(border: Border.all(color: Colors.grey[300]!), borderRadius: BorderRadius.circular(10)),
                             child: user.nidFrontImageUrl.isNotEmpty
-                                ? ClipRRect(borderRadius: BorderRadius.circular(10), child: _buildImage(user.nidFrontImageUrl, double.infinity, 130))
-                                : const Center(child: Text('No Image', style: TextStyle(color: Colors.grey))),
+                                ? ClipRRect(borderRadius: BorderRadius.circular(10), child: _buildImage(user.nidFrontImageUrl, double.infinity, 110))
+                                : const Center(child: Text('No Image', style: TextStyle(color: Colors.grey, fontSize: 11))),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(isBn ? 'পেছনের দিক (Back):' : 'Back Side:', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                          const SizedBox(height: 6),
+                          Text(isBn ? 'পেছনের দিক (Back):' : 'Back Side:', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          const SizedBox(height: 4),
                           Container(
-                            height: 130,
+                            height: 110,
                             decoration: BoxDecoration(border: Border.all(color: Colors.grey[300]!), borderRadius: BorderRadius.circular(10)),
                             child: user.nidBackImageUrl.isNotEmpty
-                                ? ClipRRect(borderRadius: BorderRadius.circular(10), child: _buildImage(user.nidBackImageUrl, double.infinity, 130))
-                                : const Center(child: Text('No Image', style: TextStyle(color: Colors.grey))),
+                                ? ClipRRect(borderRadius: BorderRadius.circular(10), child: _buildImage(user.nidBackImageUrl, double.infinity, 110))
+                                : const Center(child: Text('No Image', style: TextStyle(color: Colors.grey, fontSize: 11))),
                           ),
                         ],
                       ),
@@ -413,10 +447,19 @@ class _UserManagementViewState extends State<UserManagementView> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12.5)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+            ),
+          ),
         ],
       ),
     );
@@ -505,14 +548,14 @@ class _UserManagementViewState extends State<UserManagementView> {
 
   Widget _buildImage(String src, double width, double height) {
     if (src.isEmpty) {
-      return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image));
+      return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image, size: 20));
     }
     if (src.startsWith('data:image')) {
       try {
         final base64Str = src.split(',').last;
         return Image.memory(base64Decode(base64Str), width: width, height: height, fit: BoxFit.cover);
       } catch (_) {
-        return const Icon(Icons.broken_image);
+        return const Icon(Icons.broken_image, size: 20);
       }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
       return Image.network(src, width: width, height: height, fit: BoxFit.cover);

@@ -431,13 +431,16 @@ class _LocationManagementViewState extends State<LocationManagementView> {
         .toList();
 
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Header Row with Wrap
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 12,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -448,102 +451,162 @@ class _LocationManagementViewState extends State<LocationManagementView> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Manage Divisions, Districts, Areas, and Sub-Areas directly in Cloud Firestore in real-time.',
+                    'Manage Divisions, Districts, Areas, and Sub-Areas in Cloud Firestore in real-time.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                   ),
                 ],
               ),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   if (_isSaving)
                     const Padding(
                       padding: EdgeInsets.only(right: 12.0),
-                      child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                      child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
                     ),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.themeColor,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     ),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Refresh from Firestore'),
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: const Text('Refresh'),
                     onPressed: _isLoading || _isSaving ? null : _loadInitialData,
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Selector Card (Division & District)
           Card(
             elevation: 2,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  // Division Selector
-                  Expanded(
-                    child: DropdownButtonFormField<DivisionModel>(
-                      initialValue: _selectedDivision,
-                      decoration: const InputDecoration(
-                        labelText: 'Select Division',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      ),
-                      items: _divisions
-                          .map((d) => DropdownMenuItem(
-                                value: d,
-                                child: Text('${d.name} (${d.bnName})'),
-                              ))
-                          .toList(),
-                      onChanged: (division) async {
-                        if (division != null) {
-                          setState(() {
-                            _selectedDivision = division;
-                            _isLoading = true;
-                          });
-                          await _loadDivisionDetails(division.id);
-                          if (mounted) setState(() => _isLoading = false);
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 20),
+              padding: const EdgeInsets.all(14.0),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth > 550) {
+                    return Row(
+                      children: [
+                        // Division Selector
+                        Expanded(
+                          child: DropdownButtonFormField<DivisionModel>(
+                            initialValue: _selectedDivision,
+                            decoration: const InputDecoration(
+                              labelText: 'Select Division',
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            ),
+                            items: _divisions
+                                .map((d) => DropdownMenuItem(
+                                      value: d,
+                                      child: Text('${d.name} (${d.bnName})', overflow: TextOverflow.ellipsis),
+                                    ))
+                                .toList(),
+                            onChanged: (division) async {
+                              if (division != null) {
+                                setState(() {
+                                  _selectedDivision = division;
+                                  _isLoading = true;
+                                });
+                                await _loadDivisionDetails(division.id);
+                                if (mounted) setState(() => _isLoading = false);
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
 
-                  // District Selector
-                  Expanded(
-                    child: DropdownButtonFormField<DistrictModel>(
-                      initialValue: _selectedDistrict,
-                      decoration: const InputDecoration(
-                        labelText: 'Select District',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      ),
-                      items: _districts
-                          .map((d) => DropdownMenuItem(
-                                value: d,
-                                child: Text('${d.name} (${d.bnName})'),
-                              ))
-                          .toList(),
-                      onChanged: (district) {
-                        if (district != null) {
-                          setState(() {
-                            _selectedDistrict = district;
-                            final currentAreas = _getCurrentAreas();
-                            _selectedAreaId = currentAreas.isNotEmpty ? currentAreas.first['id'] : null;
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ],
+                        // District Selector
+                        Expanded(
+                          child: DropdownButtonFormField<DistrictModel>(
+                            initialValue: _selectedDistrict,
+                            decoration: const InputDecoration(
+                              labelText: 'Select District',
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            ),
+                            items: _districts
+                                .map((d) => DropdownMenuItem(
+                                      value: d,
+                                      child: Text('${d.name} (${d.bnName})', overflow: TextOverflow.ellipsis),
+                                    ))
+                                .toList(),
+                            onChanged: (district) {
+                              if (district != null) {
+                                setState(() {
+                                  _selectedDistrict = district;
+                                  final currentAreas = _getCurrentAreas();
+                                  _selectedAreaId = currentAreas.isNotEmpty ? currentAreas.first['id'] : null;
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        DropdownButtonFormField<DivisionModel>(
+                          initialValue: _selectedDivision,
+                          decoration: const InputDecoration(
+                            labelText: 'Select Division',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          ),
+                          items: _divisions
+                              .map((d) => DropdownMenuItem(
+                                    value: d,
+                                    child: Text('${d.name} (${d.bnName})', overflow: TextOverflow.ellipsis),
+                                  ))
+                              .toList(),
+                          onChanged: (division) async {
+                            if (division != null) {
+                              setState(() {
+                                _selectedDivision = division;
+                                _isLoading = true;
+                              });
+                              await _loadDivisionDetails(division.id);
+                              if (mounted) setState(() => _isLoading = false);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<DistrictModel>(
+                          initialValue: _selectedDistrict,
+                          decoration: const InputDecoration(
+                            labelText: 'Select District',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          ),
+                          items: _districts
+                              .map((d) => DropdownMenuItem(
+                                    value: d,
+                                    child: Text('${d.name} (${d.bnName})', overflow: TextOverflow.ellipsis),
+                                  ))
+                              .toList(),
+                          onChanged: (district) {
+                            if (district != null) {
+                              setState(() {
+                                _selectedDistrict = district;
+                                final currentAreas = _getCurrentAreas();
+                                _selectedAreaId = currentAreas.isNotEmpty ? currentAreas.first['id'] : null;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    );
+                  }
+                },
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Two-Pane Content: Areas (Left) & Sub-Areas (Right)
           Expanded(

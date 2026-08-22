@@ -28,20 +28,23 @@ class _CategoryManagementViewState extends State<CategoryManagementView> {
         final categories = snapshot.data ?? [];
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header & Add Button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Header & Add Button with Wrap
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 16,
+                runSpacing: 12,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         isBn ? 'ক্যাটাগরি ম্যানেজমেন্ট' : 'Category Management',
-                        style: theme.textTheme.headlineMedium?.copyWith(
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
                           color: AppColors.themeColor,
                         ),
@@ -51,23 +54,23 @@ class _CategoryManagementViewState extends State<CategoryManagementView> {
                         isBn
                             ? 'বাসাভাড়ার ক্যাটাগরি ও ধরনসমূহ পরিচালনা করুন (${categories.length} টি ক্যাটাগরি)'
                             : 'Manage Property Types and Accommodation Categories (${categories.length} categories)',
-                        style: TextStyle(color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                        style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
                       ),
                     ],
                   ),
                   FilledButton.icon(
                     onPressed: () => _showAddOrEditCategoryDialog(context, null, isBn),
-                    icon: const Icon(Icons.add_rounded),
+                    icon: const Icon(Icons.add_rounded, size: 18),
                     label: Text(isBn ? 'নতুন ক্যাটাগরি' : 'Add Category'),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.themeColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
               // Categories Grid
               if (categories.isEmpty)
@@ -85,15 +88,17 @@ class _CategoryManagementViewState extends State<CategoryManagementView> {
               else
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final int crossAxisCount = constraints.maxWidth > 900 ? 3 : (constraints.maxWidth > 600 ? 2 : 1);
+                    final int crossAxisCount = constraints.maxWidth > 900 ? 3 : (constraints.maxWidth > 580 ? 2 : 1);
+                    final double aspectRatio = constraints.maxWidth > 900 ? 2.1 : (constraints.maxWidth > 580 ? 2.0 : 2.5);
+
                     return GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 2.0,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 14,
+                        childAspectRatio: aspectRatio,
                       ),
                       itemCount: categories.length,
                       itemBuilder: (context, index) {
@@ -103,7 +108,7 @@ class _CategoryManagementViewState extends State<CategoryManagementView> {
                         final bool isActive = cat['isActive'] as bool? ?? true;
 
                         return Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
                             color: isDark ? const Color(0xFF1E2625) : Colors.white,
                             borderRadius: BorderRadius.circular(16),
@@ -114,14 +119,14 @@ class _CategoryManagementViewState extends State<CategoryManagementView> {
                           child: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   color: (isActive ? AppColors.themeColor : Colors.grey).withValues(alpha: 0.12),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(Icons.category_rounded, color: isActive ? AppColors.themeColor : Colors.grey, size: 24),
+                                child: Icon(Icons.category_rounded, color: isActive ? AppColors.themeColor : Colors.grey, size: 20),
                               ),
-                              const SizedBox(width: 14),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,33 +134,32 @@ class _CategoryManagementViewState extends State<CategoryManagementView> {
                                   children: [
                                     Text(
                                       isBn ? bnName : name,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       isBn ? name : bnName,
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 11.5, color: Colors.grey),
                                     ),
                                   ],
                                 ),
                               ),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.blueAccent),
-                                        tooltip: isBn ? 'সম্পাদনা' : 'Edit',
-                                        onPressed: () => _showAddOrEditCategoryDialog(context, cat, isBn),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
-                                        tooltip: isBn ? 'মুছুন' : 'Delete',
-                                        onPressed: () => _showDeleteCategoryDialog(context, cat['id'], isBn),
-                                      ),
-                                    ],
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.blueAccent),
+                                    tooltip: isBn ? 'সম্পাদনা' : 'Edit',
+                                    onPressed: () => _showAddOrEditCategoryDialog(context, cat, isBn),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                                    tooltip: isBn ? 'মুছুন' : 'Delete',
+                                    onPressed: () => _showDeleteCategoryDialog(context, cat['id'], isBn),
                                   ),
                                 ],
                               ),
@@ -183,25 +187,28 @@ class _CategoryManagementViewState extends State<CategoryManagementView> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(isEditing ? (isBn ? 'ক্যাটাগরি সম্পাদনা' : 'Edit Category') : (isBn ? 'নতুন ক্যাটাগরি যুক্ত করুন' : 'Add New Category')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: isBn ? 'ক্যাটাগরির নাম (English)' : 'Category Name (English)',
-                hintText: 'e.g. Family Flat, Bachelor',
+        content: SizedBox(
+          width: 450,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: isBn ? 'ক্যাটাগরির নাম (English)' : 'Category Name (English)',
+                  hintText: 'e.g. Family Flat, Bachelor',
+                ),
               ),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: bnNameController,
-              decoration: InputDecoration(
-                labelText: isBn ? 'ক্যাটাগরির নাম (বাংলা)' : 'Category Name (Bangla)',
-                hintText: 'যেমন: ফ্যামিলি ফ্ল্যাট, ব্যাচেলর',
+              const SizedBox(height: 14),
+              TextField(
+                controller: bnNameController,
+                decoration: InputDecoration(
+                  labelText: isBn ? 'ক্যাটাগরির নাম (বাংলা)' : 'Category Name (Bangla)',
+                  hintText: 'যেমন: ফ্যামিলি ফ্ল্যাট, ব্যাচেলর',
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(isBn ? 'বাতিল' : 'Cancel')),

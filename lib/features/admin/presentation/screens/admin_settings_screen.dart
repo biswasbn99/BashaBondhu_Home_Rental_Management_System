@@ -126,22 +126,25 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
         }
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header & Save Button
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Header & Save Button with Wrap
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 16,
+                  runSpacing: 12,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           isBn ? 'সিস্টেম সেটিংস' : 'System Settings',
-                          style: theme.textTheme.headlineMedium?.copyWith(
+                          style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w900,
                             color: AppColors.themeColor,
                           ),
@@ -151,23 +154,23 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                           isBn
                               ? 'অ্যাপের নাম, যোগাযোগ, সোশাল লিংক ও নীতিমালা পরিচালনা করুন'
                               : 'Manage branding, contact info, social links, and legal policies',
-                          style: TextStyle(color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                          style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
                         ),
                       ],
                     ),
                     FilledButton.icon(
                       onPressed: () => _saveSettings(isBn),
-                      icon: const Icon(Icons.save_rounded),
+                      icon: const Icon(Icons.save_rounded, size: 18),
                       label: Text(isBn ? 'সেভ করুন' : 'Save Changes'),
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.themeColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
                 // 1. General Branding
                 _buildCard(
@@ -176,11 +179,11 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                   isDark: isDark,
                   children: [
                     _buildTextField(_appNameController, isBn ? 'অ্যাপ / ওয়েবসাইটের নাম' : 'App / Website Name', Icons.apps_rounded),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
                     _buildTextField(_bannerNoticeController, isBn ? 'ব্যানার নোটিশ / ঘোষণা' : 'Banner Notice / Announcement', Icons.campaign_rounded, maxLines: 2),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
 
                 // 2. Contact Information
                 _buildCard(
@@ -188,18 +191,32 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                   icon: Icons.contact_phone_rounded,
                   isDark: isDark,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(child: _buildTextField(_helplineController, isBn ? 'হেল্পলাইন নম্বর' : 'Helpline Number', Icons.phone_rounded)),
-                        const SizedBox(width: 14),
-                        Expanded(child: _buildTextField(_supportEmailController, isBn ? 'সাপোর্ট ইমেইল' : 'Support Email', Icons.email_rounded)),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth > 580) {
+                          return Row(
+                            children: [
+                              Expanded(child: _buildTextField(_helplineController, isBn ? 'হেল্পলাইন নম্বর' : 'Helpline Number', Icons.phone_rounded)),
+                              const SizedBox(width: 12),
+                              Expanded(child: _buildTextField(_supportEmailController, isBn ? 'সাপোর্ট ইমেইল' : 'Support Email', Icons.email_rounded)),
+                            ],
+                          );
+                        } else {
+                          return Column(
+                            children: [
+                              _buildTextField(_helplineController, isBn ? 'হেল্পলাইন নম্বর' : 'Helpline Number', Icons.phone_rounded),
+                              const SizedBox(height: 12),
+                              _buildTextField(_supportEmailController, isBn ? 'সাপোর্ট ইমেইল' : 'Support Email', Icons.email_rounded),
+                            ],
+                          );
+                        }
+                      },
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
                     _buildTextField(_officeAddressController, isBn ? 'অফিসের ঠিকানা' : 'Office Address', Icons.location_on_rounded),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
 
                 // 3. Social Media & Website Links
                 _buildCard(
@@ -207,24 +224,46 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                   icon: Icons.share_rounded,
                   isDark: isDark,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(child: _buildTextField(_facebookUrlController, 'Facebook Page URL', Icons.facebook)),
-                        const SizedBox(width: 14),
-                        Expanded(child: _buildTextField(_youtubeUrlController, 'YouTube Channel URL', Icons.play_circle_fill_rounded)),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(child: _buildTextField(_whatsappNumberController, 'WhatsApp Number', Icons.chat_rounded)),
-                        const SizedBox(width: 14),
-                        Expanded(child: _buildTextField(_websiteUrlController, 'Website URL', Icons.language_rounded)),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth > 580) {
+                          return Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(child: _buildTextField(_facebookUrlController, 'Facebook Page URL', Icons.facebook)),
+                                  const SizedBox(width: 12),
+                                  Expanded(child: _buildTextField(_youtubeUrlController, 'YouTube Channel URL', Icons.play_circle_fill_rounded)),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(child: _buildTextField(_whatsappNumberController, 'WhatsApp Number', Icons.chat_rounded)),
+                                  const SizedBox(width: 12),
+                                  Expanded(child: _buildTextField(_websiteUrlController, 'Website URL', Icons.language_rounded)),
+                                ],
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Column(
+                            children: [
+                              _buildTextField(_facebookUrlController, 'Facebook Page URL', Icons.facebook),
+                              const SizedBox(height: 12),
+                              _buildTextField(_youtubeUrlController, 'YouTube Channel URL', Icons.play_circle_fill_rounded),
+                              const SizedBox(height: 12),
+                              _buildTextField(_whatsappNumberController, 'WhatsApp Number', Icons.chat_rounded),
+                              const SizedBox(height: 12),
+                              _buildTextField(_websiteUrlController, 'Website URL', Icons.language_rounded),
+                            ],
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
 
                 // 4. Legal Policies
                 _buildCard(
@@ -232,9 +271,9 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                   icon: Icons.policy_rounded,
                   isDark: isDark,
                   children: [
-                    _buildTextField(_termsController, isBn ? 'শর্তাবলী (Terms & Conditions)' : 'Terms & Conditions', Icons.gavel_rounded, maxLines: 5),
-                    const SizedBox(height: 14),
-                    _buildTextField(_privacyController, isBn ? 'গোপনীয়তা নীতি (Privacy Policy)' : 'Privacy Policy', Icons.privacy_tip_rounded, maxLines: 5),
+                    _buildTextField(_termsController, isBn ? 'শর্তাবলী (Terms & Conditions)' : 'Terms & Conditions', Icons.gavel_rounded, maxLines: 4),
+                    const SizedBox(height: 12),
+                    _buildTextField(_privacyController, isBn ? 'গোপনীয়তা নীতি (Privacy Policy)' : 'Privacy Policy', Icons.privacy_tip_rounded, maxLines: 4),
                   ],
                 ),
               ],
@@ -252,7 +291,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
     required List<Widget> children,
   }) {
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E2625) : Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -263,12 +302,12 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.themeColor, size: 22),
+              Icon(icon, color: AppColors.themeColor, size: 20),
               const SizedBox(width: 10),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5)),
             ],
           ),
-          const Divider(height: 20),
+          const Divider(height: 18),
           ...children,
         ],
       ),
@@ -281,7 +320,8 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 20),
+        prefixIcon: Icon(icon, size: 18),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );

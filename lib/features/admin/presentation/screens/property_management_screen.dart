@@ -63,77 +63,91 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
               return !p.isAvailable;
             case 'Approved':
               return p.isAvailable;
-            case 'Available':
-              return p.isAvailable;
-            case 'Booked':
-              return !p.isAvailable;
             default:
               return true;
           }
         }).toList();
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isBn ? 'বাসাভাড়া বিজ্ঞাপন ম্যানেজমেন্ট' : 'Property Management',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.themeColor,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        isBn
-                            ? 'সকল বাসাভাড়া বিজ্ঞাপন অনুমোদন, প্রত্যাখ্যান ও ডিলিট করুন (${filteredProperties.length} টি বিজ্ঞাপন)'
-                            : 'Approve, Reject, or Delete House Listings (${filteredProperties.length} listings)',
-                        style: TextStyle(color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
-                      ),
-                    ],
-                  ),
-                ],
+              Text(
+                isBn ? 'বাসাভাড়া বিজ্ঞাপন ম্যানেজমেন্ট' : 'Property Management',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.themeColor,
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 4),
+              Text(
+                isBn
+                    ? 'সকল বাসাভাড়া বিজ্ঞাপন অনুমোদন, প্রত্যাখ্যান ও ডিলিট করুন (${filteredProperties.length} টি বিজ্ঞাপন)'
+                    : 'Approve, Reject, or Delete House Listings (${filteredProperties.length} listings)',
+                style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+              ),
+              const SizedBox(height: 20),
 
-              // Search & Filter Bar
+              // Search & Filter Bar with Responsive LayoutBuilder
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1E2625) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: (val) => setState(() => _searchQuery = val),
-                        decoration: InputDecoration(
-                          hintText: isBn
-                              ? 'লোকেশন, বাড়িওয়ালার ইমেইল বা বাসার ধরন দিয়ে খুঁজুন...'
-                              : 'Search by Address, Owner Email, Type, or Area...',
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    _buildFilterDropdown(isBn, isDark),
-                  ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth > 550) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              onChanged: (val) => setState(() => _searchQuery = val),
+                              decoration: InputDecoration(
+                                hintText: isBn
+                                    ? 'লোকেশন, ইমেইল বা ধরন দিয়ে খুঁজুন...'
+                                    : 'Search by Address, Owner Email, Type...',
+                                prefixIcon: const Icon(Icons.search_rounded),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          _buildFilterDropdown(isBn, isDark),
+                        ],
+                      );
+                    } else {
+                      return Column(
+                        children: [
+                          TextField(
+                            controller: _searchController,
+                            onChanged: (val) => setState(() => _searchQuery = val),
+                            decoration: InputDecoration(
+                              hintText: isBn
+                                  ? 'লোকেশন, ইমেইল বা ধরন দিয়ে খুঁজুন...'
+                                  : 'Search by Address, Owner Email, Type...',
+                              prefixIcon: const Icon(Icons.search_rounded),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            width: double.infinity,
+                            child: _buildFilterDropdown(isBn, isDark),
+                          ),
+                        ],
+                      );
+                    }
+                  },
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Properties DataTable
               Container(
@@ -149,11 +163,11 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                         child: Center(
                           child: Column(
                             children: [
-                              const Icon(Icons.home_work_outlined, size: 48, color: Colors.grey),
-                              const SizedBox(height: 12),
+                              const Icon(Icons.home_work_outlined, size: 44, color: Colors.grey),
+                              const SizedBox(height: 10),
                               Text(
                                 isBn ? 'কোনো বিজ্ঞাপন পাওয়া যায়নি' : 'No properties found matching query',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                               ),
                             ],
                           ),
@@ -162,8 +176,8 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                     : SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: DataTable(
-                          columnSpacing: 24,
-                          horizontalMargin: 20,
+                          columnSpacing: 20,
+                          horizontalMargin: 16,
                           columns: [
                             DataColumn(label: Text(isBn ? 'বাসার তথ্য' : 'Property', style: const TextStyle(fontWeight: FontWeight.bold))),
                             DataColumn(label: Text(isBn ? 'ধরন' : 'Type', style: const TextStyle(fontWeight: FontWeight.bold))),
@@ -181,24 +195,34 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
                                         child: SizedBox(
-                                          width: 44,
-                                          height: 44,
+                                          width: 40,
+                                          height: 40,
                                           child: property.images.isNotEmpty
-                                              ? _buildImage(property.images.first, 44, 44)
-                                              : Container(color: Colors.grey[300], child: const Icon(Icons.home)),
+                                              ? _buildImage(property.images.first, 40, 40)
+                                              : Container(color: Colors.grey[300], child: const Icon(Icons.home, size: 18)),
                                         ),
                                       ),
                                       const SizedBox(width: 10),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            property.shortAddress.isNotEmpty ? property.shortAddress : property.houseType.name,
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                          ),
-                                          Text(property.ownerEmail, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                                        ],
+                                      ConstrainedBox(
+                                        constraints: const BoxConstraints(maxWidth: 160),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              property.shortAddress.isNotEmpty ? property.shortAddress : property.houseType.name,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                                            ),
+                                            Text(
+                                              property.ownerEmail,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(fontSize: 10.5, color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -212,12 +236,22 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                                     ),
                                     child: Text(
                                       property.houseType.name.toUpperCase(),
-                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.themeColor),
+                                      style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppColors.themeColor),
                                     ),
                                   ),
                                 ),
-                                DataCell(Text("${property.amount} ৳", style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.themeColor))),
-                                DataCell(Text("${property.area.name}, ${property.district.name}", style: const TextStyle(fontSize: 12))),
+                                DataCell(Text("${property.amount} ৳", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.themeColor))),
+                                DataCell(
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 130),
+                                    child: Text(
+                                      "${property.area.name}, ${property.district.name}",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 11.5),
+                                    ),
+                                  ),
+                                ),
                                 DataCell(
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -228,7 +262,7 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                                     child: Text(
                                       property.isAvailable ? (isBn ? 'অনুমোদিত' : 'Approved') : (isBn ? 'পেন্ডিং' : 'Pending'),
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 10.5,
                                         fontWeight: FontWeight.bold,
                                         color: property.isAvailable ? Colors.green : Colors.redAccent,
                                       ),
@@ -242,7 +276,7 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                                       IconButton(
                                         icon: const Icon(Icons.visibility_outlined, size: 18, color: Colors.blueAccent),
                                         tooltip: isBn ? 'ডিটেইলস দেখুন' : 'View Details',
-                                        onPressed: () => _showPropertyDetailsModal(context, property, isBn, isDark),
+                                        onPressed: () => _showPropertyDetailsModal(context, property, isBn),
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.check_circle_outline_rounded, size: 18, color: Colors.green),
@@ -284,7 +318,7 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
 
   Widget _buildFilterDropdown(bool isBn, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF161C1B) : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
@@ -293,6 +327,7 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedFilter,
+          isExpanded: true,
           items: [
             DropdownMenuItem(value: 'All', child: Text(isBn ? 'সকল বিজ্ঞাপন (All)' : 'All Listings')),
             DropdownMenuItem(value: 'Approved', child: Text(isBn ? 'অনুমোদিত (Approved)' : 'Approved')),
@@ -304,14 +339,14 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
     );
   }
 
-  void _showPropertyDetailsModal(BuildContext context, PropertyModel property, bool isBn, bool isDark) {
+  void _showPropertyDetailsModal(BuildContext context, PropertyModel property, bool isBn) {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
-          width: 600,
-          padding: const EdgeInsets.all(28),
+          constraints: const BoxConstraints(maxWidth: 580),
+          padding: const EdgeInsets.all(22),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,18 +355,22 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      isBn ? 'বাসাভাড়ার বিস্তারিত তথ্য' : 'Property Full Details',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    Flexible(
+                      child: Text(
+                        isBn ? 'বাসাভাড়ার বিস্তারিত তথ্য' : 'Property Full Details',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
                     ),
                     IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
                   ],
                 ),
                 const Divider(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 if (property.images.isNotEmpty) ...[
                   SizedBox(
-                    height: 180,
+                    height: 160,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: property.images.length,
@@ -339,23 +378,25 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                       itemBuilder: (context, idx) {
                         return ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: _buildImage(property.images[idx], 220, 180),
+                          child: _buildImage(property.images[idx], 200, 160),
                         );
                       },
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                 ],
                 Text(
                   property.shortAddress.isNotEmpty ? property.shortAddress : property.houseType.name,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   "${property.amount} ৳ / মাস • ${property.month}",
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.themeColor),
+                  style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.themeColor),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 _buildInfoRow(isBn ? 'বাড়িওয়ালার ইমেইল' : 'Owner Email', property.ownerEmail),
                 _buildInfoRow(isBn ? 'যোগাযোগের নাম' : 'Contact Name', property.contactName),
                 _buildInfoRow(isBn ? 'মোবাইল নম্বর' : 'Phone', property.userMobile.isNotEmpty ? property.userMobile : 'N/A'),
@@ -365,10 +406,10 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                 _buildInfoRow(isBn ? 'বাথরুম' : 'Bathrooms', property.commonBathrooms?.toString() ?? 'N/A'),
                 _buildInfoRow(isBn ? 'বিদ্যুৎ বিল' : 'Electricity', property.electricityBillType ?? 'N/A'),
                 if (property.detailedDescription.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text(isBn ? 'বিবরণ:' : 'Description:', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Text(isBn ? 'বিবরণ:' : 'Description:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 4),
-                  Text(property.detailedDescription, style: const TextStyle(fontSize: 12.5, color: Colors.grey)),
+                  Text(property.detailedDescription, style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ],
             ),
@@ -382,10 +423,19 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12.5)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+            ),
+          ),
         ],
       ),
     );
@@ -454,14 +504,14 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
 
   Widget _buildImage(String src, double width, double height) {
     if (src.isEmpty) {
-      return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image));
+      return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image, size: 20));
     }
     if (src.startsWith('data:image')) {
       try {
         final base64Str = src.split(',').last;
         return Image.memory(base64Decode(base64Str), width: width, height: height, fit: BoxFit.cover);
       } catch (_) {
-        return const Icon(Icons.broken_image);
+        return const Icon(Icons.broken_image, size: 20);
       }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
       return Image.network(src, width: width, height: height, fit: BoxFit.cover);
