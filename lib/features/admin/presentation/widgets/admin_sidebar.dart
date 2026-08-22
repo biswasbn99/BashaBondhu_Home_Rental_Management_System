@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
+import '../../../../app/providers/theme_provider.dart';
 import '../../data/providers/admin_provider.dart';
 
 class AdminSidebar extends StatelessWidget {
@@ -10,38 +11,68 @@ class AdminSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final adminProvider = context.watch<AdminProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
     final isBn = adminProvider.isBangla;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    final Color sidebarBg = isDark ? const Color(0xFF131D1C) : Colors.white;
+    final Color borderColor = isDark ? const Color(0xFF243432) : const Color(0xFFE2E9E7);
+
     return Material(
-      color: theme.colorScheme.surface,
+      color: sidebarBg,
       child: SizedBox(
         width: 260,
         child: Column(
           children: [
+            // Admin Panel Branding Header
             Container(
-              height: 90,
+              height: 80,
               alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: borderColor, width: 1)),
+              ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.admin_panel_settings_rounded, color: AppColors.themeColor, size: 28),
-                  const SizedBox(width: 10),
-                  Text(
-                    isBn ? 'অ্যাডমিন প্যানেল' : 'Admin Panel',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.themeColor,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.themeColor.withValues(alpha: isDark ? 0.25 : 0.12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    child: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.themeColor, size: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        isBn ? 'অ্যাডমিন প্যানেল' : 'Admin Panel',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
+                          color: isDark ? Colors.white : const Color(0xFF142321),
+                        ),
+                      ),
+                      Text(
+                        'BashaBondhu System',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1),
+
+            // Modules Navigation List
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 children: [
                   _SidebarItem(
                     icon: Icons.dashboard_rounded,
@@ -109,16 +140,62 @@ class AdminSidebar extends StatelessWidget {
                 ],
               ),
             ),
-            const Divider(height: 1),
-            Material(
-              color: Colors.transparent,
-              child: ListTile(
-                leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                title: Text(isBn ? 'লগআউট' : 'Logout', style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-                onTap: () => adminProvider.logout(),
+
+            // Bottom Actions (Theme Switcher & Logout)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: borderColor, width: 1)),
+              ),
+              child: Column(
+                children: [
+                  // Theme Mode Switcher Tile
+                  Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      dense: true,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      leading: Icon(
+                        isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                        color: isDark ? Colors.amber : AppColors.themeColor,
+                        size: 20,
+                      ),
+                      title: Text(
+                        isDark ? (isBn ? 'লাইট মোড' : 'Light Mode') : (isBn ? 'ডার্ক মোড' : 'Dark Mode'),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.grey[200] : Colors.grey[800],
+                        ),
+                      ),
+                      onTap: () {
+                        final newMode = isDark ? ThemeMode.light : ThemeMode.dark;
+                        themeProvider.changeThemeMode(newMode);
+                      },
+                    ),
+                  ),
+
+                  // Logout Tile
+                  Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      dense: true,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      leading: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                      title: Text(
+                        isBn ? 'লগআউট' : 'Logout',
+                        style: const TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      onTap: () => adminProvider.logout(),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -149,8 +226,13 @@ class _SidebarItem extends StatelessWidget {
         color: isSelected ? AppColors.themeColor.withValues(alpha: isDark ? 0.25 : 0.12) : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: ListTile(
+          dense: true,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          leading: Icon(icon, color: isSelected ? AppColors.themeColor : (isDark ? Colors.grey[400] : Colors.grey[600]), size: 20),
+          leading: Icon(
+            icon,
+            color: isSelected ? AppColors.themeColor : (isDark ? Colors.grey[400] : Colors.grey[600]),
+            size: 20,
+          ),
           title: Text(
             label,
             style: TextStyle(
