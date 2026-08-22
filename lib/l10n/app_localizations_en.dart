@@ -539,4 +539,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allTenantDemands => 'Tenant Demands';
+
+  @override
+  String get firstName => 'First Name';
+
+  @override
+  String get lastName => 'Last Name';
+
+  @override
+  String get editPersonalInfo => 'Edit Personal Info';
+
+  @override
+  String get profileCompletion => 'Profile Completion';
+
+  @override
+  String get complete => 'Complete';
+
+  @override
+  String get incomplete => 'Incomplete';
+
+  @override
+  String get updatePhoto => 'Update Photo';
+
+  @override
+  String get chooseFromGallery => 'Choose from Gallery';
+
+  @override
+  String get takePhoto => 'Take Photo';
+
+  @override
+  String get middleName => 'Middle Name';
+
+  @override
+  String get gender => 'Gender';
+
+  @override
+  String get male => 'Male';
+
+  @override
+  String get female => 'Female';
+
+  @override
+  String get other => 'Other';
+
+  @override
+  String get dateOfBirthNid => 'Date of Birth (According to NID)';
+
+  @override
+  String get selectDate => 'Select Date';
+
+  @override
+  String get nidFrontTitle => 'National ID (Front Side)';
+
+  @override
+  String get nidBackTitle => 'National ID (Back Side)';
+
+  @override
+  String get nidFrontHint => 'Upload front side (JPG, PNG only)';
+
+  @override
+  String get nidBackHint => 'Upload back side (JPG, PNG only)';
+
+  @override
+  String get profileUpdatedSuccess =>
+      'Your profile has been updated successfully!';
+
+  @override
+  String get saveProfile => 'Save Profile';
+
+  @override
+  String get completeProfilePrompt => 'Complete your profile and stay verified';
+
+  @override
+  String get uploadNid => 'Upload NID';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String get myDashboard => 'My Dashboard';
+
+  @override
+  String get dashboardOverview => 'Dashboard Overview';
+
+  @override
+  String get recentActivity => 'Recent Activity';
+
+  @override
+  String get activityHistory => 'Activity & History';
+
+  @override
+  String get marketDemandsRadar => 'Tenant Demands Radar';
+
+  @override
+  String get noPropertiesPosted => 'No rental properties posted yet';
+
+  @override
+  String get totalListings => 'Total Listings';
+
+  @override
+  String get availableUnits => 'Available Units';
+
+  @override
+  String get quickShortcuts => 'Quick Shortcuts';
+
+  @override
+  String get viewAll => 'View All';
+
+  @override
+  String get accountCreated => 'Account Created';
+
+  @override
+  String get recentDemands => 'Recent Demands';
+
+  @override
+  String get savedProperties => 'Saved Properties';
+
+  @override
+  String get verifiedHost => 'Verified Host';
+
+  @override
+  String get verifiedTenant => 'Verified Tenant';
+
+  @override
+  String get unverified => 'Unverified';
+
+  @override
+  String get activeDemands => 'Active Demands';
 }

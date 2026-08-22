@@ -63,12 +63,19 @@ class TenantDemandFirestoreService {
     }
 
     return query.snapshots().map((snapshot) {
-      final list = snapshot.docs.map((doc) {
-        return TenantDemandModel.fromMap(
-          doc.data() as Map<String, dynamic>,
-          doc.id,
-        );
-      }).toList();
+      final List<TenantDemandModel> list = [];
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          if (data is Map<String, dynamic>) {
+            list.add(TenantDemandModel.fromMap(data, doc.id));
+          } else if (data is Map) {
+            list.add(TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id));
+          }
+        } catch (e) {
+          debugPrint('Error parsing tenant demand doc ${doc.id}: $e');
+        }
+      }
 
       list.sort((a, b) => b.postDate.compareTo(a.postDate));
       return list;
@@ -77,15 +84,20 @@ class TenantDemandFirestoreService {
 
   /// Stream all tenant demands for House Owners
   Stream<List<TenantDemandModel>> streamAllDemands() {
-    return _demandsCollection
-        .snapshots()
-        .map((snapshot) {
-      final list = snapshot.docs.map((doc) {
-        return TenantDemandModel.fromMap(
-          doc.data() as Map<String, dynamic>,
-          doc.id,
-        );
-      }).toList();
+    return _demandsCollection.snapshots().map((snapshot) {
+      final List<TenantDemandModel> list = [];
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          if (data is Map<String, dynamic>) {
+            list.add(TenantDemandModel.fromMap(data, doc.id));
+          } else if (data is Map) {
+            list.add(TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id));
+          }
+        } catch (e) {
+          debugPrint('Error parsing tenant demand doc ${doc.id}: $e');
+        }
+      }
 
       list.sort((a, b) => b.postDate.compareTo(a.postDate));
       return list;

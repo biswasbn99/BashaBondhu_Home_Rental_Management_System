@@ -536,4 +536,135 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get allTenantDemands => 'ভাড়াটিয়াদের চাহিদা';
+
+  @override
+  String get firstName => 'নামের প্রথম অংশ';
+
+  @override
+  String get lastName => 'নামের শেষ অংশ';
+
+  @override
+  String get editPersonalInfo => 'ব্যক্তিগত তথ্য সম্পাদনা';
+
+  @override
+  String get profileCompletion => 'প্রোফাইল সম্পন্ন';
+
+  @override
+  String get complete => 'সম্পূর্ণ';
+
+  @override
+  String get incomplete => 'অসম্পূর্ণ';
+
+  @override
+  String get updatePhoto => 'ছবি পরিবর্তন করুন';
+
+  @override
+  String get chooseFromGallery => 'গ্যালারি থেকে নিন';
+
+  @override
+  String get takePhoto => 'ক্যামেরা দিয়ে তুলুন';
+
+  @override
+  String get middleName => 'মধ্য নাম';
+
+  @override
+  String get gender => 'লিঙ্গ';
+
+  @override
+  String get male => 'পুরুষ';
+
+  @override
+  String get female => 'মহিলা';
+
+  @override
+  String get other => 'অন্যান্য';
+
+  @override
+  String get dateOfBirthNid => 'জন্ম তারিখ (এনআইডি অনুযায়ী)';
+
+  @override
+  String get selectDate => 'তারিখ নির্বাচন করুন';
+
+  @override
+  String get nidFrontTitle => 'জাতীয় পরিচয়পত্রের সামনের অংশ';
+
+  @override
+  String get nidBackTitle => 'জাতীয় পরিচয়পত্রের পিছনের অংশ';
+
+  @override
+  String get nidFrontHint => 'সামনের অংশ আপলোড করুন (JPG, PNG)';
+
+  @override
+  String get nidBackHint => 'পিছনের অংশ আপলোড করুন (JPG, PNG)';
+
+  @override
+  String get profileUpdatedSuccess =>
+      'আপনার প্রোফাইল সফলভাবে আপডেট করা হয়েছে!';
+
+  @override
+  String get saveProfile => 'প্রোফাইল সংরক্ষণ করুন';
+
+  @override
+  String get completeProfilePrompt =>
+      'আপনার প্রোফাইল সম্পূর্ণ করুন এবং ভেরিফাইড থাকুন';
+
+  @override
+  String get uploadNid => 'এনআইডি আপলোড';
+
+  @override
+  String get remove => 'মুছুন';
+
+  @override
+  String get change => 'পরিবর্তন';
+
+  @override
+  String get myDashboard => 'আমার ড্যাশবোর্ড';
+
+  @override
+  String get dashboardOverview => 'ড্যাশবোর্ড ওভারভিউ';
+
+  @override
+  String get recentActivity => 'সাম্প্রতিক কার্যক্রম';
+
+  @override
+  String get activityHistory => 'কার্যক্রম ও ইতিহাস';
+
+  @override
+  String get marketDemandsRadar => 'ভাড়াটিয়াদের চাহিদার রাডার';
+
+  @override
+  String get noPropertiesPosted => 'এখনো কোনো বাসাভাড়া পোস্ট করা হয়নি';
+
+  @override
+  String get totalListings => 'মোট বিজ্ঞাপন';
+
+  @override
+  String get availableUnits => 'খালি বাসা';
+
+  @override
+  String get quickShortcuts => 'দ্রুত শর্টকাট';
+
+  @override
+  String get viewAll => 'সব দেখুন';
+
+  @override
+  String get accountCreated => 'অ্যাকাউন্ট তৈরি';
+
+  @override
+  String get recentDemands => 'সাম্প্রতিক চাহিদা সমূহ';
+
+  @override
+  String get savedProperties => 'সংরক্ষিত পছন্দের বাসা';
+
+  @override
+  String get verifiedHost => 'ভেরিফাইড হোস্ট';
+
+  @override
+  String get verifiedTenant => 'ভেরিফাইড ভাড়াটিয়া';
+
+  @override
+  String get unverified => 'আন-ভেরিফাইড';
+
+  @override
+  String get activeDemands => 'সক্রিয় চাহিদা';
 }

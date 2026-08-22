@@ -1123,6 +1123,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tenant Demands'**
   String get allTenantDemands;
+
+  /// No description provided for @firstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First Name'**
+  String get firstName;
+
+  /// No description provided for @lastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get lastName;
+
+  /// No description provided for @editPersonalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Personal Info'**
+  String get editPersonalInfo;
+
+  /// No description provided for @profileCompletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Completion'**
+  String get profileCompletion;
+
+  /// No description provided for @complete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get complete;
+
+  /// No description provided for @incomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Incomplete'**
+  String get incomplete;
+
+  /// No description provided for @updatePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Photo'**
+  String get updatePhoto;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhoto;
+
+  /// No description provided for @middleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Middle Name'**
+  String get middleName;
+
+  /// No description provided for @gender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get gender;
+
+  /// No description provided for @male.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get male;
+
+  /// No description provided for @female.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get female;
+
+  /// No description provided for @other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get other;
+
+  /// No description provided for @dateOfBirthNid.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth (According to NID)'**
+  String get dateOfBirthNid;
+
+  /// No description provided for @selectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date'**
+  String get selectDate;
+
+  /// No description provided for @nidFrontTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'National ID (Front Side)'**
+  String get nidFrontTitle;
+
+  /// No description provided for @nidBackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'National ID (Back Side)'**
+  String get nidBackTitle;
+
+  /// No description provided for @nidFrontHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload front side (JPG, PNG only)'**
+  String get nidFrontHint;
+
+  /// No description provided for @nidBackHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload back side (JPG, PNG only)'**
+  String get nidBackHint;
+
+  /// No description provided for @profileUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile has been updated successfully!'**
+  String get profileUpdatedSuccess;
+
+  /// No description provided for @saveProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Profile'**
+  String get saveProfile;
+
+  /// No description provided for @completeProfilePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile and stay verified'**
+  String get completeProfilePrompt;
+
+  /// No description provided for @uploadNid.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload NID'**
+  String get uploadNid;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get change;
+
+  /// No description provided for @myDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'My Dashboard'**
+  String get myDashboard;
+
+  /// No description provided for @dashboardOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard Overview'**
+  String get dashboardOverview;
+
+  /// No description provided for @recentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get recentActivity;
+
+  /// No description provided for @activityHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity & History'**
+  String get activityHistory;
+
+  /// No description provided for @marketDemandsRadar.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenant Demands Radar'**
+  String get marketDemandsRadar;
+
+  /// No description provided for @noPropertiesPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'No rental properties posted yet'**
+  String get noPropertiesPosted;
+
+  /// No description provided for @totalListings.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Listings'**
+  String get totalListings;
+
+  /// No description provided for @availableUnits.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Units'**
+  String get availableUnits;
+
+  /// No description provided for @quickShortcuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Shortcuts'**
+  String get quickShortcuts;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get viewAll;
+
+  /// No description provided for @accountCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Created'**
+  String get accountCreated;
+
+  /// No description provided for @recentDemands.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Demands'**
+  String get recentDemands;
+
+  /// No description provided for @savedProperties.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Properties'**
+  String get savedProperties;
+
+  /// No description provided for @verifiedHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified Host'**
+  String get verifiedHost;
+
+  /// No description provided for @verifiedTenant.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified Tenant'**
+  String get verifiedTenant;
+
+  /// No description provided for @unverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Unverified'**
+  String get unverified;
+
+  /// No description provided for @activeDemands.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Demands'**
+  String get activeDemands;
 }
 
 class _AppLocalizationsDelegate

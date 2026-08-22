@@ -83,7 +83,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
       body: SafeArea(
         child: Form(
           key: _formKey,
-           autovalidateMode: .onUserInteraction,
+          autovalidateMode: _autovalidateMode,
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             child: Column(

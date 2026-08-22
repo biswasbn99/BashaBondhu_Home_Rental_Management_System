@@ -69,12 +69,20 @@ class PropertyFirestoreService {
         .orderBy('postDate', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return PropertyModel.fromMap(
-          doc.data() as Map<String, dynamic>,
-          doc.id,
-        );
-      }).toList();
+      final List<PropertyModel> list = [];
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          if (data is Map<String, dynamic>) {
+            list.add(PropertyModel.fromMap(data, doc.id));
+          } else if (data is Map) {
+            list.add(PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id));
+          }
+        } catch (e) {
+          debugPrint('Error parsing property doc ${doc.id}: $e');
+        }
+      }
+      return list;
     });
   }
 
@@ -92,12 +100,19 @@ class PropertyFirestoreService {
     }
 
     return query.snapshots().map((snapshot) {
-      final list = snapshot.docs.map((doc) {
-        return PropertyModel.fromMap(
-          doc.data() as Map<String, dynamic>,
-          doc.id,
-        );
-      }).toList();
+      final List<PropertyModel> list = [];
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          if (data is Map<String, dynamic>) {
+            list.add(PropertyModel.fromMap(data, doc.id));
+          } else if (data is Map) {
+            list.add(PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id));
+          }
+        } catch (e) {
+          debugPrint('Error parsing property doc ${doc.id}: $e');
+        }
+      }
 
       list.sort((a, b) => b.postDate.compareTo(a.postDate));
       return list;

@@ -173,6 +173,22 @@ class PropertyModel {
       return [];
     }
 
+    int? parseInt(dynamic v) {
+      if (v == null) return null;
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v);
+      return null;
+    }
+
+    bool? parseBool(dynamic v) {
+      if (v == null) return null;
+      if (v is bool) return v;
+      if (v is String) return v.toLowerCase() == 'true' || v == '1';
+      if (v is num) return v != 0;
+      return null;
+    }
+
     return PropertyModel(
       id: docId,
       ownerId: map['ownerId']?.toString() ?? '',
@@ -192,21 +208,21 @@ class PropertyModel {
       subArea: parseSubArea(map['subArea']),
       shortAddress: map['shortAddress']?.toString() ?? '',
       detailedDescription: map['detailedDescription']?.toString() ?? '',
-      commonBathrooms: map['commonBathrooms'] as int?,
-      attachedBathrooms: map['attachedBathrooms'] as int?,
-      kitchenCount: map['kitchenCount'] as int?,
-      balconies: map['balconies'] as int?,
-      floorNumber: map['floorNumber'] as int?,
+      commonBathrooms: parseInt(map['commonBathrooms']),
+      attachedBathrooms: parseInt(map['attachedBathrooms']),
+      kitchenCount: parseInt(map['kitchenCount']),
+      balconies: parseInt(map['balconies']),
+      floorNumber: parseInt(map['floorNumber']),
       electricityBillType: map['electricityBillType']?.toString(),
-      hasCctv: map['hasCctv'] as bool?,
-      hasWifi: map['hasWifi'] as bool?,
-      hasGenerator: map['hasGenerator'] as bool?,
-      hasSecurityGuard: map['hasSecurityGuard'] as bool?,
-      hasLift: map['hasLift'] as bool?,
-      hasParking: map['hasParking'] as bool?,
+      hasCctv: parseBool(map['hasCctv']),
+      hasWifi: parseBool(map['hasWifi']),
+      hasGenerator: parseBool(map['hasGenerator']),
+      hasSecurityGuard: parseBool(map['hasSecurityGuard']),
+      hasLift: parseBool(map['hasLift']),
+      hasParking: parseBool(map['hasParking']),
       marketDistance: map['marketDistance']?.toString(),
       postDate: parseDate(map['postDate']),
-      isAvailable: map['isAvailable'] as bool? ?? true,
+      isAvailable: parseBool(map['isAvailable']) ?? true,
     );
   }
 

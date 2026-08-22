@@ -1,8 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../../../shared/presentation/screens/my_profile_screen.dart';
 
 class AccountProfileHeader extends StatelessWidget {
   const AccountProfileHeader({
@@ -21,17 +25,25 @@ class AccountProfileHeader extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final String name = user != null
-        ? "${user!.firstName} ${user!.lastName}".trim()
+        ? user!.fullName.isNotEmpty ? user!.fullName : "${user!.firstName} ${user!.lastName}".trim()
         : l10n.guestUser;
     final String email = user != null ? user!.email : 'guest@bashabondhu.com';
-    final String initials = _getInitials();
+    final String initials = user?.initials ?? 'GU';
     final bool isOwner = user?.userType == 'House Owner';
     final bool isTenant = user?.userType == 'Tenant';
+
+    final int completion = user?.profileCompletionPercentage ?? 0;
+    final bool isComplete = user?.isProfileComplete ?? false;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap ?? () => _showProfileDialog(context, name, email),
+        onTap: onTap ??
+            () {
+              if (user != null) {
+                Navigator.pushNamed(context, MyProfileScreen.name);
+              }
+            },
         borderRadius: BorderRadius.circular(20),
         child: Container(
           width: double.infinity,
@@ -53,21 +65,23 @@ class AccountProfileHeader extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // --- Gradient Avatar ---
+              // --- Avatar (Image or Gradient Initials) ---
               Container(
-                width: 64,
-                height: 64,
+                width: 66,
+                height: 66,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: isOwner
-                        ? [const Color(0xFF00A896), const Color(0xFF028090)]
-                        : isTenant
-                            ? [const Color(0xFF028090), const Color(0xFF00A896)]
-                            : [Colors.grey.shade400, Colors.grey.shade600],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: (user?.profileImageUrl.isEmpty ?? true)
+                      ? LinearGradient(
+                          colors: isOwner
+                              ? [const Color(0xFF00A896), const Color(0xFF028090)]
+                              : isTenant
+                                  ? [const Color(0xFF028090), const Color(0xFF00A896)]
+                                  : [Colors.grey.shade400, Colors.grey.shade600],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
                   boxShadow: [
                     BoxShadow(
                       color: (isOwner || isTenant ? AppColors.themeColor : Colors.grey)
@@ -77,16 +91,20 @@ class AccountProfileHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Text(
-                    initials,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.1,
-                    ),
-                  ),
+                child: ClipOval(
+                  child: (user?.profileImageUrl.isNotEmpty ?? false)
+                      ? _buildProfileImage(user!.profileImageUrl)
+                      : Center(
+                          child: Text(
+                            initials,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -96,52 +114,74 @@ class AccountProfileHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Role Badge
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 5),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: (isOwner
-                                ? AppColors.themeColor
-                                : isTenant
-                                    ? const Color(0xFF028090)
-                                    : Colors.grey)
-                            .withValues(alpha: isDark ? 0.25 : 0.12),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            isOwner
-                                ? Icons.home_work_rounded
-                                : isTenant
-                                    ? Icons.person_rounded
-                                    : Icons.explore_outlined,
-                            size: 13,
-                            color: isOwner
-                                ? AppColors.themeColor
-                                : isTenant
-                                    ? const Color(0xFF028090)
-                                    : (isDark ? Colors.grey[300] : Colors.grey[700]),
+                    // Role Badge & Completion Status
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: (isOwner
+                                    ? AppColors.themeColor
+                                    : isTenant
+                                        ? const Color(0xFF028090)
+                                        : Colors.grey)
+                                .withValues(alpha: isDark ? 0.25 : 0.12),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            user != null ? user!.userType.toUpperCase() : l10n.guestUser.toUpperCase(),
-                            style: TextStyle(
-                              color: isOwner
-                                  ? AppColors.themeColor
-                                  : isTenant
-                                      ? const Color(0xFF028090)
-                                      : (isDark ? Colors.grey[300] : Colors.grey[700]),
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isOwner
+                                    ? Icons.home_work_rounded
+                                    : isTenant
+                                        ? Icons.person_rounded
+                                        : Icons.explore_outlined,
+                                size: 12,
+                                color: isOwner
+                                    ? AppColors.themeColor
+                                    : isTenant
+                                        ? const Color(0xFF028090)
+                                        : (isDark ? Colors.grey[300] : Colors.grey[700]),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                user != null ? user!.userType.toUpperCase() : l10n.guestUser.toUpperCase(),
+                                style: TextStyle(
+                                  color: isOwner
+                                      ? AppColors.themeColor
+                                      : isTenant
+                                          ? const Color(0xFF028090)
+                                          : (isDark ? Colors.grey[300] : Colors.grey[700]),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (user != null) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: (isComplete ? Colors.green : Colors.amber.shade800).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isComplete ? '100% ${l10n.complete}' : '$completion% ${l10n.incomplete}',
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                color: isComplete ? Colors.green : Colors.amber.shade800,
+                              ),
                             ),
                           ),
                         ],
-                      ),
+                      ],
                     ),
+                    const SizedBox(height: 6),
 
                     // Name
                     Text(
@@ -156,9 +196,9 @@ class AccountProfileHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
 
-                    // Email or city
+                    // Email / Phone
                     Text(
-                      email,
+                      user?.mobile.isNotEmpty == true ? user!.mobile : email,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -200,127 +240,31 @@ class AccountProfileHeader extends StatelessWidget {
     );
   }
 
-  void _showProfileDialog(BuildContext context, String name, String email) {
-    if (user == null) return;
-    final l10n = context.localizations;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: theme.colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.grey[700] : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor: AppColors.themeColor.withValues(alpha: 0.15),
-                    child: const Icon(Icons.person, color: AppColors.themeColor, size: 28),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.themeColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            user!.userType,
-                            style: const TextStyle(
-                              color: AppColors.themeColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              const Divider(),
-              const SizedBox(height: 12),
-
-              _dialogRow(Icons.email_outlined, 'Email', email),
-              if (user!.mobile.isNotEmpty)
-                _dialogRow(Icons.phone_outlined, l10n.mobile, user!.mobile),
-              if (user!.city.isNotEmpty)
-                _dialogRow(Icons.location_city_outlined, l10n.city, user!.city),
-              _dialogRow(Icons.badge_outlined, l10n.userRole, user!.userType),
-
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('ঠিক আছে'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _dialogRow(IconData icon, String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: AppColors.themeColor),
-          const SizedBox(width: 12),
-          Text('$title:', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 13.5, color: Colors.grey),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getInitials() {
-    if (user == null) return "GU";
-    String first = user!.firstName.isNotEmpty ? user!.firstName[0] : "";
-    String last = user!.lastName.isNotEmpty ? user!.lastName[0] : "";
-    return (first + last).toUpperCase();
+  Widget _buildProfileImage(String src) {
+    if (src.startsWith('data:image')) {
+      final base64Str = src.split(',').last;
+      return Image.memory(
+        base64Decode(base64Str),
+        width: 66,
+        height: 66,
+        fit: BoxFit.cover,
+      );
+    } else if (src.startsWith('http://') || src.startsWith('https://')) {
+      return Image.network(
+        src,
+        width: 66,
+        height: 66,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
+      );
+    } else {
+      return Image.file(
+        File(src),
+        width: 66,
+        height: 66,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
+      );
+    }
   }
 }

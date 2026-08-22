@@ -46,6 +46,27 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
+  /// Update user profile in Firestore and in local state
+  Future<void> updateUserProfile(UserModel updatedUser) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _firestore
+          .collection('users')
+          .doc(updatedUser.uid)
+          .set(updatedUser.toMap(), SetOptions(merge: true));
+      _user = updatedUser;
+      debugPrint('✅ User profile updated successfully: ${updatedUser.uid}');
+    } catch (e) {
+      debugPrint('❌ Error updating user profile: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void clearUser() {
     _user = null;
     notifyListeners();

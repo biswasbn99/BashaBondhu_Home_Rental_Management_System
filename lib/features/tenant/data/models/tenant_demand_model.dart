@@ -162,38 +162,54 @@ class TenantDemandModel {
       return null;
     }
 
+    int? parseInt(dynamic v) {
+      if (v == null) return null;
+      if (v is int) return v;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v);
+      return null;
+    }
+
+    bool? parseBool(dynamic v) {
+      if (v == null) return null;
+      if (v is bool) return v;
+      if (v is String) return v.toLowerCase() == 'true' || v == '1';
+      if (v is num) return v != 0;
+      return null;
+    }
+
     return TenantDemandModel(
       id: docId,
-      tenantId: map['tenantId'] ?? '',
-      tenantEmail: map['tenantEmail'] ?? '',
-      month: map['month'] ?? '',
+      tenantId: map['tenantId']?.toString() ?? '',
+      tenantEmail: map['tenantEmail']?.toString() ?? '',
+      month: map['month']?.toString() ?? '',
       houseType: parseHouseType(map['houseType']),
-      roomOrSeat: map['roomOrSeat'] ?? '',
+      roomOrSeat: map['roomOrSeat']?.toString() ?? '',
       division: parseDivision(map['division']),
       district: parseDistrict(map['district']),
       area: parseArea(map['area']),
       subArea: parseSubArea(map['subArea']),
       budgetRange: map['budgetRange']?.toString(),
       tenantType: parseTenantType(map['tenantType']),
-      bathrooms: map['bathrooms'] as int?,
-      attachedBathrooms: map['attachedBathrooms'] as int?,
-      kitchenCount: map['kitchenCount'] as int?,
-      balconies: map['balconies'] as int?,
-      floorNumber: map['floorNumber'] as int?,
+      bathrooms: parseInt(map['bathrooms']),
+      attachedBathrooms: parseInt(map['attachedBathrooms']),
+      kitchenCount: parseInt(map['kitchenCount']),
+      balconies: parseInt(map['balconies']),
+      floorNumber: parseInt(map['floorNumber']),
       electricityBillType: map['electricityBillType']?.toString(),
-      hasCctv: map['hasCctv'] as bool?,
-      hasWifi: map['hasWifi'] as bool?,
-      hasGenerator: map['hasGenerator'] as bool?,
-      hasSecurityGuard: map['hasSecurityGuard'] as bool?,
-      hasLift: map['hasLift'] as bool?,
-      hasParking: map['hasParking'] as bool?,
-      hasGivenNotice: map['hasGivenNotice'] as bool?,
+      hasCctv: parseBool(map['hasCctv']),
+      hasWifi: parseBool(map['hasWifi']),
+      hasGenerator: parseBool(map['hasGenerator']),
+      hasSecurityGuard: parseBool(map['hasSecurityGuard']),
+      hasLift: parseBool(map['hasLift']),
+      hasParking: parseBool(map['hasParking']),
+      hasGivenNotice: parseBool(map['hasGivenNotice']),
       marketDistance: map['marketDistance']?.toString(),
-      userName: map['userName'] ?? '',
-      userMobile: map['userMobile'] ?? '',
-      userWhatsApp: map['userWhatsApp'] ?? '',
-      shortAddress: map['shortAddress'] ?? '',
-      detailedDescription: map['detailedDescription'] ?? '',
+      userName: map['userName']?.toString() ?? '',
+      userMobile: map['userMobile']?.toString() ?? '',
+      userWhatsApp: map['userWhatsApp']?.toString() ?? '',
+      shortAddress: map['shortAddress']?.toString() ?? '',
+      detailedDescription: map['detailedDescription']?.toString() ?? '',
       postDate: parseDate(map['postDate']),
     );
   }
