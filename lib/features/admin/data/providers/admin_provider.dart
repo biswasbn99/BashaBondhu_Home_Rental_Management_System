@@ -19,17 +19,29 @@ class AdminProvider extends ChangeNotifier {
   AdminModule _currentModule = AdminModule.dashboard;
   bool _isLoggedIn = false;
   bool _isLoading = false;
+  bool _isBangla = false; // Default language is English as requested
   String? _adminName;
   String? _adminEmail;
 
   AdminModule get currentModule => _currentModule;
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
+  bool get isBangla => _isBangla;
   String? get adminName => _adminName;
   String? get adminEmail => _adminEmail;
 
   void changeModule(AdminModule module) {
     _currentModule = module;
+    notifyListeners();
+  }
+
+  void toggleLanguage() {
+    _isBangla = !_isBangla;
+    notifyListeners();
+  }
+
+  void setLanguage(bool isBangla) {
+    _isBangla = isBangla;
     notifyListeners();
   }
 
@@ -66,7 +78,7 @@ class AdminProvider extends ChangeNotifier {
         }
       }
 
-      // Check default fallback if network / document match
+      // Check default fallback
       if (cleanEmail == 'admin1@gmail.com' && cleanPassword == '1234567') {
         _isLoggedIn = true;
         _adminEmail = cleanEmail;
@@ -80,7 +92,7 @@ class AdminProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      debugPrint('Admin login firestore check error: $e');
+      debugPrint('Admin login error: $e');
       if (cleanEmail == 'admin1@gmail.com' && cleanPassword == '1234567') {
         _isLoggedIn = true;
         _adminEmail = cleanEmail;

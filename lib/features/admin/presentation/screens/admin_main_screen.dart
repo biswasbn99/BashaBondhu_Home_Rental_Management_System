@@ -1,12 +1,18 @@
-import 'package:bashabondhu_home_rental_management_system/features/admin/data/providers/admin_provider.dart';
-import 'package:bashabondhu_home_rental_management_system/features/admin/presentation/layout/admin_layout.dart';
-import 'package:bashabondhu_home_rental_management_system/features/admin/presentation/screens/admin_dashboard_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/admin/presentation/screens/admin_login_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/admin/presentation/screens/property_management_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/admin/presentation/screens/user_management_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/admin/presentation/screens/location_management_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../data/providers/admin_provider.dart';
+import '../layout/admin_layout.dart';
+import 'admin_dashboard_screen.dart';
+import 'admin_login_screen.dart';
+import 'admin_settings_screen.dart';
+import 'analytics_screen.dart';
+import 'category_management_screen.dart';
+import 'faq_management_screen.dart';
+import 'location_management_screen.dart';
+import 'property_management_screen.dart';
+import 'reports_management_screen.dart';
+import 'user_management_screen.dart';
 
 class AdminMainScreen extends StatelessWidget {
   const AdminMainScreen({super.key});
@@ -35,10 +41,16 @@ class AdminMainScreen extends StatelessWidget {
         return const PropertyManagementView();
       case AdminModule.locations:
         return const LocationManagementView();
-      default:
-        return Center(
-          child: Text('Module ${module.name} is under development'),
-        );
+      case AdminModule.categories:
+        return const CategoryManagementView();
+      case AdminModule.reports:
+        return const ReportsManagementView();
+      case AdminModule.faq:
+        return const FaqManagementView();
+      case AdminModule.analytics:
+        return const AnalyticsView();
+      case AdminModule.settings:
+        return const AdminSettingsView();
     }
   }
 }
