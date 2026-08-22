@@ -314,7 +314,7 @@ class _UserManagementViewState extends State<UserManagementView> {
 
   Widget _buildFilterDropdown(bool isBn, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF161C1B) : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
@@ -323,7 +323,6 @@ class _UserManagementViewState extends State<UserManagementView> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedFilter,
-          isExpanded: true,
           items: [
             DropdownMenuItem(value: 'All', child: Text(isBn ? 'সকল ইউজার (All)' : 'All Users')),
             DropdownMenuItem(value: 'Owners', child: Text(isBn ? 'বাড়িওয়ালা (Owners)' : 'House Owners')),

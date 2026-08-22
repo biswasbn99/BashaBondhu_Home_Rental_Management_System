@@ -317,51 +317,54 @@ class AdminDashboardView extends StatelessWidget {
           else
             Column(
               children: properties.map((prop) {
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: prop.images.isNotEmpty
-                          ? _buildImage(prop.images.first, 44, 44)
-                          : Container(color: Colors.grey[300], child: const Icon(Icons.home, size: 20)),
+                return Material(
+                  color: Colors.transparent,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: prop.images.isNotEmpty
+                            ? _buildImage(prop.images.first, 44, 44)
+                            : Container(color: Colors.grey[300], child: const Icon(Icons.home, size: 20)),
+                      ),
                     ),
-                  ),
-                  title: Text(
-                    prop.shortAddress.isNotEmpty ? prop.shortAddress : prop.houseType.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                  ),
-                  subtitle: Text(
-                    "${prop.amount} ৳ • ${prop.area.name}, ${prop.district.name}",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11.5, color: AppColors.themeColor),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20),
-                        tooltip: isBn ? 'অনুমোদন করুন' : 'Approve',
-                        onPressed: () async {
-                          await adminService.updatePropertyApproval(prop.id, 'approved');
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(isBn ? 'বিজ্ঞাপনটি অনুমোদিত হয়েছে!' : 'Property approved!'), backgroundColor: Colors.green),
-                            );
-                          }
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.cancel_rounded, color: Colors.redAccent, size: 20),
-                        tooltip: isBn ? 'প্রত্যাখ্যান করুন' : 'Reject',
-                        onPressed: () => _showRejectDialog(context, prop.id, adminService, isBn),
-                      ),
-                    ],
+                    title: Text(
+                      prop.shortAddress.isNotEmpty ? prop.shortAddress : prop.houseType.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                    ),
+                    subtitle: Text(
+                      "${prop.amount} ৳ • ${prop.area.name}, ${prop.district.name}",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.themeColor),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20),
+                          tooltip: isBn ? 'অনুমোদন করুন' : 'Approve',
+                          onPressed: () async {
+                            await adminService.updatePropertyApproval(prop.id, 'approved');
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(isBn ? 'বিজ্ঞাপনটি অনুমোদিত হয়েছে!' : 'Property approved!'), backgroundColor: Colors.green),
+                              );
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.cancel_rounded, color: Colors.redAccent, size: 20),
+                          tooltip: isBn ? 'প্রত্যাখ্যান করুন' : 'Reject',
+                          onPressed: () => _showRejectDialog(context, prop.id, adminService, isBn),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               }).toList(),
@@ -420,37 +423,40 @@ class AdminDashboardView extends StatelessWidget {
             Column(
               children: users.map((user) {
                 final name = user.fullName.isNotEmpty ? user.fullName : "${user.firstName} ${user.lastName}".trim();
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    radius: 18,
-                    backgroundColor: AppColors.themeColor.withValues(alpha: 0.12),
-                    child: Text(user.initials, style: const TextStyle(color: AppColors.themeColor, fontWeight: FontWeight.bold, fontSize: 12)),
-                  ),
-                  title: Text(name.isNotEmpty ? name : 'User', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  subtitle: Text(
-                    '${user.userType} • ${user.mobile.isNotEmpty ? user.mobile : user.email}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11),
-                  ),
-                  trailing: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      minimumSize: Size.zero,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                return Material(
+                  color: Colors.transparent,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: AppColors.themeColor.withValues(alpha: 0.12),
+                      child: Text(user.initials, style: const TextStyle(color: AppColors.themeColor, fontWeight: FontWeight.bold, fontSize: 12)),
                     ),
-                    onPressed: () async {
-                      await adminService.updateUserNidStatus(user.uid, 'verified');
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(isBn ? 'এনআইডি ভেরিফাইড সম্পন্ন হয়েছে!' : 'User NID Verified!'), backgroundColor: Colors.green),
-                        );
-                      }
-                    },
-                    child: Text(isBn ? 'ভেরিফাই' : 'Verify', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    title: Text(name.isNotEmpty ? name : 'User', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    subtitle: Text(
+                      '${user.userType} • ${user.mobile.isNotEmpty ? user.mobile : user.email}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                    trailing: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        minimumSize: Size.zero,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () async {
+                        await adminService.updateUserNidStatus(user.uid, 'verified');
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(isBn ? 'এনআইডি ভেরিফাইড সম্পন্ন হয়েছে!' : 'User NID Verified!'), backgroundColor: Colors.green),
+                          );
+                        }
+                      },
+                      child: Text(isBn ? 'ভেরিফাই' : 'Verify', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                    ),
                   ),
                 );
               }).toList(),

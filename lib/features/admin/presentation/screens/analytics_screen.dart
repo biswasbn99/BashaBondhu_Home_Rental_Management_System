@@ -151,22 +151,15 @@ class AnalyticsView extends StatelessWidget {
                                 child: Column(
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
+                                        const Icon(Icons.location_on, size: 16, color: AppColors.themeColor),
+                                        const SizedBox(width: 6),
                                         Expanded(
-                                          child: Row(
-                                            children: [
-                                              const Icon(Icons.location_on, size: 16, color: AppColors.themeColor),
-                                              const SizedBox(width: 6),
-                                              Expanded(
-                                                child: Text(
-                                                  areaName,
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                                ),
-                                              ),
-                                            ],
+                                          child: Text(
+                                            areaName,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                                           ),
                                         ),
                                         const SizedBox(width: 8),

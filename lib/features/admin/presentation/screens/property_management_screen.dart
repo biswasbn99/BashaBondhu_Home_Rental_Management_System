@@ -318,7 +318,7 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
 
   Widget _buildFilterDropdown(bool isBn, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF161C1B) : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
@@ -327,7 +327,6 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedFilter,
-          isExpanded: true,
           items: [
             DropdownMenuItem(value: 'All', child: Text(isBn ? 'সকল বিজ্ঞাপন (All)' : 'All Listings')),
             DropdownMenuItem(value: 'Approved', child: Text(isBn ? 'অনুমোদিত (Approved)' : 'Approved')),
