@@ -19,7 +19,7 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return message ?? 'Enter your name';
     }
-    if (RegExp(r'^[a-zA-Z\s.]+$').hasMatch(value) == false) {
+    if (RegExp(r'^[a-zA-Z\u0980-\u09FF\s.]+$').hasMatch(value.trim()) == false) {
       return 'Enter a valid name (only letters)';
     }
     return null;
@@ -29,8 +29,18 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return 'Enter your phone number';
     }
-    if (RegExp(r'^01[3-9]\d{8}$').hasMatch(value) == false) {
-      return 'Enter a valid phone number';
+    if (RegExp(r'^01[3-9]\d{8}$').hasMatch(value.trim()) == false) {
+      return 'Enter a valid Bangladeshi phone number';
+    }
+    return null;
+  }
+
+  static String? validateWhatsAppNumber(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+    if (RegExp(r'^01[3-9]\d{8}$').hasMatch(value.trim()) == false) {
+      return 'Enter a valid Bangladeshi WhatsApp number';
     }
     return null;
   }
@@ -53,5 +63,4 @@ class Validators {
     }
     return null;
   }
-
 }

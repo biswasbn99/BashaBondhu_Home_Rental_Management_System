@@ -1,8 +1,14 @@
-import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
-import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
-import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/home/presentation/screens/property_details_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../app/app_colors.dart';
+import '../../../../app/extensions/utility_extension.dart';
+import '../../../auth/data/providers/user_provider.dart';
+import '../../../shared/data/models/search_filter_model.dart';
+import '../../../shared/presentation/widgets/app_network_image.dart';
+import '../../../wishlist/data/providers/wishlist_provider.dart';
+import '../../data/models/property_model.dart';
+import '../screens/property_details_screen.dart';
 
 class PropertyCard extends StatelessWidget {
   const PropertyCard({super.key, required this.property});
@@ -14,51 +20,57 @@ class PropertyCard extends StatelessWidget {
     final l10n = context.localizations;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final userProvider = context.watch<UserProvider>();
+    final wishlistProvider = context.watch<WishlistProvider>();
+    final isFav = wishlistProvider.isFavorite(property.id);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+    final locationText = [
+      if (property.subArea != null) property.subArea!.getLocalizedName(languageCode),
+      property.area.getLocalizedName(languageCode),
+      property.district.getLocalizedName(languageCode),
+    ].join(', ');
+
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
         ),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- Image Header ---
+          // --- Image Banner ---
           Stack(
             children: [
-              SizedBox(
-                height: 180,
+              AppImageWidget(
+                imageSource: property.images.isNotEmpty ? property.images.first : null,
+                height: 190,
                 width: double.infinity,
-                child: property.images.isNotEmpty
-                    ? Image.network(
-                        property.images[0], // Assuming URL
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
-                      )
-                    : _buildPlaceholder(),
+                fit: BoxFit.cover,
               ),
+
+              // Price Badge
               Positioned(
-                top: 12,
-                right: 12,
+                bottom: 12,
+                left: 12,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.themeColor,
-                    borderRadius: BorderRadius.circular(20),
+                    color: AppColors.themeColor.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 6,
+                      ),
+                    ],
                   ),
                   child: Text(
-                    "${property.amount} ৳",
+                    '৳ ${property.amount} / ${l10n.perMonth}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -67,67 +79,194 @@ class PropertyCard extends StatelessWidget {
                   ),
                 ),
               ),
+
+              // House Type & Month Tag
+              Positioned(
+                top: 12,
+                left: 12,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        property.houseType.name.toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        property.month,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                    if (property.tenantType != null) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.themeColor.withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          property.tenantType!.getLocalizedLabel(l10n),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Wishlist Heart Icon
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Material(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () {
+                      wishlistProvider.toggleFavorite(
+                        userProvider.user?.uid ?? '',
+                        property.id,
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        color: isFav ? Colors.redAccent : Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
 
+          // --- Body Info ---
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Title / Room Details
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      property.id,
-                      style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey),
+                    Expanded(
+                      child: Text(
+                        property.roomOrSeat,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                        ),
+                      ),
                     ),
-                    Text(
-                      "${l10n.postedOn} ${property.month}",
-                      style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey),
-                    ),
+                    if (property.floorNumber != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.grey[800] : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Floor: ${property.floorNumber}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  "${property.houseType.name.toUpperCase()} - ${property.roomOrSeat}",
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
                 const SizedBox(height: 6),
+
+                // Location Row
                 Row(
                   children: [
-                    const Icon(Icons.location_on_rounded, size: 16, color: AppColors.themeColor),
+                    const Icon(Icons.location_on_outlined, size: 16, color: AppColors.themeColor),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        property.shortAddress,
+                        locationText,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
+
+                // Key Facilities Chips
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (property.attachedBathrooms != null && property.attachedBathrooms! > 0)
+                      _buildChip(Icons.bathtub_outlined, '${property.attachedBathrooms} Attached Bath', theme),
+                    if (property.balconies != null && property.balconies! > 0)
+                      _buildChip(Icons.balcony_outlined, '${property.balconies} Balcony', theme),
+                    if (property.hasLift == true)
+                      _buildChip(Icons.elevator_outlined, 'Lift', theme),
+                    if (property.hasGenerator == true)
+                      _buildChip(Icons.bolt_outlined, 'Generator', theme),
+                    if (property.hasWifi == true)
+                      _buildChip(Icons.wifi, 'WiFi', theme),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // View Details Button
                 SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.themeColor,
+                      side: const BorderSide(color: AppColors.themeColor),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    label: Text(l10n.viewDetails),
                     onPressed: () {
-                      Navigator.pushNamed(
+                      Navigator.push(
                         context,
-                        PropertyDetailsScreen.name,
-                        arguments: property,
+                        MaterialPageRoute(
+                          builder: (_) => PropertyDetailsScreen(property: property),
+                        ),
                       );
                     },
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.themeColor),
-                      foregroundColor: AppColors.themeColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text(l10n.viewDetails),
                   ),
                 ),
               ],
@@ -138,11 +277,30 @@ class PropertyCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholder() {
+
+  Widget _buildChip(IconData icon, String label, ThemeData theme) {
     return Container(
-      color: Colors.grey.shade200,
-      child: const Center(
-        child: Icon(Icons.home_work_outlined, size: 50, color: Colors.grey),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: theme.brightness == Brightness.dark
+            ? Colors.grey[800]
+            : Colors.grey[100],
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppColors.themeColor),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }

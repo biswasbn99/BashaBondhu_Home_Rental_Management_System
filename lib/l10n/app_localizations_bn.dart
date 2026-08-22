@@ -366,11 +366,174 @@ class AppLocalizationsBn extends AppLocalizations {
   String get perMonth => 'প্রতি মাস';
 
   @override
-  String get contactInfo => 'যোগাযোগের তথ্য';
-
-  @override
   String get guestUser => 'অতিথি ব্যবহারকারী';
 
   @override
   String get logout => 'লগআউট';
+
+  @override
+  String get mainThumbnailTitle => 'বাসার ছবি যুক্ত করুন';
+
+  @override
+  String get mainThumbnailSubtitle => 'এটি প্রধান থাম্বনেইল হিসেবে ব্যবহার হবে';
+
+  @override
+  String get additionalPhotosTitle => 'অতিরিক্ত ছবি যুক্ত করুন';
+
+  @override
+  String get additionalPhotosSubtitle =>
+      'ভাড়াটিয়ার আরও স্পষ্ট বোঝার জন্য সর্বোচ্চ ৯টি ছবি যোগ করুন';
+
+  @override
+  String get galleryOption => 'গ্যালারি';
+
+  @override
+  String get cameraOption => 'ক্যামেরা';
+
+  @override
+  String get mainThumbnailBadge => 'প্রধান ছবি';
+
+  @override
+  String get changePhoto => 'ছবি পরিবর্তন করুন';
+
+  @override
+  String get deletePhoto => 'মুছে ফেলুন';
+
+  @override
+  String get myPost => 'MyPost';
+
+  @override
+  String get editPost => 'পোস্ট সম্পাদনা করুন';
+
+  @override
+  String get deletePostConfirmTitle => 'পোস্ট মুছে ফেলবেন?';
+
+  @override
+  String get deletePostConfirmSubtitle =>
+      'আপনি কি নিশ্চিত যে এই বাসাভাড়ার পোস্টটি মুছে ফেলতে চান?';
+
+  @override
+  String get noPostsYet => 'এখনো কোনো বাসাভাড়া পোস্ট করা হয়নি';
+
+  @override
+  String get createPostPrompt => 'নতুন বাসাভাড়া পোস্ট করুন';
+
+  @override
+  String get saveChanges => 'আপডেট সংরক্ষণ করুন';
+
+  @override
+  String get postUpdatedSuccess => 'পোস্ট সফলভাবে আপডেট করা হয়েছে!';
+
+  @override
+  String get postDeletedSuccess => 'পোস্ট সফলভাবে মুছে ফেলা হয়েছে!';
+
+  @override
+  String get searchResult => 'অনুসন্ধানের ফলাফল';
+
+  @override
+  String get optional => 'ঐচ্ছিক';
+
+  @override
+  String get appSettings => 'অ্যাপ সেটিংস';
+
+  @override
+  String get myProfile => 'প্রোফাইল তথ্য';
+
+  @override
+  String get activePosts => 'সক্রিয় পোস্ট';
+
+  @override
+  String get savedHouses => 'পছন্দের বাসা';
+
+  @override
+  String get myDemands => 'আমার চাহিদা';
+
+  @override
+  String get viewTenantDemands => 'ভাড়াটিয়ার চাহিদাসমূহ';
+
+  @override
+  String get welcomeGuestTitle => 'বাসা বন্ধুতে স্বাগতম';
+
+  @override
+  String get welcomeGuestSubtitle =>
+      'সহজ ও দ্রুত বাসাভাড়া পেতে বা দিতে এখনই আপনার অ্যাকাউন্টে সাইন ইন করুন অথবা নতুন অ্যাকাউন্ট তৈরি করুন।';
+
+  @override
+  String get guestFeaturesTitle => 'বাসা বন্ধুর মূল সুবিধাসমূহ';
+
+  @override
+  String get featureFindHome => 'পছন্দের এলাকা ও বাজেটে বাসা অনুসন্ধান';
+
+  @override
+  String get featurePostHome => 'বাড়িওয়ালারা সরাসরি বাসাভাড়া পোস্ট করার সুবিধা';
+
+  @override
+  String get featureDemandHome =>
+      'ভাড়াটিয়াদের প্রয়োজন অনুযায়ী চাহিদা জানানোর সুযোগ';
+
+  @override
+  String get featureWishlist => 'পছন্দের বাসা সংরক্ষণ ও পরে দেখার সুবিধা';
+
+  @override
+  String get logoutConfirmTitle => 'লগআউট করতে চান?';
+
+  @override
+  String get logoutConfirmSubtitle =>
+      'আপনি কি নিশ্চিত যে আপনার অ্যাকাউন্ট থেকে লগআউট করতে চান?';
+
+  @override
+  String get confirm => 'হ্যাঁ, লগআউট';
+
+  @override
+  String get cancel => 'বাতিল';
+
+  @override
+  String get personalInfo => 'ব্যক্তিগত তথ্য';
+
+  @override
+  String get mobile => 'মোবাইল';
+
+  @override
+  String get city => 'শহর / এলাকা';
+
+  @override
+  String get userRole => 'ব্যবহারকারীর ধরন';
+
+  @override
+  String get hostGuidelines => 'বাড়িওয়ালা নির্দেশিকা ও সাপোর্ট';
+
+  @override
+  String get privacyAndSecurity => 'প্রাইভেসি ও পলিসি';
+
+  @override
+  String get appVersion => 'ভার্সন';
+
+  @override
+  String get editDemand => 'চাহিদা সম্পাদনা';
+
+  @override
+  String get deleteDemandConfirmTitle => 'চাহিদা মুছে ফেলবেন?';
+
+  @override
+  String get deleteDemandConfirmSubtitle =>
+      'আপনি কি নিশ্চিত যে এই ভাড়ার চাহিদাটি মুছে ফেলতে চান?';
+
+  @override
+  String get demandPostedSuccess =>
+      'আপনার ভাড়ার চাহিদা সফলভাবে পোস্ট করা হয়েছে!';
+
+  @override
+  String get demandUpdatedSuccess => 'চাহিদা সফলভাবে আপডেট করা হয়েছে!';
+
+  @override
+  String get demandDeletedSuccess => 'চাহিদা সফলভাবে মুছে ফেলা হয়েছে!';
+
+  @override
+  String get noDemandsYet => 'এখনো কোনো চাহিদা পোস্ট করা হয়নি';
+
+  @override
+  String get postNewDemand => 'নতুন চাহিদা জানান';
+
+  @override
+  String get allTenantDemands => 'ভাড়াটিয়াদের চাহিদা';
 }

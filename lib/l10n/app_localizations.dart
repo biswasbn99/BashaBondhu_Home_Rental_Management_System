@@ -794,12 +794,6 @@ abstract class AppLocalizations {
   /// **'Per Month'**
   String get perMonth;
 
-  /// No description provided for @contactInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'Contact Information'**
-  String get contactInfo;
-
   /// No description provided for @guestUser.
   ///
   /// In en, this message translates to:
@@ -811,6 +805,324 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Logout'**
   String get logout;
+
+  /// No description provided for @mainThumbnailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add House Photo'**
+  String get mainThumbnailTitle;
+
+  /// No description provided for @mainThumbnailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This will be used as the main thumbnail'**
+  String get mainThumbnailSubtitle;
+
+  /// No description provided for @additionalPhotosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Additional Photos'**
+  String get additionalPhotosTitle;
+
+  /// No description provided for @additionalPhotosSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add up to 9 photos for tenant reference'**
+  String get additionalPhotosSubtitle;
+
+  /// No description provided for @galleryOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get galleryOption;
+
+  /// No description provided for @cameraOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get cameraOption;
+
+  /// No description provided for @mainThumbnailBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Main Photo'**
+  String get mainThumbnailBadge;
+
+  /// No description provided for @changePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Photo'**
+  String get changePhoto;
+
+  /// No description provided for @deletePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Photo'**
+  String get deletePhoto;
+
+  /// No description provided for @myPost.
+  ///
+  /// In en, this message translates to:
+  /// **'MyPost'**
+  String get myPost;
+
+  /// No description provided for @editPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Post'**
+  String get editPost;
+
+  /// No description provided for @deletePostConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Post?'**
+  String get deletePostConfirmTitle;
+
+  /// No description provided for @deletePostConfirmSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to permanently delete this rent post?'**
+  String get deletePostConfirmSubtitle;
+
+  /// No description provided for @noPostsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No rent posts published yet'**
+  String get noPostsYet;
+
+  /// No description provided for @createPostPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Rent Post'**
+  String get createPostPrompt;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
+
+  /// No description provided for @postUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Post updated successfully!'**
+  String get postUpdatedSuccess;
+
+  /// No description provided for @postDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Post deleted successfully!'**
+  String get postDeletedSuccess;
+
+  /// No description provided for @searchResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Results'**
+  String get searchResult;
+
+  /// No description provided for @optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get optional;
+
+  /// No description provided for @appSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'App Settings'**
+  String get appSettings;
+
+  /// No description provided for @myProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Information'**
+  String get myProfile;
+
+  /// No description provided for @activePosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Posts'**
+  String get activePosts;
+
+  /// No description provided for @savedHouses.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Houses'**
+  String get savedHouses;
+
+  /// No description provided for @myDemands.
+  ///
+  /// In en, this message translates to:
+  /// **'My Demands'**
+  String get myDemands;
+
+  /// No description provided for @viewTenantDemands.
+  ///
+  /// In en, this message translates to:
+  /// **'View Tenant Demands'**
+  String get viewTenantDemands;
+
+  /// No description provided for @welcomeGuestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to BashaBondhu'**
+  String get welcomeGuestTitle;
+
+  /// No description provided for @welcomeGuestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in or create an account to find or rent houses quickly and easily.'**
+  String get welcomeGuestSubtitle;
+
+  /// No description provided for @guestFeaturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Features of BashaBondhu'**
+  String get guestFeaturesTitle;
+
+  /// No description provided for @featureFindHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Easily find homes in your area & budget'**
+  String get featureFindHome;
+
+  /// No description provided for @featurePostHome.
+  ///
+  /// In en, this message translates to:
+  /// **'House owners can post rental listings directly'**
+  String get featurePostHome;
+
+  /// No description provided for @featureDemandHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenants can submit customized rental demands'**
+  String get featureDemandHome;
+
+  /// No description provided for @featureWishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and bookmark favorite listings'**
+  String get featureWishlist;
+
+  /// No description provided for @logoutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to log out?'**
+  String get logoutConfirmTitle;
+
+  /// No description provided for @logoutConfirmSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to log out of your account?'**
+  String get logoutConfirmSubtitle;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Log Out'**
+  String get confirm;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @personalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Info'**
+  String get personalInfo;
+
+  /// No description provided for @mobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get mobile;
+
+  /// No description provided for @city.
+  ///
+  /// In en, this message translates to:
+  /// **'City / Area'**
+  String get city;
+
+  /// No description provided for @userRole.
+  ///
+  /// In en, this message translates to:
+  /// **'User Role'**
+  String get userRole;
+
+  /// No description provided for @hostGuidelines.
+  ///
+  /// In en, this message translates to:
+  /// **'Host Guidelines & Support'**
+  String get hostGuidelines;
+
+  /// No description provided for @privacyAndSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyAndSecurity;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get appVersion;
+
+  /// No description provided for @editDemand.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Demand'**
+  String get editDemand;
+
+  /// No description provided for @deleteDemandConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Demand?'**
+  String get deleteDemandConfirmTitle;
+
+  /// No description provided for @deleteDemandConfirmSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this tenant demand?'**
+  String get deleteDemandConfirmSubtitle;
+
+  /// No description provided for @demandPostedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your rental demand has been posted successfully!'**
+  String get demandPostedSuccess;
+
+  /// No description provided for @demandUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Demand updated successfully!'**
+  String get demandUpdatedSuccess;
+
+  /// No description provided for @demandDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Demand deleted successfully!'**
+  String get demandDeletedSuccess;
+
+  /// No description provided for @noDemandsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No demands posted yet'**
+  String get noDemandsYet;
+
+  /// No description provided for @postNewDemand.
+  ///
+  /// In en, this message translates to:
+  /// **'Post New Demand'**
+  String get postNewDemand;
+
+  /// No description provided for @allTenantDemands.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenant Demands'**
+  String get allTenantDemands;
 }
 
 class _AppLocalizationsDelegate

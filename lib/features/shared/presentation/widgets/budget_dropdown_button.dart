@@ -8,11 +8,13 @@ class BudgetDropdown extends StatelessWidget {
     required this.value,
     required this.ranges,
     required this.onChanged,
+    this.isRequired = false,
   });
 
   final String? value;
   final List<String> ranges;
   final ValueChanged<String?> onChanged;
+  final bool isRequired;
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +22,9 @@ class BudgetDropdown extends StatelessWidget {
     return FilterDropdown<String>(
       hint: l10n.budget,
       value: value,
-      isRequired: false,
+      isRequired: isRequired,
       items: [
-        DropdownMenuItem(value: null, child: Text(l10n.budget)),
+        if (!isRequired) DropdownMenuItem(value: null, child: Text(l10n.budget)),
         ...ranges.map((r) => DropdownMenuItem(value: r, child: Text("$r ৳"))),
       ],
       onChanged: onChanged,

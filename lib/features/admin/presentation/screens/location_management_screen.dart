@@ -487,7 +487,7 @@ class _LocationManagementViewState extends State<LocationManagementView> {
                   // Division Selector
                   Expanded(
                     child: DropdownButtonFormField<DivisionModel>(
-                      value: _selectedDivision,
+                      initialValue: _selectedDivision,
                       decoration: const InputDecoration(
                         labelText: 'Select Division',
                         border: OutlineInputBorder(),
@@ -516,7 +516,7 @@ class _LocationManagementViewState extends State<LocationManagementView> {
                   // District Selector
                   Expanded(
                     child: DropdownButtonFormField<DistrictModel>(
-                      value: _selectedDistrict,
+                      initialValue: _selectedDistrict,
                       decoration: const InputDecoration(
                         labelText: 'Select District',
                         border: OutlineInputBorder(),

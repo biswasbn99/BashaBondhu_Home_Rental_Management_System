@@ -1,21 +1,37 @@
-import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
-import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
-import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/home/presentation/widgets/property_card.dart';
-import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/district_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/division_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/search_filter_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/area_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class HomeScreen extends StatelessWidget {
+import '../../../../app/app_colors.dart';
+import '../../../../app/extensions/utility_extension.dart';
+import '../../../auth/data/providers/user_provider.dart';
+import '../../../shared/data/services/property_firestore_service.dart';
+import '../../../shared/presentation/providers/main_nav_holder_provider.dart';
+import '../../../shared/presentation/widgets/app_bar.dart';
+import '../../../shared/presentation/widgets/post_icon.dart';
+import '../../../wishlist/data/providers/wishlist_provider.dart';
+import '../../data/models/property_model.dart';
+import '../widgets/property_card.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   static const String name = '/home';
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final PropertyFirestoreService _firestoreService = PropertyFirestoreService();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<UserProvider>().user;
+      context.read<WishlistProvider>().initialize(user?.uid ?? '');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,51 +39,6 @@ class HomeScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final userProvider = Provider.of<UserProvider>(context);
     final bool isGuest = userProvider.isGuest;
-
-    // Dummy Data for demonstration
-    final List<PropertyModel> properties = [
-      PropertyModel(
-        id: '13043',
-        images: ['https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg'],
-        month: 'September',
-        houseType: HouseType.flat,
-        roomOrSeat: '4 Bed',
-        contactName: 'Kabir Khan',
-        amount: '45000',
-        userMobile: '01700000000',
-        userWhatsApp: '01700000000',
-        division: DivisionModel(id: '1', name: 'Dhaka', bnName: 'ঢাকা'),
-        district: DistrictModel(id: '1', divisionId: '1', name: 'Dhaka', bnName: 'ঢাকা'),
-        area: UpazilaModel(id: '1', districtId: '1', name: 'Uttara', bnName: 'উত্তরা'),
-        shortAddress: 'Block D, Road 5, Bashundhara RA',
-        detailedDescription: 'Luxury 4 bedroom flat with modern fittings. Available from next month.',
-        commonBathrooms: 2,
-        attachedBathrooms: 2,
-        hasWifi: true,
-        hasLift: true,
-        hasParking: true,
-        postDate: DateTime.now(),
-      ),
-      PropertyModel(
-        id: '13042',
-        images: ['https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg'],
-        month: 'October',
-        houseType: HouseType.room,
-        roomOrSeat: '1 Room',
-        contactName: 'Junaid Hossain',
-        amount: '12000',
-        userMobile: '01800000000',
-        userWhatsApp: '01800000000',
-        division: DivisionModel(id: '1', name: 'Dhaka', bnName: 'ঢাকা'),
-        district: DistrictModel(id: '1', divisionId: '1', name: 'Dhaka', bnName: 'ঢাকা'),
-        area: UpazilaModel(id: '2', districtId: '1', name: 'Gulshan', bnName: 'গুলশান'),
-        shortAddress: 'Gulshan 1, Near Circle',
-        detailedDescription: 'Single room for bachelors. Semi-furnished.',
-        kitchenCount: 1,
-        hasWifi: true,
-        postDate: DateTime.now(),
-      ),
-    ];
 
     return Scaffold(
       appBar: MainAppBar(
@@ -82,31 +53,172 @@ class HomeScreen extends StatelessWidget {
               ]
             : null,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        children: [
-          _buildBanners(context),
-          const SizedBox(height: 20),
-          
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.newest,
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              TextButton(
-                onPressed: () {},
-                child: Text(l10n.any, style: const TextStyle(color: AppColors.themeColor)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+      body: StreamBuilder<List<PropertyModel>>(
+        stream: _firestoreService.streamAllProperties(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.themeColor),
+            );
+          }
 
-          ...properties.map((p) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: PropertyCard(property: p),
-          )),
+          final properties = snapshot.data ?? [];
+
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            children: [
+              // --- Interactive Promo Banners ---
+              _buildBanners(context),
+              const SizedBox(height: 20),
+
+              // --- Search Bar Shortcut ---
+              _buildSearchShortcut(context),
+              const SizedBox(height: 20),
+
+              // --- Newest Listings Header ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        l10n.newest,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.themeColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${properties.length}',
+                          style: const TextStyle(
+                            color: AppColors.themeColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // Navigate to Find Home tab (Index 1)
+                      context.read<MainNavHolderProvider>().changeIndex(1);
+                    },
+                    child: Text(
+                      l10n.findHome,
+                      style: const TextStyle(color: AppColors.themeColor, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // --- Property Cards List / Empty State ---
+              if (properties.isEmpty)
+                _buildEmptyState(context)
+              else
+                ...properties.map(
+                  (p) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: PropertyCard(property: p),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSearchShortcut(BuildContext context) {
+    final l10n = context.localizations;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return InkWell(
+      onTap: () {
+        context.read<MainNavHolderProvider>().changeIndex(1);
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[850] : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.search_rounded, color: AppColors.themeColor, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '${l10n.findHome}... (${l10n.division}, ${l10n.district}, ${l10n.area})',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.themeColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.tune_rounded, color: Colors.white, size: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.themeColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.home_work_outlined,
+              size: 56,
+              color: AppColors.themeColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'এখনো কোনো বাসাভাড়া বিজ্ঞাপন নেই',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'শীঘ্রই নতুন বাসাভাড়ার বিজ্ঞাপন যুক্ত হবে অথবা বাড়িওয়ালা হিসেবে পোস্ট করুন।',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
@@ -125,6 +237,7 @@ class HomeScreen extends StatelessWidget {
             subtitle: l10n.bannerSubtitle,
             icon: Icons.support_agent,
             textColor: Colors.deepOrange,
+            onTap: () {},
           ),
           const SizedBox(width: 12),
           _BannerItem(
@@ -133,6 +246,12 @@ class HomeScreen extends StatelessWidget {
             subtitle: l10n.postSubtitle,
             icon: Icons.add_home_work_outlined,
             textColor: AppColors.themeColor,
+            onTap: () {
+              final userProvider = context.read<UserProvider>();
+              if (userProvider.user?.userType == 'House Owner') {
+                context.read<MainNavHolderProvider>().changeIndex(1);
+              }
+            },
           ),
         ],
       ),
@@ -147,6 +266,7 @@ class _BannerItem extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     required this.textColor,
+    this.onTap,
   });
 
   final Color color;
@@ -154,42 +274,47 @@ class _BannerItem extends StatelessWidget {
   final String subtitle;
   final IconData icon;
   final Color textColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 280,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 10, color: Colors.black87),
-                ),
-              ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        width: 280,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 10, color: Colors.black87),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Icon(icon, color: textColor, size: 30),
-        ],
+            const SizedBox(width: 8),
+            Icon(icon, color: textColor, size: 30),
+          ],
+        ),
       ),
     );
   }

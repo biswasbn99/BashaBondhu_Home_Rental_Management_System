@@ -123,10 +123,19 @@ class FindHomeProvider extends ChangeNotifier {
   bool? hasParking;
   SortBy selectedSortBy = SortBy.newest;
 
-  static List<String> budgetRanges = List.generate(
-    50,
-    (index) => ((index + 1) * 1000).toString(),
-  );
+  static const List<String> budgetRanges = [
+    '0-5000',
+    '6000-10000',
+    '11000-15000',
+    '16000-20000',
+    '21000-25000',
+    '26000-30000',
+    '31000-35000',
+    '36000-40000',
+    '41000-45000',
+    '46000-50000',
+    '50000+',
+  ];
 
   void selectBudget(String? value) {
     selectedBudgetRange = value;
@@ -273,10 +282,12 @@ class FindHomeProvider extends ChangeNotifier {
       selectedDivision != null &&
       selectedDistrict != null &&
       selectedUpazila != null &&
-      selectedRoomOrSeat != null;
+      selectedArea != null &&
+      selectedBudgetRange != null &&
+      selectedTenantType != null;
 
   SearchFilterModel buildFilter() {
-    assert(isSearchValid, 'buildFilter() called before all fields are set');
+    assert(isSearchValid, 'buildFilter() called before all required fields are set');
     return SearchFilterModel(
       month: selectedMonth!,
       houseType: selectedHouseType!,
@@ -284,9 +295,9 @@ class FindHomeProvider extends ChangeNotifier {
       district: selectedDistrict!,
       upazila: selectedUpazila!,
       area: selectedArea,
-      roomOrSeat: selectedRoomOrSeat!,
-      budgetRange: selectedBudgetRange,
-      tenantType: selectedTenantType,
+      budgetRange: selectedBudgetRange!,
+      tenantType: selectedTenantType!,
+      roomOrSeat: selectedRoomOrSeat,
       bathrooms: selectedBathrooms,
       balconies: selectedBalconies,
       floorNumber: selectedFloorNumber,

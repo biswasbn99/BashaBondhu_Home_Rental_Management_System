@@ -4,7 +4,6 @@ import 'area_model.dart';
 import 'sub_area_model.dart';
 import '../../../../l10n/app_localizations.dart';
 
-
 enum HouseType { flat, room, seat, unit }
 
 extension HouseTypeLabel on HouseType {
@@ -64,9 +63,9 @@ class SearchFilterModel {
     required this.district,
     required this.upazila,
     this.area,
-    required this.roomOrSeat,
     this.budgetRange,
     this.tenantType,
+    this.roomOrSeat,
     this.bathrooms,
     this.balconies,
     this.floorNumber,
@@ -81,9 +80,9 @@ class SearchFilterModel {
   final DistrictModel district;
   final UpazilaModel upazila;
   final UnionModel? area;
-  final String roomOrSeat;
   final String? budgetRange;
   final TenantType? tenantType;
+  final String? roomOrSeat;
   final int? bathrooms;
   final int? balconies;
   final int? floorNumber;
@@ -99,9 +98,9 @@ class SearchFilterModel {
       'district_id': district.id,
       'upazila_id': upazila.id,
       if (area != null) 'area_id': area!.id,
-      'room_or_seat': roomOrSeat,
       if (budgetRange != null) 'budget': budgetRange,
       if (tenantType != null) 'tenant_type': tenantType!.name,
+      if (roomOrSeat != null) 'room_or_seat': roomOrSeat,
       if (bathrooms != null) 'bathrooms': bathrooms,
       if (balconies != null) 'balconies': balconies,
       if (floorNumber != null) 'floor': floorNumber,

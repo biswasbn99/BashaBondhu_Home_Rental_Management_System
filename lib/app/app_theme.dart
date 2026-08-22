@@ -64,7 +64,7 @@ class AppTheme {
 
       static final FilledButtonThemeData _filledButtonThemeData=FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          foregroundColor: ThemeData().colorScheme.onPrimary,
+          foregroundColor: Colors.white,
           backgroundColor: AppColors.themeColor,
           fixedSize: Size.fromWidth(double.maxFinite),
           padding: .symmetric(vertical: 10),

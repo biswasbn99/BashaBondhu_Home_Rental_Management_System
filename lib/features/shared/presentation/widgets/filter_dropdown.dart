@@ -25,8 +25,28 @@ class FilterDropdown<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isEnabled = enabled && !isLoading;
 
+    // 1. Deduplicate items by value to prevent multiple items with the same value error
+    final seenValues = <T?>{};
+    final List<DropdownMenuItem<T>> safeItems = [];
+    for (final item in items) {
+      if (seenValues.add(item.value)) {
+        safeItems.add(item);
+      }
+    }
+
+    // 2. If value is provided and not present in items, safely insert it as a valid item
+    if (value != null && !safeItems.any((item) => item.value == value)) {
+      safeItems.insert(
+        0,
+        DropdownMenuItem<T>(
+          value: value,
+          child: Text(value.toString()),
+        ),
+      );
+    }
+
     return DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       isExpanded: true,
       decoration: InputDecoration(
         hintText: isLoading ? context.localizations.loading : hint,
@@ -44,7 +64,7 @@ class FilterDropdown<T> extends StatelessWidget {
       icon: isEnabled
           ? const Icon(Icons.keyboard_arrow_down_rounded)
           : Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey.shade400),
-      items: items,
+      items: safeItems,
       onChanged: isEnabled ? onChanged : null,
       validator: (val) {
         if (isRequired && enabled && val == null) {

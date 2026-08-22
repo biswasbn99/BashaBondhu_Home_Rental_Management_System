@@ -1,16 +1,18 @@
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/screens/account_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
-import 'package:bashabondhu_home_rental_management_system/features/demand_home/presentation/screens/demand_home_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/demand_home_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/screens/find_home_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home/presentation/screens/home_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home_rent_post/presentations/screens/home_rent_post_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/house_owner/tenant_demand/presentation/screens/tenant_demand_show_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_nav_layout.dart';
 import 'package:bashabondhu_home_rental_management_system/features/wishlist/presentation/screens/wishlist_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/my_post_screen.dart';
 
 class MainNavHolderScreen extends StatelessWidget {
   const MainNavHolderScreen({super.key});
@@ -30,6 +32,7 @@ class MainNavHolderScreen extends StatelessWidget {
         ? [
             const TenantDemandShowScreen(),
             const HomeRentPostScreen(),
+            const MyPostScreen(),
             AccountScreen(email: userProvider.user?.email ?? ''),
           ]
         : [
@@ -45,6 +48,7 @@ class MainNavHolderScreen extends StatelessWidget {
         ? [
             BottomNavigationBarItem(icon: const Icon(Icons.domain_add), label: l10n.demand),
             BottomNavigationBarItem(icon: const Icon(Icons.add_home_work), label: l10n.postFree),
+            const BottomNavigationBarItem(icon: Icon(Icons.real_estate_agent_rounded), label: 'MyPost'),
             BottomNavigationBarItem(icon: const Icon(Icons.person), label: l10n.account),
           ]
         : [

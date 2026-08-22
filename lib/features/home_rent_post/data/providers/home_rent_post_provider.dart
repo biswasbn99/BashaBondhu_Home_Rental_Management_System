@@ -1,18 +1,22 @@
 import 'dart:io';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/area_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/district_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/division_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/search_filter_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/sub_area_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/repository/location_repository.dart';
-import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import '../../../../features/auth/data/models/user_model.dart';
+import '../../../../features/home/data/models/property_model.dart';
+import '../../../../features/shared/data/models/area_model.dart';
+import '../../../../features/shared/data/models/district_model.dart';
+import '../../../../features/shared/data/models/division_model.dart';
+import '../../../../features/shared/data/models/search_filter_model.dart';
+import '../../../../features/shared/data/models/sub_area_model.dart';
+import '../../../../features/shared/data/repository/location_repository.dart';
+import '../../../../features/shared/data/services/property_firestore_service.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class HomeRentPostProvider extends ChangeNotifier {
   HomeRentPostProvider({LocationRepository? repository})
       : repository = repository ?? LocationRepository();
 
   final LocationRepository repository;
+  final PropertyFirestoreService _firestoreService = PropertyFirestoreService();
 
   bool _isDisposed = false;
 
@@ -79,9 +83,36 @@ class HomeRentPostProvider extends ChangeNotifier {
   final List<File> _images = [];
   List<File> get images => _images;
 
+  File? get thumbnail => _images.isNotEmpty ? _images.first : null;
+  List<File> get additionalImages => _images.length > 1 ? _images.sublist(1) : [];
+
   void addImage(File image) {
     if (_images.length < 10) {
       _images.add(image);
+      _safeNotifyListeners();
+    }
+  }
+
+  void addMultipleImages(List<File> newImages) {
+    for (final img in newImages) {
+      if (_images.length >= 10) break;
+      _images.add(img);
+    }
+    _safeNotifyListeners();
+  }
+
+  void setThumbnail(File image) {
+    if (_images.isEmpty) {
+      _images.add(image);
+    } else {
+      _images[0] = image;
+    }
+    _safeNotifyListeners();
+  }
+
+  void replaceImage(int index, File image) {
+    if (index >= 0 && index < _images.length) {
+      _images[index] = image;
       _safeNotifyListeners();
     }
   }
@@ -96,6 +127,7 @@ class HomeRentPostProvider extends ChangeNotifier {
   // --- Basic Info ---
   String? selectedMonth;
   HouseType? selectedHouseType;
+  TenantType? selectedTenantType;
   String? selectedRoomOrSeat;
   String contactName = '';
   String amount = '';
@@ -124,6 +156,10 @@ class HomeRentPostProvider extends ChangeNotifier {
   bool? hasLift;
   bool? hasParking;
   String? marketDistance;
+
+  // --- Form & Submit State ---
+  bool isSubmitting = false;
+  bool showValidationErrors = false;
 
   // --- Lists ---
   List<DivisionModel> divisions = [];
@@ -176,6 +212,11 @@ class HomeRentPostProvider extends ChangeNotifier {
   void selectHouseType(HouseType? value) {
     selectedHouseType = value;
     selectedRoomOrSeat = null;
+    _safeNotifyListeners();
+  }
+
+  void selectTenantType(TenantType? value) {
+    selectedTenantType = value;
     _safeNotifyListeners();
   }
 
@@ -330,8 +371,10 @@ class HomeRentPostProvider extends ChangeNotifier {
   }
 
   // --- Validation ---
+  bool get hasThumbnail => _images.isNotEmpty;
+
   bool get isFormValid {
-    return _images.isNotEmpty &&
+    return hasThumbnail &&
         selectedMonth != null &&
         selectedHouseType != null &&
         selectedDivision != null &&
@@ -343,5 +386,109 @@ class HomeRentPostProvider extends ChangeNotifier {
         userMobile.trim().isNotEmpty &&
         shortAddress.trim().isNotEmpty &&
         detailedDescription.trim().isNotEmpty;
+  }
+
+  void triggerValidation() {
+    showValidationErrors = true;
+    _safeNotifyListeners();
+  }
+
+  /// Publish post to Cloud Firestore
+  Future<bool> publishPost(UserModel? currentUser) async {
+    triggerValidation();
+
+    if (!isFormValid) {
+      return false;
+    }
+
+    isSubmitting = true;
+    _safeNotifyListeners();
+
+    try {
+      final newProperty = PropertyModel(
+        id: '',
+        ownerId: currentUser?.uid ?? 'guest_owner',
+        ownerEmail: currentUser?.email ?? '',
+        images: [],
+        month: selectedMonth!,
+        houseType: selectedHouseType!,
+        tenantType: selectedTenantType,
+        roomOrSeat: selectedRoomOrSeat!,
+        contactName: contactName.trim(),
+        amount: amount.trim(),
+        userMobile: userMobile.trim(),
+        userWhatsApp: userWhatsApp.trim().isNotEmpty ? userWhatsApp.trim() : userMobile.trim(),
+        division: selectedDivision!,
+        district: selectedDistrict!,
+        area: selectedUpazila!,
+        subArea: selectedArea,
+        shortAddress: shortAddress.trim(),
+        detailedDescription: detailedDescription.trim(),
+        commonBathrooms: commonBathrooms,
+        attachedBathrooms: attachedBathrooms,
+        kitchenCount: kitchenCount,
+        balconies: balconies,
+        floorNumber: floorNumber,
+        electricityBillType: electricityBillType,
+        hasCctv: hasCctv,
+        hasWifi: hasWifi,
+        hasGenerator: hasGenerator,
+        hasSecurityGuard: hasSecurityGuard,
+        hasLift: hasLift,
+        hasParking: hasParking,
+        marketDistance: marketDistance,
+        postDate: DateTime.now(),
+        isAvailable: true,
+      );
+
+      await _firestoreService.createProperty(
+        property: newProperty,
+        localImages: _images,
+      );
+
+      clearForm();
+      isSubmitting = false;
+      showValidationErrors = false;
+      _safeNotifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error publishing post: $e');
+      isSubmitting = false;
+      _safeNotifyListeners();
+      return false;
+    }
+  }
+
+  void clearForm() {
+    _images.clear();
+    selectedMonth = null;
+    selectedHouseType = null;
+    selectedTenantType = null;
+    selectedRoomOrSeat = null;
+    contactName = '';
+    amount = '';
+    userMobile = '';
+    userWhatsApp = '';
+    selectedDivision = null;
+    selectedDistrict = null;
+    selectedUpazila = null;
+    selectedArea = null;
+    shortAddress = '';
+    detailedDescription = '';
+    commonBathrooms = null;
+    attachedBathrooms = null;
+    kitchenCount = null;
+    balconies = null;
+    floorNumber = null;
+    electricityBillType = null;
+    hasCctv = null;
+    hasWifi = null;
+    hasGenerator = null;
+    hasSecurityGuard = null;
+    hasLift = null;
+    hasParking = null;
+    marketDistance = null;
+    showValidationErrors = false;
+    _safeNotifyListeners();
   }
 }

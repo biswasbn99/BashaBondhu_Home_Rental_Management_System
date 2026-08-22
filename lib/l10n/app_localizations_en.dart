@@ -368,11 +368,175 @@ class AppLocalizationsEn extends AppLocalizations {
   String get perMonth => 'Per Month';
 
   @override
-  String get contactInfo => 'Contact Information';
-
-  @override
   String get guestUser => 'Guest User';
 
   @override
   String get logout => 'Logout';
+
+  @override
+  String get mainThumbnailTitle => 'Add House Photo';
+
+  @override
+  String get mainThumbnailSubtitle => 'This will be used as the main thumbnail';
+
+  @override
+  String get additionalPhotosTitle => 'Add Additional Photos';
+
+  @override
+  String get additionalPhotosSubtitle =>
+      'Add up to 9 photos for tenant reference';
+
+  @override
+  String get galleryOption => 'Gallery';
+
+  @override
+  String get cameraOption => 'Camera';
+
+  @override
+  String get mainThumbnailBadge => 'Main Photo';
+
+  @override
+  String get changePhoto => 'Change Photo';
+
+  @override
+  String get deletePhoto => 'Delete Photo';
+
+  @override
+  String get myPost => 'MyPost';
+
+  @override
+  String get editPost => 'Edit Post';
+
+  @override
+  String get deletePostConfirmTitle => 'Delete Post?';
+
+  @override
+  String get deletePostConfirmSubtitle =>
+      'Are you sure you want to permanently delete this rent post?';
+
+  @override
+  String get noPostsYet => 'No rent posts published yet';
+
+  @override
+  String get createPostPrompt => 'Create New Rent Post';
+
+  @override
+  String get saveChanges => 'Save Changes';
+
+  @override
+  String get postUpdatedSuccess => 'Post updated successfully!';
+
+  @override
+  String get postDeletedSuccess => 'Post deleted successfully!';
+
+  @override
+  String get searchResult => 'Search Results';
+
+  @override
+  String get optional => 'Optional';
+
+  @override
+  String get appSettings => 'App Settings';
+
+  @override
+  String get myProfile => 'Profile Information';
+
+  @override
+  String get activePosts => 'Active Posts';
+
+  @override
+  String get savedHouses => 'Saved Houses';
+
+  @override
+  String get myDemands => 'My Demands';
+
+  @override
+  String get viewTenantDemands => 'View Tenant Demands';
+
+  @override
+  String get welcomeGuestTitle => 'Welcome to BashaBondhu';
+
+  @override
+  String get welcomeGuestSubtitle =>
+      'Sign in or create an account to find or rent houses quickly and easily.';
+
+  @override
+  String get guestFeaturesTitle => 'Key Features of BashaBondhu';
+
+  @override
+  String get featureFindHome => 'Easily find homes in your area & budget';
+
+  @override
+  String get featurePostHome =>
+      'House owners can post rental listings directly';
+
+  @override
+  String get featureDemandHome =>
+      'Tenants can submit customized rental demands';
+
+  @override
+  String get featureWishlist => 'Save and bookmark favorite listings';
+
+  @override
+  String get logoutConfirmTitle => 'Do you want to log out?';
+
+  @override
+  String get logoutConfirmSubtitle =>
+      'Are you sure you want to log out of your account?';
+
+  @override
+  String get confirm => 'Yes, Log Out';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get personalInfo => 'Personal Info';
+
+  @override
+  String get mobile => 'Mobile';
+
+  @override
+  String get city => 'City / Area';
+
+  @override
+  String get userRole => 'User Role';
+
+  @override
+  String get hostGuidelines => 'Host Guidelines & Support';
+
+  @override
+  String get privacyAndSecurity => 'Privacy Policy';
+
+  @override
+  String get appVersion => 'Version';
+
+  @override
+  String get editDemand => 'Edit Demand';
+
+  @override
+  String get deleteDemandConfirmTitle => 'Delete Demand?';
+
+  @override
+  String get deleteDemandConfirmSubtitle =>
+      'Are you sure you want to delete this tenant demand?';
+
+  @override
+  String get demandPostedSuccess =>
+      'Your rental demand has been posted successfully!';
+
+  @override
+  String get demandUpdatedSuccess => 'Demand updated successfully!';
+
+  @override
+  String get demandDeletedSuccess => 'Demand deleted successfully!';
+
+  @override
+  String get noDemandsYet => 'No demands posted yet';
+
+  @override
+  String get postNewDemand => 'Post New Demand';
+
+  @override
+  String get allTenantDemands => 'Tenant Demands';
 }

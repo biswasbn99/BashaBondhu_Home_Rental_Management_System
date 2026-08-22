@@ -1,22 +1,24 @@
-import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
-import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
-import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/providers/find_home_provider.dart';
-import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/screens/search_result.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/month_dropdown_button.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/house_type_dropdown_button.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/number_of_room_or_seat_dropdown_button.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/location_dropdown.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/bathroom_dropdown_button.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/belcony_dropdown_button.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/budget_dropdown_button.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/floor_number_dropdown_button.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/lift_dropdown_button.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/parking_dropdown_button.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/tenant_type_dropdown_button.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../../../app/extensions/utility_extension.dart';
+import '../../../auth/data/providers/user_provider.dart';
+import '../../../shared/presentation/widgets/app_bar.dart';
+import '../../../shared/presentation/widgets/bathroom_dropdown_button.dart';
+import '../../../shared/presentation/widgets/belcony_dropdown_button.dart';
+import '../../../shared/presentation/widgets/budget_dropdown_button.dart';
+import '../../../shared/presentation/widgets/decorated_section_header.dart';
+import '../../../shared/presentation/widgets/floor_number_dropdown_button.dart';
+import '../../../shared/presentation/widgets/house_type_dropdown_button.dart';
+import '../../../shared/presentation/widgets/lift_dropdown_button.dart';
+import '../../../shared/presentation/widgets/location_dropdown.dart';
+import '../../../shared/presentation/widgets/month_dropdown_button.dart';
+import '../../../shared/presentation/widgets/number_of_room_or_seat_dropdown_button.dart';
+import '../../../shared/presentation/widgets/parking_dropdown_button.dart';
+import '../../../shared/presentation/widgets/post_icon.dart';
+import '../../../shared/presentation/widgets/tenant_type_dropdown_button.dart';
+import '../providers/find_home_provider.dart';
+import 'search_result.dart';
 
 class FindHomeScreen extends StatelessWidget {
   const FindHomeScreen({super.key});
@@ -73,11 +75,10 @@ class _FindHomeView extends StatelessWidget {
               ],
               const SizedBox(height: 16),
 
-              // -------- Month + House type --------
-             _SectionLabel(
-                title: l10n.accommodationPromptTitle,
-                subtitle: l10n.accommodationPromptSubTitle,
-              ),
+              // ==========================================
+              // 1. REQUIRED FIELDS SECTION
+              // ==========================================
+              DecoratedSectionHeader(title: l10n.accommodationPromptTitle),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -98,14 +99,10 @@ class _FindHomeView extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 20),
 
-              // -------- Location --------
-              _SectionLabel(
-                title: l10n.locationPromptTitle,
-                subtitle: l10n.locationPromptSubTitle,
-              ),
+              // -------- Location (Required) --------
+              DecoratedSectionHeader(title: l10n.locationPromptTitle),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -153,14 +150,10 @@ class _FindHomeView extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 20),
 
-              // -------- Budget & Tenant type --------
-              _SectionLabel(
-                title: l10n.budgetTenantPromptTitle,
-                subtitle: l10n.budgetTenantPromptSubTitle,
-              ),
+              // -------- Budget & Tenant Type (Required) --------
+              DecoratedSectionHeader(title: l10n.budgetTenantPromptTitle),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -180,15 +173,27 @@ class _FindHomeView extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 28),
 
-              const SizedBox(height: 20),
-
-              // -------- Amenities --------
-              _SectionLabel(
-                title: l10n.amenitiesPromptTitle,
-                subtitle: l10n.amenitiesPromptSubTitle,
+              // ==========================================
+              // 2. OPTIONAL PREFERENCES SECTION
+              // ==========================================
+              DecoratedSectionHeader(
+                title: '${l10n.amenitiesPromptTitle} (${l10n.optional})',
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
+
+              // Room / Seat count (Optional)
+              RoomOrSeatDropdown(
+                hint: '${provider.roomOrSeatHint(l10n)} (${l10n.optional})',
+                value: provider.selectedRoomOrSeat,
+                enabled: provider.selectedHouseType != null,
+                options: provider.roomOrSeatOptions(l10n),
+                onChanged: provider.selectRoomOrSeat,
+              ),
+              const SizedBox(height: 12),
+
+              // Bathrooms & Balcony (Optional)
               Row(
                 children: [
                   Expanded(
@@ -206,22 +211,15 @@ class _FindHomeView extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 12),
 
+              // Floor & Lift (Optional)
               Row(
                 children: [
                   Expanded(
                     child: FloorNumberDropdown(
                       value: provider.selectedFloorNumber,
                       onChanged: provider.selectFloor,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ParkingDropdown(
-                      value: provider.hasParking,
-                      onChanged: provider.selectParking,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -233,33 +231,38 @@ class _FindHomeView extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
 
+              // Parking (Optional)
+              ParkingDropdown(
+                value: provider.hasParking,
+                onChanged: provider.selectParking,
+              ),
               const SizedBox(height: 20),
 
-              // -------- Room / Seat count --------
-              _SectionLabel(
-                title: l10n.roomSeatPromptTitle,
-                subtitle: l10n.roomSeatPromptSubTitle,
-              ),
-              const SizedBox(height: 10),
-              RoomOrSeatDropdown(
-                hint: provider.roomOrSeatHint(l10n),
-                value: provider.selectedRoomOrSeat,
-                enabled: provider.selectedHouseType != null,
-                options: provider.roomOrSeatOptions(l10n),
-                onChanged: provider.selectRoomOrSeat,
-              ),
-
-              const SizedBox(height: 14),
               Text(
                 l10n.findHomePrompt,
                 style: const TextStyle(color: _grey, fontSize: 13.5),
               ),
-             const SizedBox(height: 16),
-                  FilledButton(
-                    onPressed: provider.isSearchValid ? () => _search(context, provider) : null,
-                    child: Text(l10n.findHomeButton),
-                  ),
+              const SizedBox(height: 16),
+
+              // Find Home Button
+              FilledButton(
+                onPressed: () {
+                  if (provider.isSearchValid) {
+                    _search(context, provider);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('অনুগ্রহ করে সকল আবশ্যকীয় তথ্য (বিভাগ, জেলা, এলাকা, সাব-এলাকা, মাস, বাসার ধরন, বাজেট এবং ভাড়াটিয়ার ধরন) নির্বাচন করুন।'),
+                        backgroundColor: Colors.redAccent,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                },
+                child: Text(l10n.findHomeButton),
+              ),
             ],
           ),
         ),
@@ -272,26 +275,6 @@ class _FindHomeView extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (_) => SearchResultScreen(filter: provider.buildFilter()),
-      ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.title, required this.subtitle});
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        style: const TextStyle(fontSize: 14.5, color: Color(0xFF6B7280)),
-        children: [
-          TextSpan(text: '$title '),
-          TextSpan(text: subtitle),
-        ],
       ),
     );
   }
