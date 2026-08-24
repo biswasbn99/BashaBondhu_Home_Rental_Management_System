@@ -37,16 +37,38 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
 
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
 
-  Stream<List<TenantDemandModel>>? _demandsStream;
-  String? _initializedUserId;
+  List<TenantDemandModel> _demands = [];
+  bool _isLoading = true;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDashboardData();
+    });
+  }
+
+  Future<void> _loadDashboardData() async {
     final user = Provider.of<UserProvider>(context, listen: false).user;
-    if (user != null && user.uid != _initializedUserId) {
-      _initializedUserId = user.uid;
-      _demandsStream = _demandService.streamTenantDemands(user.uid, tenantEmail: user.email);
+    if (user == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      final results = await _demandService.getTenantDemands(user.uid, tenantEmail: user.email);
+
+      if (mounted) {
+        setState(() {
+          _demands = results;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading tenant dashboard data: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -72,94 +94,93 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
       );
     }
 
+    final int demandCount = _demands.length;
+    final int wishlistCount = wishlistProvider.wishlistProperties.length;
+    final int completion = user.profileCompletionPercentage;
+    final bool isVerified = user.nidFrontImageUrl.isNotEmpty;
+
     return Scaffold(
       appBar: MainAppBar(
         title: Text(l10n.myDashboard),
         automaticallyImplyLeading: true,
       ),
       body: SafeArea(
-        child: StreamBuilder<List<TenantDemandModel>>(
-          stream: _demandsStream,
-          builder: (context, demandSnapshot) {
-            final demands = demandSnapshot.data ?? [];
-            final int demandCount = demands.length;
-            final int wishlistCount = wishlistProvider.wishlistProperties.length;
-            final int completion = user.profileCompletionPercentage;
-            final bool isVerified = user.nidFrontImageUrl.isNotEmpty;
-
-            return RefreshIndicator(
-              color: AppColors.themeColor,
-              onRefresh: () async {
-                await userProvider.fetchUserData(user.uid);
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // 1. Tenant Profile Overview Header
-                    _buildProfileHeader(context, user, theme, isDark, l10n, completion, isVerified),
-                    const SizedBox(height: 18),
-
-                    // 2. Key Metrics Analytics Grid (4 Cards)
-                    _buildMetricsGrid(
-                      context,
-                      demandCount: demandCount,
-                      wishlistCount: wishlistCount,
-                      completion: completion,
-                      isVerified: isVerified,
-                      isDark: isDark,
-                      l10n: l10n,
-                      navProvider: navProvider,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 3. Quick Actions Hub
-                    DecoratedSectionHeader(title: l10n.quickShortcuts),
-                    const SizedBox(height: 12),
-                    _buildQuickActionsRow(context, navProvider, l10n),
-                    const SizedBox(height: 24),
-
-                    // 4. My Rental Demands Section
-                    _buildSectionHeaderWithAction(
-                      title: l10n.recentDemands,
-                      actionLabel: l10n.viewAll,
-                      onAction: () => Navigator.pushNamed(context, MyDemandScreen.name),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildDemandsList(context, demands, isDark, l10n, _demandService),
-                    const SizedBox(height: 24),
-
-                    // 5. Saved Properties / Wishlist Preview
-                    _buildSectionHeaderWithAction(
-                      title: l10n.savedProperties,
-                      actionLabel: l10n.viewAll,
-                      onAction: () {
-                        Navigator.pop(context);
-                        navProvider.changeIndex(3);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildWishlistPreview(context, wishlistProvider, isDark, l10n, user.uid),
-                    const SizedBox(height: 24),
-
-                    // 6. Tenant Activity & History Timeline
-                    DecoratedSectionHeader(title: l10n.activityHistory),
-                    const SizedBox(height: 12),
-                    _buildTenantActivityTimeline(
-                      user,
-                      demandCount,
-                      wishlistCount,
-                      isVerified,
-                      isDark,
-                      l10n,
-                    ),
-                  ],
-                ),
-              ),
-            );
+        child: RefreshIndicator(
+          color: AppColors.themeColor,
+          onRefresh: () async {
+            await userProvider.fetchUserData(user.uid);
+            await _loadDashboardData();
           },
+          child: _isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.themeColor),
+                )
+              : SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // 1. Tenant Profile Overview Header
+                      _buildProfileHeader(context, user, theme, isDark, l10n, completion, isVerified),
+                      const SizedBox(height: 18),
+
+                      // 2. Key Metrics Analytics Grid (4 Cards)
+                      _buildMetricsGrid(
+                        context,
+                        demandCount: demandCount,
+                        wishlistCount: wishlistCount,
+                        completion: completion,
+                        isVerified: isVerified,
+                        isDark: isDark,
+                        l10n: l10n,
+                        navProvider: navProvider,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // 3. Quick Actions Hub
+                      DecoratedSectionHeader(title: l10n.quickShortcuts),
+                      const SizedBox(height: 12),
+                      _buildQuickActionsRow(context, navProvider, l10n),
+                      const SizedBox(height: 24),
+
+                      // 4. My Rental Demands Section
+                      _buildSectionHeaderWithAction(
+                        title: l10n.recentDemands,
+                        actionLabel: l10n.viewAll,
+                        onAction: () => Navigator.pushNamed(context, MyDemandScreen.name),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDemandsList(context, _demands, isDark, l10n, _demandService),
+                      const SizedBox(height: 24),
+
+                      // 5. Saved Properties / Wishlist Preview
+                      _buildSectionHeaderWithAction(
+                        title: l10n.savedProperties,
+                        actionLabel: l10n.viewAll,
+                        onAction: () {
+                          Navigator.pop(context);
+                          navProvider.changeIndex(3);
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildWishlistPreview(context, wishlistProvider, isDark, l10n, user.uid),
+                      const SizedBox(height: 24),
+
+                      // 6. Tenant Activity & History Timeline
+                      DecoratedSectionHeader(title: l10n.activityHistory),
+                      const SizedBox(height: 12),
+                      _buildTenantActivityTimeline(
+                        user,
+                        demandCount,
+                        wishlistCount,
+                        isVerified,
+                        isDark,
+                        l10n,
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ),
     );
@@ -872,6 +893,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               await demandService.deleteDemand(demandId);
+              _loadDashboardData();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

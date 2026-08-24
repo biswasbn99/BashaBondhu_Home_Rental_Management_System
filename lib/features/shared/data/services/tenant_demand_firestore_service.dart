@@ -113,5 +113,72 @@ class TenantDemandFirestoreService {
       return list;
     });
   }
+
+  /// Get all tenant demands (Future)
+  Future<List<TenantDemandModel>> getAllDemands() async {
+    try {
+      final snapshot = await _demandsCollection.get();
+      final List<TenantDemandModel> list = [];
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          if (data is Map<String, dynamic>) {
+            list.add(TenantDemandModel.fromMap(data, doc.id));
+          } else if (data is Map) {
+            list.add(TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id));
+          }
+        } catch (e) {
+          debugPrint('Error parsing tenant demand doc ${doc.id}: $e');
+        }
+      }
+      list.sort((a, b) => b.postDate.compareTo(a.postDate));
+      return list;
+    } catch (e) {
+      debugPrint('Error getting all tenant demands: $e');
+      return [];
+    }
+  }
+
+  /// Get demands for a specific tenant (Future)
+  Future<List<TenantDemandModel>> getTenantDemands(String tenantId, {String? tenantEmail}) async {
+    try {
+      final snapshot = await _demandsCollection.get();
+      final List<TenantDemandModel> list = [];
+      final String cleanId = tenantId.trim();
+      final String cleanEmail = (tenantEmail ?? '').trim().toLowerCase();
+
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          if (data is Map<String, dynamic>) {
+            final d = TenantDemandModel.fromMap(data, doc.id);
+            final bool matchesId = cleanId.isNotEmpty && d.tenantId == cleanId;
+            final bool matchesEmail = cleanEmail.isNotEmpty && d.tenantEmail.trim().toLowerCase() == cleanEmail;
+            if (cleanId.isEmpty && cleanEmail.isEmpty) {
+              list.add(d);
+            } else if (matchesId || matchesEmail) {
+              list.add(d);
+            }
+          } else if (data is Map) {
+            final d = TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id);
+            final bool matchesId = cleanId.isNotEmpty && d.tenantId == cleanId;
+            final bool matchesEmail = cleanEmail.isNotEmpty && d.tenantEmail.trim().toLowerCase() == cleanEmail;
+            if (cleanId.isEmpty && cleanEmail.isEmpty) {
+              list.add(d);
+            } else if (matchesId || matchesEmail) {
+              list.add(d);
+            }
+          }
+        } catch (e) {
+          debugPrint('Error parsing tenant demand doc ${doc.id}: $e');
+        }
+      }
+      list.sort((a, b) => b.postDate.compareTo(a.postDate));
+      return list;
+    } catch (e) {
+      debugPrint('Error getting tenant demands: $e');
+      return [];
+    }
+  }
 }
 

@@ -125,6 +125,49 @@ class PropertyFirestoreService {
     });
   }
 
+  /// Get properties owned by a specific house owner (Future)
+  Future<List<PropertyModel>> getOwnerProperties(String ownerId, {String? ownerEmail}) async {
+    try {
+      final snapshot = await _propertiesCollection.get();
+      final List<PropertyModel> list = [];
+      final String cleanId = ownerId.trim();
+      final String cleanEmail = (ownerEmail ?? '').trim().toLowerCase();
+
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          if (data is Map<String, dynamic>) {
+            final p = PropertyModel.fromMap(data, doc.id);
+            final bool matchesId = cleanId.isNotEmpty && p.ownerId == cleanId;
+            final bool matchesEmail = cleanEmail.isNotEmpty && p.ownerEmail.trim().toLowerCase() == cleanEmail;
+            if (cleanId.isEmpty && cleanEmail.isEmpty) {
+              list.add(p);
+            } else if (matchesId || matchesEmail) {
+              list.add(p);
+            }
+          } else if (data is Map) {
+            final p = PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id);
+            final bool matchesId = cleanId.isNotEmpty && p.ownerId == cleanId;
+            final bool matchesEmail = cleanEmail.isNotEmpty && p.ownerEmail.trim().toLowerCase() == cleanEmail;
+            if (cleanId.isEmpty && cleanEmail.isEmpty) {
+              list.add(p);
+            } else if (matchesId || matchesEmail) {
+              list.add(p);
+            }
+          }
+        } catch (e) {
+          debugPrint('Error parsing property doc ${doc.id}: $e');
+        }
+      }
+
+      list.sort((a, b) => b.postDate.compareTo(a.postDate));
+      return list;
+    } catch (e) {
+      debugPrint('Error getting owner properties: $e');
+      return [];
+    }
+  }
+
   /// Update an existing property in Firestore
   Future<void> updateProperty(PropertyModel property) async {
     try {
