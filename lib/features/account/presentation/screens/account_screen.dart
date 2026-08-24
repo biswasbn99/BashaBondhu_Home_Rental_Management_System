@@ -236,22 +236,6 @@ class _TenantAccountView extends StatelessWidget {
       children: [
         // Profile Header
         AccountProfileHeader(user: user),
-        
-        // Profile Completion Banner
-        _ProfileCompletionBanner(user: user),
-        const SizedBox(height: 12),
-
-        // Prominent My Dashboard Hero Banner
-        _DashboardBanner(
-          title: l10n.myDashboard,
-          subtitle: 'চাহিদা, সংরক্ষিত বাসা ও সকল অ্যাক্টিভিটি হিস্টোরি',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const TenantDashboardScreen()),
-            );
-          },
-        ),
         const SizedBox(height: 16),
 
         // Tenant Quick Stats Bar
@@ -316,10 +300,7 @@ class _TenantAccountView extends StatelessWidget {
             ),
           ),
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const TenantDashboardScreen()),
-            );
+            Navigator.pushNamed(context, TenantDashboardScreen.name);
           },
         ),
         _ActionTile(
@@ -412,22 +393,6 @@ class _HouseOwnerAccountView extends StatelessWidget {
           children: [
             // Profile Header
             AccountProfileHeader(user: user),
-            
-            // Profile Completion Banner
-            _ProfileCompletionBanner(user: user),
-            const SizedBox(height: 12),
-
-            // Prominent My Dashboard Hero Banner
-            _DashboardBanner(
-              title: l10n.myDashboard,
-              subtitle: 'বিজ্ঞাপন অ্যানালিটিক্স, ভাড়াটিয়াদের চাহিদা রাডার ও হিস্টোরি',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HouseOwnerDashboardScreen()),
-                );
-              },
-            ),
             const SizedBox(height: 16),
 
             // House Owner Quick Stats Bar
@@ -492,10 +457,7 @@ class _HouseOwnerAccountView extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HouseOwnerDashboardScreen()),
-                );
+                Navigator.pushNamed(context, HouseOwnerDashboardScreen.name);
               },
             ),
             _ActionTile(
@@ -563,106 +525,6 @@ class _HouseOwnerAccountView extends StatelessWidget {
 // SHARED WIDGETS
 // ============================================================================
 
-class _DashboardBanner extends StatelessWidget {
-  const _DashboardBanner({
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: isDark
-                ? [const Color(0xFF004D40), const Color(0xFF00796B)]
-                : [const Color(0xFF00A896), const Color(0xFF028090)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.themeColor.withValues(alpha: isDark ? 0.3 : 0.2),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.dashboard_customize_rounded, color: Colors.white, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Open',
-                    style: TextStyle(
-                      color: Color(0xFF00A896),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11.5,
-                    ),
-                  ),
-                  SizedBox(width: 2),
-                  Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFF00A896)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
@@ -684,49 +546,52 @@ class _StatCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+    return Material(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: iconColor, size: 24),
-            const SizedBox(height: 6),
-            Text(
-              count,
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 16,
+          child: Column(
+            children: [
+              Icon(icon, color: iconColor, size: 24),
+              const SizedBox(height: 6),
+              Text(
+                count,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
+              const SizedBox(height: 2),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -755,57 +620,60 @@ class _ActionTile extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+      child: Material(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.themeColor.withValues(alpha: isDark ? 0.2 : 0.1),
-                  shape: BoxShape.circle,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.themeColor.withValues(alpha: isDark ? 0.2 : 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: AppColors.themeColor, size: 20),
                 ),
-                child: Icon(icon, color: AppColors.themeColor, size: 20),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        subtitle!,
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 12,
-                        ),
+                        title,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
                       ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: 8),
-                trailing!,
+                if (trailing != null) ...[
+                  const SizedBox(width: 8),
+                  trailing!,
+                ],
+                const SizedBox(width: 4),
+                Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400, size: 22),
               ],
-              const SizedBox(width: 4),
-              Icon(Icons.chevron_right_rounded, color: Colors.grey.shade400, size: 22),
-            ],
+            ),
           ),
         ),
       ),
@@ -934,113 +802,6 @@ class _LanguageSettingTile extends StatelessWidget {
   }
 }
 
-class _ProfileCompletionBanner extends StatelessWidget {
-  const _ProfileCompletionBanner({required this.user});
-
-  final UserModel user;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.localizations;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    final int completion = user.profileCompletionPercentage;
-    final bool isComplete = user.isProfileComplete;
-
-    return Container(
-      margin: const EdgeInsets.only(top: 14),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E2625) : const Color(0xFFF9FBFB),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: (isComplete ? Colors.green : Colors.amber.shade700).withValues(alpha: 0.3),
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: (isComplete ? Colors.green : Colors.amber.shade700).withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isComplete ? Icons.verified_user_rounded : Icons.pending_actions_rounded,
-                  color: isComplete ? Colors.green : Colors.amber.shade800,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.profileCompletion,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      isComplete
-                          ? 'প্রোফাইল ভেরিফাইড ও সম্পূর্ণ'
-                          : 'ছবি, এনআইডি ও তথ্য দিয়ে প্রোফাইল ১০০% করুন',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.pushNamed(context, MyProfileScreen.name),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: (isComplete ? Colors.green : AppColors.themeColor),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '$completion%',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 10),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: completion / 100,
-              minHeight: 6,
-              backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isComplete ? Colors.green : AppColors.themeColor,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 Widget _buildLogoutButton(BuildContext context, dynamic l10n) {
   return SizedBox(
