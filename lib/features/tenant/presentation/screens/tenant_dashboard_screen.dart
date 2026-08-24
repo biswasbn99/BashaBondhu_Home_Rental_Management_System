@@ -34,7 +34,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
 
   List<TenantDemandModel> _demands = [];
-  bool _isLoadingDemands = true;
+  bool _isLoadingDemands = false;
 
   @override
   void initState() {
@@ -54,15 +54,14 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
     try {
       final demands = await _demandService
           .getTenantDemands(user.uid, tenantEmail: user.email)
-          .timeout(const Duration(seconds: 4), onTimeout: () => []);
+          .timeout(const Duration(seconds: 3), onTimeout: () => []);
       if (mounted) {
         setState(() {
           _demands = demands;
           _isLoadingDemands = false;
         });
       }
-    } catch (e) {
-      debugPrint('Error loading tenant demands: $e');
+    } catch (_) {
       if (mounted) {
         setState(() => _isLoadingDemands = false);
       }
@@ -75,21 +74,20 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final userProvider = Provider.of<UserProvider>(context);
-    final UserModel? user = userProvider.user;
+    final UserModel user = userProvider.user ??
+        UserModel(
+          uid: 'sample_tenant',
+          email: 'tenant@bashabondhu.com',
+          firstName: 'Tenant',
+          lastName: 'User',
+          userType: 'Tenant',
+          mobile: '01712345678',
+          city: 'Dhaka',
+          createdAt: DateTime.now().toIso8601String(),
+        );
+
     final wishlistProvider = context.watch<WishlistProvider>();
     final navProvider = context.read<MainNavHolderProvider>();
-
-    if (user == null) {
-      return Scaffold(
-        appBar: MainAppBar(
-          title: Text(l10n.myDashboard),
-          automaticallyImplyLeading: true,
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(color: AppColors.themeColor),
-        ),
-      );
-    }
 
     final int demandCount = _demands.length;
     final int wishlistCount = wishlistProvider.wishlistProperties.length;
@@ -105,7 +103,9 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
         child: RefreshIndicator(
           color: AppColors.themeColor,
           onRefresh: () async {
-            await userProvider.fetchUserData(user.uid);
+            if (user.uid.isNotEmpty) {
+              await userProvider.fetchUserData(user.uid);
+            }
             await _loadTenantDemands();
           },
           child: SingleChildScrollView(

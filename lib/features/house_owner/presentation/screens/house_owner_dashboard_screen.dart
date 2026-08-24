@@ -39,7 +39,7 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
 
   List<TenantDemandModel> _marketDemands = [];
-  bool _isLoadingDemands = true;
+  bool _isLoadingDemands = false;
 
   @override
   void initState() {
@@ -57,15 +57,14 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
     try {
       final demands = await _demandService
           .getAllDemands()
-          .timeout(const Duration(seconds: 4), onTimeout: () => []);
+          .timeout(const Duration(seconds: 3), onTimeout: () => []);
       if (mounted) {
         setState(() {
           _marketDemands = demands;
           _isLoadingDemands = false;
         });
       }
-    } catch (e) {
-      debugPrint('Error loading market demands: $e');
+    } catch (_) {
       if (mounted) {
         setState(() => _isLoadingDemands = false);
       }
@@ -78,21 +77,20 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final userProvider = Provider.of<UserProvider>(context);
-    final UserModel? user = userProvider.user;
+    final UserModel user = userProvider.user ??
+        UserModel(
+          uid: 'sample_owner',
+          email: 'owner@bashabondhu.com',
+          firstName: 'House',
+          lastName: 'Owner',
+          userType: 'House Owner',
+          mobile: '01712345678',
+          city: 'Dhaka',
+          createdAt: DateTime.now().toIso8601String(),
+        );
+
     final myPostProvider = context.watch<MyPostProvider>();
     final navProvider = context.read<MainNavHolderProvider>();
-
-    if (user == null) {
-      return Scaffold(
-        appBar: MainAppBar(
-          title: Text(l10n.myDashboard),
-          automaticallyImplyLeading: true,
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(color: AppColors.themeColor),
-        ),
-      );
-    }
 
     final properties = myPostProvider.myPosts;
     final int totalListings = properties.length;
@@ -110,9 +108,11 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
         child: RefreshIndicator(
           color: AppColors.themeColor,
           onRefresh: () async {
-            await userProvider.fetchUserData(user.uid);
-            if (context.mounted) {
-              context.read<MyPostProvider>().initOwner(user.uid, ownerEmail: user.email);
+            if (user.uid.isNotEmpty) {
+              await userProvider.fetchUserData(user.uid);
+              if (context.mounted) {
+                context.read<MyPostProvider>().initOwner(user.uid, ownerEmail: user.email);
+              }
             }
             await _loadMarketDemands();
           },
