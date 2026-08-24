@@ -926,11 +926,11 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
         child: const Icon(Icons.home_work_outlined, color: Colors.grey, size: 24),
       );
     }
-    if (src.startsWith('data:image')) {
+    if (src.startsWith('data:image') || src.startsWith('/9j/') || src.startsWith('iVBOR') || src.length > 255) {
       try {
         final Uint8List bytes = _base64Cache.putIfAbsent(src, () {
-          final base64Str = src.split(',').last;
-          return base64Decode(base64Str);
+          final base64Str = src.contains(',') ? src.split(',').last : src;
+          return base64Decode(base64Str.trim());
         });
         return Image.memory(
           bytes,
@@ -969,7 +969,7 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
       );
     } else {
       try {
-        if (!kIsWeb && File(src).existsSync()) {
+        if (src.length <= 255 && !kIsWeb && File(src).existsSync()) {
           return Image.file(
             File(src),
             width: width,

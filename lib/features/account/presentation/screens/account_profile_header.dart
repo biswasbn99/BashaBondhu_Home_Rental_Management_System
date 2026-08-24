@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../app/app_colors.dart';
@@ -240,31 +241,52 @@ class AccountProfileHeader extends StatelessWidget {
     );
   }
 
+  static final Map<String, Uint8List> _base64Cache = {};
+
   Widget _buildProfileImage(String src) {
-    if (src.startsWith('data:image')) {
-      final base64Str = src.split(',').last;
-      return Image.memory(
-        base64Decode(base64Str),
-        width: 66,
-        height: 66,
-        fit: BoxFit.cover,
-      );
+    if (src.isEmpty) {
+      return const Center(child: Icon(Icons.person, size: 32, color: Colors.white));
+    }
+    if (src.startsWith('data:image') || src.startsWith('/9j/') || src.startsWith('iVBOR') || src.length > 255) {
+      try {
+        final Uint8List bytes = _base64Cache.putIfAbsent(src, () {
+          final base64Str = src.contains(',') ? src.split(',').last : src;
+          return base64Decode(base64Str.trim());
+        });
+        return Image.memory(
+          bytes,
+          width: 66,
+          height: 66,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
+        );
+      } catch (_) {
+        return const Center(child: Icon(Icons.broken_image_rounded, size: 24));
+      }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
       return Image.network(
         src,
         width: 66,
         height: 66,
         fit: BoxFit.cover,
+        gaplessPlayback: true,
         errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
       );
     } else {
-      return Image.file(
-        File(src),
-        width: 66,
-        height: 66,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
-      );
+      try {
+        if (src.length <= 255 && !kIsWeb && File(src).existsSync()) {
+          return Image.file(
+            File(src),
+            width: 66,
+            height: 66,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
+          );
+        }
+      } catch (_) {}
+      return const Center(child: Icon(Icons.person, size: 32, color: Colors.white));
     }
   }
 }

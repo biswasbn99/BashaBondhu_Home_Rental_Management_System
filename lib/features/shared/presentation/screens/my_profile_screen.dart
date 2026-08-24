@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
@@ -881,30 +882,46 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   }
 
   Widget _buildImageWidget(String src, double width, double height) {
-    if (src.startsWith('data:image')) {
-      final base64Str = src.split(',').last;
-      return Image.memory(
-        base64Decode(base64Str),
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
-      );
+    if (src.isEmpty) {
+      return const Center(child: Icon(Icons.image_not_supported_outlined, size: 40));
+    }
+    if (src.startsWith('data:image') || src.startsWith('/9j/') || src.startsWith('iVBOR') || src.length > 255) {
+      try {
+        final base64Str = src.contains(',') ? src.split(',').last : src;
+        return Image.memory(
+          base64Decode(base64Str.trim()),
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 40)),
+        );
+      } catch (_) {
+        return const Center(child: Icon(Icons.broken_image_rounded, size: 40));
+      }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
       return Image.network(
         src,
         width: width,
         height: height,
         fit: BoxFit.cover,
+        gaplessPlayback: true,
         errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 40)),
       );
     } else {
-      return Image.file(
-        File(src),
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 40)),
-      );
+      try {
+        if (src.length <= 255 && !kIsWeb && File(src).existsSync()) {
+          return Image.file(
+            File(src),
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 40)),
+          );
+        }
+      } catch (_) {}
+      return const Center(child: Icon(Icons.broken_image_rounded, size: 40));
     }
   }
 }

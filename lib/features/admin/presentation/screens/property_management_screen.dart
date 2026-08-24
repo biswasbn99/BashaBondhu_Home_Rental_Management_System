@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -505,17 +506,22 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
     if (src.isEmpty) {
       return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image, size: 20));
     }
-    if (src.startsWith('data:image')) {
+    if (src.startsWith('data:image') || src.startsWith('/9j/') || src.startsWith('iVBOR') || src.length > 255) {
       try {
-        final base64Str = src.split(',').last;
-        return Image.memory(base64Decode(base64Str), width: width, height: height, fit: BoxFit.cover);
+        final base64Str = src.contains(',') ? src.split(',').last : src;
+        return Image.memory(base64Decode(base64Str.trim()), width: width, height: height, fit: BoxFit.cover);
       } catch (_) {
         return const Icon(Icons.broken_image, size: 20);
       }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
       return Image.network(src, width: width, height: height, fit: BoxFit.cover);
     } else {
-      return Image.file(File(src), width: width, height: height, fit: BoxFit.cover);
+      try {
+        if (!kIsWeb && File(src).existsSync()) {
+          return Image.file(File(src), width: width, height: height, fit: BoxFit.cover);
+        }
+      } catch (_) {}
+      return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image, size: 20));
     }
   }
 }

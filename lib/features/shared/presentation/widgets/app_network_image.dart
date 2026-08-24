@@ -58,11 +58,11 @@ class AppImageWidget extends StatelessWidget {
       final str = (imageSource as String).trim();
       if (str.isEmpty) return _buildPlaceholder(context);
 
-      // Base64 Data URI
-      if (str.startsWith('data:image')) {
+      // Base64 Data URI or Raw Base64
+      if (str.startsWith('data:image') || str.startsWith('/9j/') || str.startsWith('iVBOR') || str.length > 255) {
         try {
-          final base64Content = str.split(',').last;
-          final bytes = base64Decode(base64Content);
+          final base64Content = str.contains(',') ? str.split(',').last : str;
+          final bytes = base64Decode(base64Content.trim());
           return Image.memory(
             bytes,
             fit: fit,
@@ -98,19 +98,21 @@ class AppImageWidget extends StatelessWidget {
         );
       }
 
-      // Local File Path
-      try {
-        final cleanPath = str.replaceFirst('file://', '');
-        final file = File(cleanPath);
-        return Image.file(
-          file,
-          fit: fit,
-          width: width,
-          height: height,
-          errorBuilder: (ctx, err, stack) => _buildPlaceholder(context),
-        );
-      } catch (_) {
-        return _buildPlaceholder(context);
+      // Local File Path (only if valid short path)
+      if (str.length <= 255) {
+        try {
+          final cleanPath = str.replaceFirst('file://', '');
+          final file = File(cleanPath);
+          return Image.file(
+            file,
+            fit: fit,
+            width: width,
+            height: height,
+            errorBuilder: (ctx, err, stack) => _buildPlaceholder(context),
+          );
+        } catch (_) {
+          return _buildPlaceholder(context);
+        }
       }
     }
 
