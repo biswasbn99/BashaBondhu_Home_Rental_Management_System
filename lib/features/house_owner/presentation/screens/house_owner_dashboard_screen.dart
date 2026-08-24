@@ -763,7 +763,6 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
           padding: const EdgeInsets.only(bottom: 10),
           child: Material(
             color: isDark ? const Color(0xFF1E2625) : Colors.white,
-            borderRadius: BorderRadius.circular(14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
               side: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
