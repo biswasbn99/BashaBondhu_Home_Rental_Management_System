@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,12 +24,35 @@ import '../../../tenant/presentation/screens/tenant_demand_show_screen.dart';
 import 'edit_rent_post_screen.dart';
 import 'my_post_screen.dart';
 
-class HouseOwnerDashboardScreen extends StatelessWidget {
+class HouseOwnerDashboardScreen extends StatefulWidget {
   static const String name = '/house-owner-dashboard';
 
   const HouseOwnerDashboardScreen({super.key});
 
+  @override
+  State<HouseOwnerDashboardScreen> createState() => _HouseOwnerDashboardScreenState();
+}
+
+class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
   static const Color _grey = Color(0xFF7A8A88);
+
+  final PropertyFirestoreService _propertyService = PropertyFirestoreService();
+  final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
+
+  Stream<List<PropertyModel>>? _propertiesStream;
+  Stream<List<TenantDemandModel>>? _demandsStream;
+  String? _initializedUserId;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    if (user != null && user.uid != _initializedUserId) {
+      _initializedUserId = user.uid;
+      _propertiesStream = _propertyService.streamOwnerProperties(user.uid, ownerEmail: user.email);
+      _demandsStream = _demandService.streamAllDemands();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,9 +62,6 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
     final userProvider = Provider.of<UserProvider>(context);
     final UserModel? user = userProvider.user;
     final navProvider = context.read<MainNavHolderProvider>();
-
-    final propertyService = PropertyFirestoreService();
-    final demandService = TenantDemandFirestoreService();
 
     if (user == null) {
       return Scaffold(
@@ -54,8 +75,8 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
       );
     }
 
-    final String ownerId = user.uid;
-    final String ownerEmail = user.email;
+    _propertiesStream ??= _propertyService.streamOwnerProperties(user.uid, ownerEmail: user.email);
+    _demandsStream ??= _demandService.streamAllDemands();
 
     return Scaffold(
       appBar: MainAppBar(
@@ -64,12 +85,12 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: StreamBuilder<List<PropertyModel>>(
-          stream: propertyService.streamOwnerProperties(ownerId, ownerEmail: ownerEmail),
+          stream: _propertiesStream,
           builder: (context, propertySnapshot) {
             final properties = propertySnapshot.data ?? [];
 
             return StreamBuilder<List<TenantDemandModel>>(
-              stream: demandService.streamAllDemands(),
+              stream: _demandsStream,
               builder: (context, demandSnapshot) {
                 final marketDemands = demandSnapshot.data ?? [];
 
@@ -119,7 +140,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
                           onAction: () => Navigator.pushNamed(context, MyPostScreen.name),
                         ),
                         const SizedBox(height: 12),
-                        _buildPropertiesList(context, properties, isDark, l10n, propertyService, navProvider),
+                        _buildPropertiesList(context, properties, isDark, l10n, _propertyService, navProvider),
                         const SizedBox(height: 24),
 
                         // 5. Tenant Demands Market Radar
@@ -348,7 +369,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
           icon: isVerified ? Icons.verified_user_rounded : Icons.pending_actions_rounded,
           iconColor: isVerified ? Colors.teal : Colors.amber.shade800,
           count: isVerified ? '✓ Verified' : 'Pending',
-          label: 'Host Verification',
+          label: 'ভেরিফিকেশন স্ট্যাটাস',
           isDark: isDark,
           onTap: () => Navigator.pushNamed(context, MyProfileScreen.name),
         ),
@@ -364,61 +385,62 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
     required bool isDark,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E2625) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E2625) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: iconColor.withValues(alpha: isDark ? 0.08 : 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: iconColor.withValues(alpha: isDark ? 0.2 : 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(icon, color: iconColor, size: 18),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: isDark ? 0.25 : 0.12),
+                    shape: BoxShape.circle,
                   ),
-                  Text(
-                    count,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: iconColor,
-                    ),
+                  child: Icon(icon, color: iconColor, size: 20),
+                ),
+                Text(
+                  count,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : const Color(0xFF142321),
                   ),
-                ],
+                ),
+              ],
+            ),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.grey[300] : Colors.grey.shade700,
               ),
-              const SizedBox(height: 10),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -472,24 +494,28 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withValues(alpha: 0.25)),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 22),
+            Icon(icon, color: color, size: 24),
             const SizedBox(height: 6),
             Text(
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: color),
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ],
         ),
@@ -508,19 +534,19 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
         DecoratedSectionHeader(title: title),
         TextButton(
           onPressed: onAction,
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            visualDensity: VisualDensity.compact,
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 actionLabel,
-                style: const TextStyle(
-                  color: AppColors.themeColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
               ),
               const SizedBox(width: 2),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.themeColor),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 12),
             ],
           ),
         ),
@@ -546,11 +572,11 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            const Icon(Icons.home_work_outlined, size: 40, color: _grey),
-            const SizedBox(height: 8),
+            const Icon(Icons.home_work_outlined, size: 48, color: _grey),
+            const SizedBox(height: 10),
             Text(
               l10n.noPropertiesPosted,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             const SizedBox(height: 4),
             Text(
@@ -768,76 +794,76 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildTimelineItem(
-            icon: Icons.account_circle_rounded,
-            iconColor: AppColors.themeColor,
+          _buildTimelineTile(
+            icon: Icons.app_registration_rounded,
+            iconColor: Colors.blueAccent,
             title: l10n.accountCreated,
-            subtitle: 'বাসাবন্ধুতে হোস্ট হিসেবে নিবন্ধন সফল হয়েছে',
-            timestamp: _formatTimestamp(user.createdAt),
+            subtitle: 'যোগদান করেছেন: ${_formatTimestamp(user.createdAt)}',
+            isLast: false,
           ),
-          const Divider(height: 20),
-          _buildTimelineItem(
-            icon: Icons.apartment_rounded,
+          _buildTimelineTile(
+            icon: Icons.holiday_village_rounded,
             iconColor: AppColors.themeColor,
             title: '${l10n.totalListings}: $totalListings টি ($availableUnits টি খালি)',
             subtitle: totalListings > 0
-                ? 'আপনার বিজ্ঞাপিত বাসাগুলো লাইভ সার্চে ভাড়াটিয়াদের দেখানো হচ্ছে'
-                : 'এখনো কোনো বাসাভাড়া বিজ্ঞাপন পোস্ট করেননি',
-            timestamp: 'বিজ্ঞাপন স্ট্যাটাস',
+                ? 'আপনার বিজ্ঞাপিত বাসাগুলো সফলভাবে প্রচারিত হচ্ছে'
+                : 'এখনো কোনো বাসাভাড়া বিজ্ঞাপন তৈরি করা হয়নি',
+            isLast: false,
           ),
-          const Divider(height: 20),
-          _buildTimelineItem(
-            icon: Icons.campaign_rounded,
-            iconColor: Colors.purple,
-            title: 'মার্কেট টেন্যান্ট ডিমান্ড রাডার',
-            subtitle: 'ভাড়াটিয়াদের সাম্প্রতিক চাহিদার সাথে আপনার প্রপার্টি ম্যাচ করুন',
-            timestamp: 'লাইভ অ্যাক্টিভিটি',
-          ),
-          const Divider(height: 20),
-          _buildTimelineItem(
-            icon: isVerified ? Icons.verified_user_rounded : Icons.pending_actions_rounded,
+          _buildTimelineTile(
+            icon: isVerified ? Icons.verified_rounded : Icons.shield_outlined,
             iconColor: isVerified ? Colors.green : Colors.amber.shade800,
-            title: isVerified ? 'হোস্ট এনআইডি ভেরিফাইড' : 'এনআইডি ভেরিফিকেশন পেন্ডিং',
+            title: isVerified ? 'এনআইডি ভেরিফাইড হোস্ট' : 'এনআইডি ভেরিফিকেশন পেন্ডিং',
             subtitle: isVerified
-                ? 'আপনার প্রোফাইল ট্রাস্টেড ও ভেরিফাইড হোস্ট হিসেবে চিহ্নিত'
-                : 'এনআইডি ছবি আপলোড করে ১০০% ভেরিফাইড হোস্ট হোন',
-            timestamp: isVerified ? 'সম্পূর্ণ' : 'অসম্পূর্ণ',
+                ? 'আপনার জাতীয় পরিচয়পত্র যাচাই সম্পন্ন হয়েছে'
+                : 'নির্ভরযোগ্যতা বাড়াতে প্রোফাইলে এনআইডি যুক্ত করুন',
+            isLast: true,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTimelineItem({
+  Widget _buildTimelineTile({
     required IconData icon,
     required Color iconColor,
     required String title,
     required String subtitle,
-    required String timestamp,
+    required bool isLast,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          backgroundColor: iconColor.withValues(alpha: 0.12),
-          radius: 16,
-          child: Icon(icon, color: iconColor, size: 16),
+        Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 16),
+            ),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 32,
+                color: Colors.grey.withValues(alpha: 0.3),
+              ),
+          ],
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
-                  Text(timestamp, style: const TextStyle(fontSize: 11, color: _grey)),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(subtitle, style: const TextStyle(fontSize: 12, color: _grey)),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                const SizedBox(height: 2),
+                Text(subtitle, style: const TextStyle(fontSize: 11.5, color: _grey)),
+              ],
+            ),
           ),
         ),
       ],
@@ -853,40 +879,28 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-            SizedBox(width: 8),
-            Text('বিজ্ঞাপন মুছুন'),
-          ],
-        ),
-        content: const Text('আপনি কি নিশ্চিত যে এই বাসাভাড়া বিজ্ঞাপনটি চিরতরে মুছে ফেলতে চান?'),
+        title: Text(l10n.deletePostConfirmTitle),
+        content: Text(l10n.deletePostConfirmSubtitle),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(l10n.cancel),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
-              try {
-                await propertyService.deleteProperty(propertyId);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('বাসাভাড়ার বিজ্ঞাপনটি সফলভাবে মুছে ফেলা হয়েছে!'),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('ত্রুটি: $e'), backgroundColor: Colors.redAccent),
-                  );
-                }
+              await propertyService.deleteProperty(propertyId);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.postDeletedSuccess),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
               }
             },
             child: Text(l10n.confirm),
@@ -926,13 +940,20 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
       );
-    } else {
+    } else if (!kIsWeb && File(src).existsSync()) {
       return Image.file(
         File(src),
         width: width,
         height: height,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
+      );
+    } else {
+      return Container(
+        width: width,
+        height: height,
+        color: Colors.grey[200],
+        child: const Icon(Icons.home_rounded, color: Colors.grey, size: 24),
       );
     }
   }
