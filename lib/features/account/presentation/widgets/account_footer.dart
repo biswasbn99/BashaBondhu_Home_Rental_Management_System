@@ -32,3 +32,4 @@ class AccountFooter extends StatelessWidget {
     );
   }
 }
+

@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/widgets/guest_account_view.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
-import 'package:bashabondhu_home_rental_management_system/features/house_owner/account/presentation/screens/house_owner_account_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/house_owner_account_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/account/presentation/screens/tenant_account_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_account_screen.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({

@@ -72,3 +72,4 @@ class AccountStatCard extends StatelessWidget {
     );
   }
 }
+
