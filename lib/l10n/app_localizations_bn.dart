@@ -670,4 +670,56 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get homeRentPost => 'বাসাভাড়া পোস্ট';
+
+  @override
+  String get boostListing => 'বিজ্ঞাপন বুস্ট';
+
+  @override
+  String get verificationStatus => 'ভেরিফিকেশন স্ট্যাটাস';
+
+  @override
+  String get nidVerified => 'এনআইডি যাচাইকৃত';
+
+  @override
+  String get nidPending => 'এনআইডি পেন্ডিং';
+
+  @override
+  String get monthUnit => 'মাস';
+
+  @override
+  String get budgetLabel => 'বাজেট';
+
+  @override
+  String get viewAction => 'দেখুন';
+
+  @override
+  String get editAction => 'এডিট';
+
+  @override
+  String get deleteAction => 'মুছুন';
+
+  @override
+  String get availableLabel => 'খালি আছে';
+
+  @override
+  String get bookedLabel => 'ভাড়া হয়েছে';
+
+  @override
+  String get joinedOn => 'যোগদান করেছেন';
+
+  @override
+  String get noDemandsFound =>
+      'বর্তমানে কোনো নতুন ভাড়াটিয়ার চাহিদা পাওয়া যায়নি।';
+
+  @override
+  String get noSavedHousesPrompt =>
+      'এখনো কোনো বাসা ফেভারিট করা হয়নি। বাসা খুঁজতে হোম স্ক্রিনে যান।';
+
+  @override
+  String get postListingPrompt =>
+      'আপনার বাসাভাড়ার তথ্য দিয়ে বিজ্ঞাপন তৈরি করুন এবং সরাসরি ভাড়াটিয়াদের সাথে যোগাযোগ করুন।';
+
+  @override
+  String get postDemandPromptDashboard =>
+      'আপনার ভাড়ার প্রয়োজনীয়তা জানিয়ে চাহিদা পোস্ট করুন, বাড়িওয়ালারা সরাসরি যোগাযোগ করবে।';
 }

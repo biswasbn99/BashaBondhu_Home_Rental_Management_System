@@ -213,5 +213,21 @@
   "verifiedTenant": "ভেরিফাইড ভাড়াটিয়া",
   "unverified": "আন-ভেরিফাইড",
   "activeDemands": "সক্রিয় চাহিদা",
-  "homeRentPost": "বাসাভাড়া পোস্ট"
+  "homeRentPost": "বাসাভাড়া পোস্ট",
+  "boostListing": "বিজ্ঞাপন বুস্ট",
+  "verificationStatus": "ভেরিফিকেশন স্ট্যাটাস",
+  "nidVerified": "এনআইডি যাচাইকৃত",
+  "nidPending": "এনআইডি পেন্ডিং",
+  "monthUnit": "মাস",
+  "budgetLabel": "বাজেট",
+  "viewAction": "দেখুন",
+  "editAction": "এডিট",
+  "deleteAction": "মুছুন",
+  "availableLabel": "খালি আছে",
+  "bookedLabel": "ভাড়া হয়েছে",
+  "joinedOn": "যোগদান করেছেন",
+  "noDemandsFound": "বর্তমানে কোনো নতুন ভাড়াটিয়ার চাহিদা পাওয়া যায়নি।",
+  "noSavedHousesPrompt": "এখনো কোনো বাসা ফেভারিট করা হয়নি। বাসা খুঁজতে হোম স্ক্রিনে যান।",
+  "postListingPrompt": "আপনার বাসাভাড়ার তথ্য দিয়ে বিজ্ঞাপন তৈরি করুন এবং সরাসরি ভাড়াটিয়াদের সাথে যোগাযোগ করুন।",
+  "postDemandPromptDashboard": "আপনার ভাড়ার প্রয়োজনীয়তা জানিয়ে চাহিদা পোস্ট করুন, বাড়িওয়ালারা সরাসরি যোগাযোগ করবে।"
 }

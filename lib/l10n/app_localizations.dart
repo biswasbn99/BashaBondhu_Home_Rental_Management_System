@@ -1387,6 +1387,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Post House Rent'**
   String get homeRentPost;
+
+  /// No description provided for @boostListing.
+  ///
+  /// In en, this message translates to:
+  /// **'Boost Listing'**
+  String get boostListing;
+
+  /// No description provided for @verificationStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Status'**
+  String get verificationStatus;
+
+  /// No description provided for @nidVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'NID Verified'**
+  String get nidVerified;
+
+  /// No description provided for @nidPending.
+  ///
+  /// In en, this message translates to:
+  /// **'NID Pending'**
+  String get nidPending;
+
+  /// No description provided for @monthUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'month'**
+  String get monthUnit;
+
+  /// No description provided for @budgetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get budgetLabel;
+
+  /// No description provided for @viewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get viewAction;
+
+  /// No description provided for @editAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editAction;
+
+  /// No description provided for @deleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteAction;
+
+  /// No description provided for @availableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get availableLabel;
+
+  /// No description provided for @bookedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Booked'**
+  String get bookedLabel;
+
+  /// No description provided for @joinedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined on'**
+  String get joinedOn;
+
+  /// No description provided for @noDemandsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No active tenant demands found at the moment.'**
+  String get noDemandsFound;
+
+  /// No description provided for @noSavedHousesPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'No properties saved to favorites yet. Explore homes on the search tab.'**
+  String get noSavedHousesPrompt;
+
+  /// No description provided for @postListingPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Create rental listings to connect directly with tenants looking for homes.'**
+  String get postListingPrompt;
+
+  /// No description provided for @postDemandPromptDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Post your rental demand to let landlords contact you directly.'**
+  String get postDemandPromptDashboard;
 }
 
 class _AppLocalizationsDelegate

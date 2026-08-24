@@ -672,4 +672,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeRentPost => 'Post House Rent';
+
+  @override
+  String get boostListing => 'Boost Listing';
+
+  @override
+  String get verificationStatus => 'Verification Status';
+
+  @override
+  String get nidVerified => 'NID Verified';
+
+  @override
+  String get nidPending => 'NID Pending';
+
+  @override
+  String get monthUnit => 'month';
+
+  @override
+  String get budgetLabel => 'Budget';
+
+  @override
+  String get viewAction => 'View';
+
+  @override
+  String get editAction => 'Edit';
+
+  @override
+  String get deleteAction => 'Delete';
+
+  @override
+  String get availableLabel => 'Available';
+
+  @override
+  String get bookedLabel => 'Booked';
+
+  @override
+  String get joinedOn => 'Joined on';
+
+  @override
+  String get noDemandsFound => 'No active tenant demands found at the moment.';
+
+  @override
+  String get noSavedHousesPrompt =>
+      'No properties saved to favorites yet. Explore homes on the search tab.';
+
+  @override
+  String get postListingPrompt =>
+      'Create rental listings to connect directly with tenants looking for homes.';
+
+  @override
+  String get postDemandPromptDashboard =>
+      'Post your rental demand to let landlords contact you directly.';
 }
