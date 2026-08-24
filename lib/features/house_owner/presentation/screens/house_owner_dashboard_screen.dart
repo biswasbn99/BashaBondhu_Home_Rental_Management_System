@@ -11,6 +11,7 @@ import 'package:bashabondhu_home_rental_management_system/features/auth/data/mod
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home/presentation/screens/property_details_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/providers/my_post_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/edit_rent_post_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/my_post_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/property_firestore_service.dart';
@@ -40,42 +41,36 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
   final PropertyFirestoreService _propertyService = PropertyFirestoreService();
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
 
-  List<PropertyModel> _properties = [];
   List<TenantDemandModel> _marketDemands = [];
-  bool _isLoading = true;
+  bool _isLoadingDemands = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadDashboardData();
+      final user = context.read<UserProvider>().user;
+      if (user != null) {
+        context.read<MyPostProvider>().initOwner(user.uid, ownerEmail: user.email);
+      }
+      _loadMarketDemands();
     });
   }
 
-  Future<void> _loadDashboardData() async {
-    final user = Provider.of<UserProvider>(context, listen: false).user;
-    if (user == null) {
-      if (mounted) setState(() => _isLoading = false);
-      return;
-    }
-
+  Future<void> _loadMarketDemands() async {
     try {
-      final results = await Future.wait([
-        _propertyService.getOwnerProperties(user.uid, ownerEmail: user.email),
-        _demandService.getAllDemands(),
-      ]);
-
+      final demands = await _demandService
+          .getAllDemands()
+          .timeout(const Duration(seconds: 5), onTimeout: () => []);
       if (mounted) {
         setState(() {
-          _properties = results[0] as List<PropertyModel>;
-          _marketDemands = results[1] as List<TenantDemandModel>;
-          _isLoading = false;
+          _marketDemands = demands;
+          _isLoadingDemands = false;
         });
       }
     } catch (e) {
-      debugPrint('Error loading house owner dashboard data: $e');
+      debugPrint('Error loading market demands: $e');
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isLoadingDemands = false);
       }
     }
   }
@@ -87,6 +82,7 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final userProvider = Provider.of<UserProvider>(context);
     final UserModel? user = userProvider.user;
+    final myPostProvider = context.watch<MyPostProvider>();
     final navProvider = context.read<MainNavHolderProvider>();
 
     if (user == null) {
@@ -101,8 +97,9 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
       );
     }
 
-    final int totalListings = _properties.length;
-    final int availableUnits = _properties.where((p) => p.isAvailable).length;
+    final properties = myPostProvider.myPosts;
+    final int totalListings = properties.length;
+    final int availableUnits = properties.where((p) => p.isAvailable).length;
     final int demandCount = _marketDemands.length;
     final int completion = user.profileCompletionPercentage;
     final bool isVerified = user.nidFrontImageUrl.isNotEmpty;
@@ -117,74 +114,80 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
           color: AppColors.themeColor,
           onRefresh: () async {
             await userProvider.fetchUserData(user.uid);
-            await _loadDashboardData();
+            if (context.mounted) {
+              context.read<MyPostProvider>().initOwner(user.uid, ownerEmail: user.email);
+            }
+            await _loadMarketDemands();
           },
-          child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: AppColors.themeColor),
-                )
-              : SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // 1. Host Profile Overview Header
-                      _buildProfileHeader(context, user, theme, isDark, l10n, completion, isVerified),
-                      const SizedBox(height: 18),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 1. Host Profile Overview Header
+                _buildProfileHeader(context, user, theme, isDark, l10n, completion, isVerified),
+                const SizedBox(height: 18),
 
-                      // 2. Key Metrics Analytics Grid (4 Cards)
-                      _buildMetricsGrid(
-                        context,
-                        totalListings: totalListings,
-                        availableUnits: availableUnits,
-                        demandCount: demandCount,
-                        isVerified: isVerified,
-                        isDark: isDark,
-                        l10n: l10n,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // 3. Quick Actions Hub
-                      DecoratedSectionHeader(title: l10n.quickShortcuts),
-                      const SizedBox(height: 12),
-                      _buildQuickActionsRow(context, navProvider, l10n),
-                      const SizedBox(height: 24),
-
-                      // 4. My Rental Listings Section
-                      _buildSectionHeaderWithAction(
-                        title: l10n.myPost,
-                        actionLabel: l10n.viewAll,
-                        onAction: () => Navigator.pushNamed(context, MyPostScreen.name),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildPropertiesList(context, _properties, isDark, l10n, _propertyService, navProvider),
-                      const SizedBox(height: 24),
-
-                      // 5. Tenant Demands Market Radar
-                      _buildSectionHeaderWithAction(
-                        title: l10n.marketDemandsRadar,
-                        actionLabel: l10n.viewAll,
-                        onAction: () => Navigator.pushNamed(context, TenantDemandShowScreen.name),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildMarketDemandsList(context, _marketDemands, isDark, l10n),
-                      const SizedBox(height: 24),
-
-                      // 6. Hosting Activity & History Timeline
-                      DecoratedSectionHeader(title: l10n.activityHistory),
-                      const SizedBox(height: 12),
-                      _buildHostingActivityTimeline(
-                        user,
-                        totalListings,
-                        availableUnits,
-                        isVerified,
-                        isDark,
-                        l10n,
-                      ),
-                    ],
-                  ),
+                // 2. Key Metrics Analytics Grid (4 Cards)
+                _buildMetricsGrid(
+                  context,
+                  totalListings: totalListings,
+                  availableUnits: availableUnits,
+                  demandCount: demandCount,
+                  isVerified: isVerified,
+                  isDark: isDark,
+                  l10n: l10n,
                 ),
+                const SizedBox(height: 24),
+
+                // 3. Quick Actions Hub
+                DecoratedSectionHeader(title: l10n.quickShortcuts),
+                const SizedBox(height: 12),
+                _buildQuickActionsRow(context, navProvider, l10n),
+                const SizedBox(height: 24),
+
+                // 4. My Rental Listings Section
+                _buildSectionHeaderWithAction(
+                  title: l10n.myPost,
+                  actionLabel: l10n.viewAll,
+                  onAction: () => Navigator.pushNamed(context, MyPostScreen.name),
+                ),
+                const SizedBox(height: 12),
+                _buildPropertiesList(context, properties, isDark, l10n, _propertyService, navProvider),
+                const SizedBox(height: 24),
+
+                // 5. Tenant Demands Market Radar
+                _buildSectionHeaderWithAction(
+                  title: l10n.marketDemandsRadar,
+                  actionLabel: l10n.viewAll,
+                  onAction: () => Navigator.pushNamed(context, TenantDemandShowScreen.name),
+                ),
+                const SizedBox(height: 12),
+                _isLoadingDemands
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(color: AppColors.themeColor, strokeWidth: 2),
+                        ),
+                      )
+                    : _buildMarketDemandsList(context, _marketDemands, isDark, l10n),
+                const SizedBox(height: 24),
+
+                // 6. Hosting Activity & History Timeline
+                DecoratedSectionHeader(title: l10n.activityHistory),
+                const SizedBox(height: 12),
+                _buildHostingActivityTimeline(
+                  user,
+                  totalListings,
+                  availableUnits,
+                  isVerified,
+                  isDark,
+                  l10n,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -925,7 +928,6 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               await propertyService.deleteProperty(propertyId);
-              _loadDashboardData();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
