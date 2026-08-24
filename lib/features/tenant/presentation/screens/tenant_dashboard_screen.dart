@@ -5,22 +5,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../app/app_colors.dart';
-import '../../../../app/extensions/utility_extension.dart';
-import '../../../../l10n/app_localizations.dart';
-import '../../../auth/data/models/user_model.dart';
-import '../../../auth/data/providers/user_provider.dart';
-import '../../../home/presentation/screens/property_details_screen.dart';
-import '../../../shared/data/services/tenant_demand_firestore_service.dart';
-import '../../../shared/presentation/providers/main_nav_holder_provider.dart';
-import '../../../shared/presentation/screens/my_profile_screen.dart';
-import '../../../shared/presentation/widgets/app_bar.dart';
-import '../../../shared/presentation/widgets/decorated_section_header.dart';
-import '../../../wishlist/data/providers/wishlist_provider.dart';
-import '../../data/models/tenant_demand_model.dart';
-import 'edit_demand_screen.dart';
-import 'my_demand_screen.dart';
-import 'show_demand_details_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
+import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/models/user_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
+import 'package:bashabondhu_home_rental_management_system/features/home/presentation/screens/property_details_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/tenant_demand_firestore_service.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/data/models/tenant_demand_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/edit_demand_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/show_demand_details_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/wishlist/data/providers/wishlist_provider.dart';
+import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 
 class TenantDashboardScreen extends StatefulWidget {
   static const String name = '/tenant-dashboard';
@@ -36,18 +36,6 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
   static final Map<String, Uint8List> _base64Cache = {};
 
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
-  Stream<List<TenantDemandModel>>? _demandsStream;
-  String? _initializedUserId;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final user = Provider.of<UserProvider>(context, listen: false).user;
-    if (user != null && user.uid != _initializedUserId) {
-      _initializedUserId = user.uid;
-      _demandsStream = _demandService.streamTenantDemands(user.uid, tenantEmail: user.email);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,8 +59,6 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
       );
     }
 
-    _demandsStream ??= _demandService.streamTenantDemands(user.uid, tenantEmail: user.email);
-
     return Scaffold(
       appBar: MainAppBar(
         title: Text(l10n.myDashboard),
@@ -80,11 +66,8 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
       ),
       body: SafeArea(
         child: StreamBuilder<List<TenantDemandModel>>(
-          stream: _demandsStream,
+          stream: _demandService.streamTenantDemands(user.uid, tenantEmail: user.email),
           builder: (context, demandSnapshot) {
-            if (demandSnapshot.hasError) {
-              debugPrint('Demand stream error: ${demandSnapshot.error}');
-            }
             final demands = demandSnapshot.data ?? [];
             final int demandCount = demands.length;
             final int wishlistCount = wishlistProvider.wishlistProperties.length;
@@ -102,7 +85,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // 1. Top Tenant Profile Overview Header
+                    // 1. Tenant Profile Overview Header
                     _buildProfileHeader(context, user, theme, isDark, l10n, completion, isVerified),
                     const SizedBox(height: 18),
 

@@ -5,24 +5,24 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../app/app_colors.dart';
-import '../../../../app/extensions/utility_extension.dart';
-import '../../../../l10n/app_localizations.dart';
-import '../../../auth/data/models/user_model.dart';
-import '../../../auth/data/providers/user_provider.dart';
-import '../../../home/data/models/property_model.dart';
-import '../../../home/presentation/screens/property_details_screen.dart';
-import '../../../shared/data/services/property_firestore_service.dart';
-import '../../../shared/data/services/tenant_demand_firestore_service.dart';
-import '../../../shared/presentation/providers/main_nav_holder_provider.dart';
-import '../../../shared/presentation/screens/my_profile_screen.dart';
-import '../../../shared/presentation/widgets/app_bar.dart';
-import '../../../shared/presentation/widgets/decorated_section_header.dart';
-import '../../../tenant/data/models/tenant_demand_model.dart';
-import '../../../tenant/presentation/screens/show_demand_details_screen.dart';
-import '../../../tenant/presentation/screens/tenant_demand_show_screen.dart';
-import 'edit_rent_post_screen.dart';
-import 'my_post_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
+import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/models/user_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
+import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/home/presentation/screens/property_details_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/edit_rent_post_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/my_post_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/property_firestore_service.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/tenant_demand_firestore_service.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/data/models/tenant_demand_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/show_demand_details_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 
 class HouseOwnerDashboardScreen extends StatefulWidget {
   static const String name = '/house-owner-dashboard';
@@ -39,21 +39,6 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
 
   final PropertyFirestoreService _propertyService = PropertyFirestoreService();
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
-
-  Stream<List<PropertyModel>>? _propertiesStream;
-  Stream<List<TenantDemandModel>>? _demandsStream;
-  String? _initializedUserId;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final user = Provider.of<UserProvider>(context, listen: false).user;
-    if (user != null && user.uid != _initializedUserId) {
-      _initializedUserId = user.uid;
-      _propertiesStream = _propertyService.streamOwnerProperties(user.uid, ownerEmail: user.email);
-      _demandsStream = _demandService.streamAllDemands();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,9 +61,6 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
       );
     }
 
-    _propertiesStream ??= _propertyService.streamOwnerProperties(user.uid, ownerEmail: user.email);
-    _demandsStream ??= _demandService.streamAllDemands();
-
     return Scaffold(
       appBar: MainAppBar(
         title: Text(l10n.myDashboard),
@@ -86,19 +68,13 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
       ),
       body: SafeArea(
         child: StreamBuilder<List<PropertyModel>>(
-          stream: _propertiesStream,
+          stream: _propertyService.streamOwnerProperties(user.uid, ownerEmail: user.email),
           builder: (context, propertySnapshot) {
-            if (propertySnapshot.hasError) {
-              debugPrint('Property stream error: ${propertySnapshot.error}');
-            }
             final properties = propertySnapshot.data ?? [];
 
             return StreamBuilder<List<TenantDemandModel>>(
-              stream: _demandsStream,
+              stream: _demandService.streamAllDemands(),
               builder: (context, demandSnapshot) {
-                if (demandSnapshot.hasError) {
-                  debugPrint('Demand stream error: ${demandSnapshot.error}');
-                }
                 final marketDemands = demandSnapshot.data ?? [];
 
                 final int totalListings = properties.length;
@@ -118,7 +94,7 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // 1. Top Host Profile Overview Header
+                        // 1. Host Profile Overview Header
                         _buildProfileHeader(context, user, theme, isDark, l10n, completion, isVerified),
                         const SizedBox(height: 18),
 

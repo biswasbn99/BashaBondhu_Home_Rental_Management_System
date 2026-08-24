@@ -110,7 +110,10 @@ class HouseOwnerAccountScreen extends StatelessWidget {
                 ),
               ),
               onTap: () {
-                Navigator.pushNamed(context, HouseOwnerDashboardScreen.name);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HouseOwnerDashboardScreen()),
+                );
               },
             ),
             AccountActionTile(

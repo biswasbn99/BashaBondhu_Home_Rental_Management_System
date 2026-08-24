@@ -104,7 +104,10 @@ class TenantAccountScreen extends StatelessWidget {
             ),
           ),
           onTap: () {
-            Navigator.pushNamed(context, TenantDashboardScreen.name);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TenantDashboardScreen()),
+            );
           },
         ),
         AccountActionTile(
