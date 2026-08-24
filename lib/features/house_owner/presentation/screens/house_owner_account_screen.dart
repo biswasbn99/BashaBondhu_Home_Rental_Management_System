@@ -11,6 +11,7 @@ import 'package:bashabondhu_home_rental_management_system/features/account/prese
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/widgets/account_stat_card.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/models/user_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/house_owner_dashboard_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/property_firestore_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
@@ -109,10 +110,51 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
             // House Owner Action Hub
             DecoratedSectionHeader(title: l10n.account),
             const SizedBox(height: 12),
+
+            // 1. My Dashboard Button (Right ABOVE Profile Information)
+            AccountActionTile(
+              icon: Icons.dashboard_customize_rounded,
+              title: l10n.myDashboard,
+              subtitle: l10n.localeName == 'bn'
+                  ? 'বিজ্ঞাপন অ্যানালিটিক্স, ভাড়াটিয়া চাহিদা রাডার ও কার্যক্রম ইতিহাস'
+                  : 'Listing analytics, market radar, and activity history',
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.themeColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.insights_rounded, size: 13, color: AppColors.themeColor),
+                    SizedBox(width: 4),
+                    Text(
+                      'Analytics',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.themeColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HouseOwnerDashboardScreen()),
+                );
+              },
+            ),
+
+            // 2. Profile Information
             AccountActionTile(
               icon: Icons.person_pin_circle_outlined,
               title: l10n.myProfile,
-              subtitle: 'ছবি, ব্যক্তিগত তথ্য ও এনআইডি ভেরিফিকেশন আপডেট করুন',
+              subtitle: l10n.localeName == 'bn'
+                  ? 'ছবি, ব্যক্তিগত তথ্য ও এনআইডি ভেরিফিকেশন আপডেট করুন'
+                  : 'Update profile photo, personal info & NID verification',
               trailing: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -130,22 +172,34 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
               ),
               onTap: () => Navigator.pushNamed(context, MyProfileScreen.name),
             ),
+
+            // 3. My Post
             AccountActionTile(
               icon: Icons.view_list_rounded,
               title: l10n.myPost,
-              subtitle: 'আপনার পোস্ট করা বাসার তথ্য দেখুন, এডিট বা ডিলিট করুন',
+              subtitle: l10n.localeName == 'bn'
+                  ? 'আপনার পোস্ট করা বাসার তথ্য দেখুন, এডিট বা ডিলিট করুন'
+                  : 'Manage, edit or delete your posted rental listings',
               onTap: () => navProvider.changeIndex(2),
             ),
+
+            // 4. Post Now
             AccountActionTile(
               icon: Icons.add_home_work_outlined,
               title: l10n.postNow,
-              subtitle: 'নতুন বাসা ভাড়ার বিজ্ঞাপন পোস্ট করুন',
+              subtitle: l10n.localeName == 'bn'
+                  ? 'নতুন বাসা ভাড়ার বিজ্ঞাপন পোস্ট করুন'
+                  : 'Publish a new home rental advertisement',
               onTap: () => navProvider.changeIndex(1),
             ),
+
+            // 5. All Tenant Demands
             AccountActionTile(
               icon: Icons.campaign_rounded,
               title: l10n.allTenantDemands,
-              subtitle: 'ভাড়াটিয়াদের ভাড়ার চাহিদা তালিকা দেখুন',
+              subtitle: l10n.localeName == 'bn'
+                  ? 'ভাড়াটিয়াদের ভাড়ার চাহিদা তালিকা দেখুন'
+                  : 'Browse what potential tenants are looking for',
               onTap: () => Navigator.pushNamed(context, TenantDemandShowScreen.name),
             ),
             const SizedBox(height: 24),

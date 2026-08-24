@@ -4,15 +4,17 @@ import 'package:bashabondhu_home_rental_management_system/features/auth/presenta
 import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home/presentation/screens/property_details_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home_rent_post/presentations/screens/home_rent_post_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/data/models/tenant_demand_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/show_demand_details_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/edit_rent_post_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/house_owner_dashboard_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/my_post_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/edit_demand_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/main_nav_holder_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/data/models/tenant_demand_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/edit_demand_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/show_demand_details_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_dashboard_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../features/auth/presentation/screens/splash_screen.dart';
@@ -57,6 +59,10 @@ class AppRoutes {
         widget = EditDemandScreen(demand: demand);
       case MyProfileScreen.name:
         widget = const MyProfileScreen();
+      case HouseOwnerDashboardScreen.name:
+        widget = const HouseOwnerDashboardScreen();
+      case TenantDashboardScreen.name:
+        widget = const TenantDashboardScreen();
       
       // Admin Route
       case AdminMainScreen.name:
