@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../../../home/presentation/screens/property_details_screen.dart';
@@ -147,7 +148,7 @@ class TenantDashboardScreen extends StatelessWidget {
     UserModel user,
     ThemeData theme,
     bool isDark,
-    dynamic l10n,
+    AppLocalizations l10n,
     int completion,
     bool isVerified,
   ) {
@@ -293,7 +294,7 @@ class TenantDashboardScreen extends StatelessWidget {
     required int completion,
     required bool isVerified,
     required bool isDark,
-    required dynamic l10n,
+    required AppLocalizations l10n,
     required MainNavHolderProvider navProvider,
   }) {
     return GridView.count(
@@ -411,7 +412,7 @@ class TenantDashboardScreen extends StatelessWidget {
   Widget _buildQuickActionsRow(
     BuildContext context,
     MainNavHolderProvider navProvider,
-    dynamic l10n,
+    AppLocalizations l10n,
   ) {
     return Row(
       children: [
@@ -522,7 +523,7 @@ class TenantDashboardScreen extends StatelessWidget {
     BuildContext context,
     List<TenantDemandModel> demands,
     bool isDark,
-    dynamic l10n,
+    AppLocalizations l10n,
     TenantDemandFirestoreService demandService,
   ) {
     if (demands.isEmpty) {
@@ -664,7 +665,7 @@ class TenantDashboardScreen extends StatelessWidget {
     BuildContext context,
     WishlistProvider wishlistProvider,
     bool isDark,
-    dynamic l10n,
+    AppLocalizations l10n,
   ) {
     final previewList = wishlistProvider.wishlistProperties.take(3).toList();
 
@@ -718,7 +719,7 @@ class TenantDashboardScreen extends StatelessWidget {
     int wishlistCount,
     bool isVerified,
     bool isDark,
-    dynamic l10n,
+    AppLocalizations l10n,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -809,7 +810,7 @@ class TenantDashboardScreen extends StatelessWidget {
     BuildContext context,
     String demandId,
     TenantDemandFirestoreService demandService,
-    dynamic l10n,
+    AppLocalizations l10n,
   ) {
     showDialog(
       context: context,

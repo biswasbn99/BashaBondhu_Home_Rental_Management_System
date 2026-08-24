@@ -667,4 +667,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get activeDemands => 'সক্রিয় চাহিদা';
+
+  @override
+  String get homeRentPost => 'বাসাভাড়া পোস্ট';
 }

@@ -212,5 +212,6 @@
   "verifiedHost": "ভেরিফাইড হোস্ট",
   "verifiedTenant": "ভেরিফাইড ভাড়াটিয়া",
   "unverified": "আন-ভেরিফাইড",
-  "activeDemands": "সক্রিয় চাহিদা"
+  "activeDemands": "সক্রিয় চাহিদা",
+  "homeRentPost": "বাসাভাড়া পোস্ট"
 }

@@ -669,4 +669,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get activeDemands => 'Active Demands';
+
+  @override
+  String get homeRentPost => 'Post House Rent';
 }

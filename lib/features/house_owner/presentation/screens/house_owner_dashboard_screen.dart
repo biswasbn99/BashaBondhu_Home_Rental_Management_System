@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../../../home/data/models/property_model.dart';
@@ -163,7 +164,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
     UserModel user,
     ThemeData theme,
     bool isDark,
-    dynamic l10n,
+    AppLocalizations l10n,
     int completion,
     bool isVerified,
   ) {
@@ -309,7 +310,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
     required int demandCount,
     required bool isVerified,
     required bool isDark,
-    required dynamic l10n,
+    required AppLocalizations l10n,
   }) {
     return GridView.count(
       crossAxisCount: 2,
@@ -426,7 +427,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
   Widget _buildQuickActionsRow(
     BuildContext context,
     MainNavHolderProvider navProvider,
-    dynamic l10n,
+    AppLocalizations l10n,
   ) {
     return Row(
       children: [
@@ -531,7 +532,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
     BuildContext context,
     List<PropertyModel> properties,
     bool isDark,
-    dynamic l10n,
+    AppLocalizations l10n,
     PropertyFirestoreService propertyService,
     MainNavHolderProvider navProvider,
   ) {
@@ -695,7 +696,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
     BuildContext context,
     List<TenantDemandModel> demands,
     bool isDark,
-    dynamic l10n,
+    AppLocalizations l10n,
   ) {
     if (demands.isEmpty) {
       return Container(
@@ -756,7 +757,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
     int availableUnits,
     bool isVerified,
     bool isDark,
-    dynamic l10n,
+    AppLocalizations l10n,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -847,7 +848,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
     BuildContext context,
     String propertyId,
     PropertyFirestoreService propertyService,
-    dynamic l10n,
+    AppLocalizations l10n,
   ) {
     showDialog(
       context: context,

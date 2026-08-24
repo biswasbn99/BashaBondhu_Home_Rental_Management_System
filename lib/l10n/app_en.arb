@@ -212,5 +212,6 @@
   "verifiedHost": "Verified Host",
   "verifiedTenant": "Verified Tenant",
   "unverified": "Unverified",
-  "activeDemands": "Active Demands"
+  "activeDemands": "Active Demands",
+  "homeRentPost": "Post House Rent"
 }

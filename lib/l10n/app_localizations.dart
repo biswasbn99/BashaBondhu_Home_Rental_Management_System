@@ -1381,6 +1381,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Active Demands'**
   String get activeDemands;
+
+  /// No description provided for @homeRentPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post House Rent'**
+  String get homeRentPost;
 }
 
 class _AppLocalizationsDelegate
