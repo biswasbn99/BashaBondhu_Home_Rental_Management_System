@@ -726,43 +726,61 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
 
     return Column(
       children: previewList.map((property) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Material(
             color: isDark ? const Color(0xFF1E2625) : Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-          ),
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 52,
-                height: 52,
-                child: property.images.isNotEmpty
-                    ? _buildImage(property.images.first, 52, 52)
-                    : Container(color: Colors.grey[300], child: const Icon(Icons.home, color: Colors.grey)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+            ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                Navigator.pushNamed(context, PropertyDetailsScreen.name, arguments: property);
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: SizedBox(
+                        width: 52,
+                        height: 52,
+                        child: property.images.isNotEmpty
+                            ? _buildImage(property.images.first, 52, 52)
+                            : Container(color: Colors.grey[300], child: const Icon(Icons.home, color: Colors.grey)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            property.shortAddress.isNotEmpty ? property.shortAddress : property.houseType.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "${property.amount} ৳ • ${property.area.name}, ${property.district.name}",
+                            style: const TextStyle(fontSize: 12, color: AppColors.themeColor, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.favorite, color: Colors.redAccent, size: 20),
+                      onPressed: () => wishlistProvider.toggleFavorite(userId, property.id),
+                    ),
+                  ],
+                ),
               ),
             ),
-            title: Text(
-              property.shortAddress.isNotEmpty ? property.shortAddress : property.houseType.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
-            ),
-            subtitle: Text(
-              "${property.amount} ৳ • ${property.area.name}, ${property.district.name}",
-              style: const TextStyle(fontSize: 12, color: AppColors.themeColor, fontWeight: FontWeight.w600),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.favorite, color: Colors.redAccent, size: 20),
-              onPressed: () => wishlistProvider.toggleFavorite(userId, property.id),
-            ),
-            onTap: () {
-              Navigator.pushNamed(context, PropertyDetailsScreen.name, arguments: property);
-            },
           ),
         );
       }).toList(),

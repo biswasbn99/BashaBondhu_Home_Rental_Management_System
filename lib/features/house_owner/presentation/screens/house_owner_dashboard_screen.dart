@@ -759,32 +759,50 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
 
     return Column(
       children: topDemands.map((demand) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Material(
             color: isDark ? const Color(0xFF1E2625) : Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-          ),
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: CircleAvatar(
-              backgroundColor: Colors.purple.withValues(alpha: 0.12),
-              child: const Icon(Icons.person_search_rounded, color: Colors.purple),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
             ),
-            title: Text(
-              "${demand.userName.isNotEmpty ? demand.userName : 'Tenant'} • ${demand.houseType.getLocalizedLabel(l10n)}",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                Navigator.pushNamed(context, ShowDemandDetailsScreen.name, arguments: demand);
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.purple.withValues(alpha: 0.12),
+                      child: const Icon(Icons.person_search_rounded, color: Colors.purple),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "${demand.userName.isNotEmpty ? demand.userName : 'Tenant'} • ${demand.houseType.getLocalizedLabel(l10n)}",
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "${demand.area.name}, ${demand.district.name} • বাজেট: ${demand.budgetRange ?? '0'} ৳",
+                            style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : _grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: _grey),
+                  ],
+                ),
+              ),
             ),
-            subtitle: Text(
-              "${demand.area.name}, ${demand.district.name} • বাজেট: ${demand.budgetRange ?? '0'} ৳",
-              style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : _grey),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: _grey),
-            onTap: () {
-              Navigator.pushNamed(context, ShowDemandDetailsScreen.name, arguments: demand);
-            },
           ),
         );
       }).toList(),
