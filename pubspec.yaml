@@ -41,7 +41,6 @@ dependencies:
   firebase_auth:
   cloud_firestore:
   firebase_crashlytics:
-  firebase_analytics:
   flutter_svg: 
   lottie: 
   intl:
