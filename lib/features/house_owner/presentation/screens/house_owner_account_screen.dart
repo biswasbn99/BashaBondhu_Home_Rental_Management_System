@@ -18,7 +18,7 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
 
-class HouseOwnerAccountScreen extends StatelessWidget {
+class HouseOwnerAccountScreen extends StatefulWidget {
   const HouseOwnerAccountScreen({
     super.key,
     required this.user,
@@ -27,12 +27,39 @@ class HouseOwnerAccountScreen extends StatelessWidget {
   final UserModel user;
 
   @override
+  State<HouseOwnerAccountScreen> createState() => _HouseOwnerAccountScreenState();
+}
+
+class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
+  late Stream<List<PropertyModel>> _propertiesStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _propertiesStream = PropertyFirestoreService().streamOwnerProperties(
+      widget.user.uid,
+      ownerEmail: widget.user.email,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant HouseOwnerAccountScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.user.uid != widget.user.uid || oldWidget.user.email != widget.user.email) {
+      _propertiesStream = PropertyFirestoreService().streamOwnerProperties(
+        widget.user.uid,
+        ownerEmail: widget.user.email,
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = context.localizations;
     final navProvider = context.read<MainNavHolderProvider>();
 
     return StreamBuilder<List<PropertyModel>>(
-      stream: PropertyFirestoreService().streamOwnerProperties(user.uid, ownerEmail: user.email),
+      stream: _propertiesStream,
       builder: (context, snapshot) {
         final properties = snapshot.data ?? [];
         final int postCount = properties.length;
@@ -41,7 +68,7 @@ class HouseOwnerAccountScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Header
-            AccountProfileHeader(user: user),
+            AccountProfileHeader(user: widget.user),
             const SizedBox(height: 16),
 
             // House Owner Quick Stats Bar
@@ -123,15 +150,15 @@ class HouseOwnerAccountScreen extends StatelessWidget {
               trailing: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (user.isProfileComplete ? Colors.green : Colors.amber.shade800).withValues(alpha: 0.12),
+                  color: (widget.user.isProfileComplete ? Colors.green : Colors.amber.shade800).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${user.profileCompletionPercentage}% ${user.isProfileComplete ? l10n.complete : l10n.incomplete}',
+                  '${widget.user.profileCompletionPercentage}% ${widget.user.isProfileComplete ? l10n.complete : l10n.incomplete}',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: user.isProfileComplete ? Colors.green : Colors.amber.shade800,
+                    color: widget.user.isProfileComplete ? Colors.green : Colors.amber.shade800,
                   ),
                 ),
               ),

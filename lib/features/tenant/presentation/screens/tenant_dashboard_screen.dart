@@ -37,6 +37,19 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
 
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
 
+  Stream<List<TenantDemandModel>>? _demandsStream;
+  String? _initializedUserId;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    if (user != null && user.uid != _initializedUserId) {
+      _initializedUserId = user.uid;
+      _demandsStream = _demandService.streamTenantDemands(user.uid, tenantEmail: user.email);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.localizations;
@@ -66,7 +79,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
       ),
       body: SafeArea(
         child: StreamBuilder<List<TenantDemandModel>>(
-          stream: _demandService.streamTenantDemands(user.uid, tenantEmail: user.email),
+          stream: _demandsStream,
           builder: (context, demandSnapshot) {
             final demands = demandSnapshot.data ?? [];
             final int demandCount = demands.length;

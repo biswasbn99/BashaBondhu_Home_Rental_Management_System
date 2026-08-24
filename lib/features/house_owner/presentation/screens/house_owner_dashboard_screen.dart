@@ -40,6 +40,21 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
   final PropertyFirestoreService _propertyService = PropertyFirestoreService();
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
 
+  Stream<List<PropertyModel>>? _propertiesStream;
+  Stream<List<TenantDemandModel>>? _demandsStream;
+  String? _initializedUserId;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    if (user != null && user.uid != _initializedUserId) {
+      _initializedUserId = user.uid;
+      _propertiesStream = _propertyService.streamOwnerProperties(user.uid, ownerEmail: user.email);
+      _demandsStream = _demandService.streamAllDemands();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.localizations;
@@ -68,12 +83,12 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
       ),
       body: SafeArea(
         child: StreamBuilder<List<PropertyModel>>(
-          stream: _propertyService.streamOwnerProperties(user.uid, ownerEmail: user.email),
+          stream: _propertiesStream,
           builder: (context, propertySnapshot) {
             final properties = propertySnapshot.data ?? [];
 
             return StreamBuilder<List<TenantDemandModel>>(
-              stream: _demandService.streamAllDemands(),
+              stream: _demandsStream,
               builder: (context, demandSnapshot) {
                 final marketDemands = demandSnapshot.data ?? [];
 
