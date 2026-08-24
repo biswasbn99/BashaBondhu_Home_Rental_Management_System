@@ -16,10 +16,18 @@ void main() async {
           defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS)) {
     FlutterError.onError = (errorDetails) {
-      FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+      if (kReleaseMode) {
+        FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+      } else {
+        FlutterError.presentError(errorDetails);
+      }
     };
     PlatformDispatcher.instance.onError = (error, stack) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      if (kReleaseMode) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      } else {
+        debugPrint('⚠️ Caught Unhandled Error in Debug: $error');
+      }
       return true;
     };
   } else {
