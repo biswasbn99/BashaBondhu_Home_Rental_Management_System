@@ -35,6 +35,7 @@ class HouseOwnerDashboardScreen extends StatefulWidget {
 
 class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
   static const Color _grey = Color(0xFF7A8A88);
+  static final Map<String, Uint8List> _base64Cache = {};
 
   final PropertyFirestoreService _propertyService = PropertyFirestoreService();
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
@@ -87,11 +88,17 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
         child: StreamBuilder<List<PropertyModel>>(
           stream: _propertiesStream,
           builder: (context, propertySnapshot) {
+            if (propertySnapshot.hasError) {
+              debugPrint('Property stream error: ${propertySnapshot.error}');
+            }
             final properties = propertySnapshot.data ?? [];
 
             return StreamBuilder<List<TenantDemandModel>>(
               stream: _demandsStream,
               builder: (context, demandSnapshot) {
+                if (demandSnapshot.hasError) {
+                  debugPrint('Demand stream error: ${demandSnapshot.error}');
+                }
                 final marketDemands = demandSnapshot.data ?? [];
 
                 final int totalListings = properties.length;
@@ -915,22 +922,36 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
       return Container(
         width: width,
         height: height,
-        color: Colors.grey[300],
-        child: const Icon(Icons.broken_image_rounded, size: 24),
+        color: Colors.grey[200],
+        child: const Icon(Icons.home_work_outlined, color: Colors.grey, size: 24),
       );
     }
     if (src.startsWith('data:image')) {
       try {
-        final base64Str = src.split(',').last;
+        final Uint8List bytes = _base64Cache.putIfAbsent(src, () {
+          final base64Str = src.split(',').last;
+          return base64Decode(base64Str);
+        });
         return Image.memory(
-          base64Decode(base64Str),
+          bytes,
           width: width,
           height: height,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) => Container(
+            width: width,
+            height: height,
+            color: Colors.grey[200],
+            child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
+          ),
         );
       } catch (_) {
-        return const Center(child: Icon(Icons.broken_image_rounded, size: 24));
+        return Container(
+          width: width,
+          height: height,
+          color: Colors.grey[200],
+          child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
+        );
       }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
       return Image.network(
@@ -938,17 +959,32 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
         width: width,
         height: height,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
-      );
-    } else if (!kIsWeb && File(src).existsSync()) {
-      return Image.file(
-        File(src),
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
+        gaplessPlayback: true,
+        errorBuilder: (context, error, stackTrace) => Container(
+          width: width,
+          height: height,
+          color: Colors.grey[200],
+          child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
+        ),
       );
     } else {
+      try {
+        if (!kIsWeb && File(src).existsSync()) {
+          return Image.file(
+            File(src),
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) => Container(
+              width: width,
+              height: height,
+              color: Colors.grey[200],
+              child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
+            ),
+          );
+        }
+      } catch (_) {}
       return Container(
         width: width,
         height: height,

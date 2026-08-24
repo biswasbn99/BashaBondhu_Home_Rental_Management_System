@@ -33,6 +33,7 @@ class TenantDashboardScreen extends StatefulWidget {
 
 class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
   static const Color _grey = Color(0xFF7A8A88);
+  static final Map<String, Uint8List> _base64Cache = {};
 
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
   Stream<List<TenantDemandModel>>? _demandsStream;
@@ -81,6 +82,9 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
         child: StreamBuilder<List<TenantDemandModel>>(
           stream: _demandsStream,
           builder: (context, demandSnapshot) {
+            if (demandSnapshot.hasError) {
+              debugPrint('Demand stream error: ${demandSnapshot.error}');
+            }
             final demands = demandSnapshot.data ?? [];
             final int demandCount = demands.length;
             final int wishlistCount = wishlistProvider.wishlistProperties.length;
@@ -208,7 +212,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
               shape: BoxShape.circle,
               gradient: user.profileImageUrl.isEmpty
                   ? const LinearGradient(
-                      colors: [Color(0xFF00A896), Color(0xFF028090)],
+                      colors: [Color(0xFF028090), Color(0xFF00A896)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     )
@@ -251,14 +255,14 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
                         color: AppColors.themeColor.withValues(alpha: isDark ? 0.25 : 0.12),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.person_pin_rounded, size: 12, color: AppColors.themeColor),
-                          const SizedBox(width: 4),
+                          Icon(Icons.person_pin_circle_rounded, size: 12, color: AppColors.themeColor),
+                          SizedBox(width: 4),
                           Text(
-                            l10n.verifiedTenant.toUpperCase(),
-                            style: const TextStyle(
+                            'TENANT',
+                            style: TextStyle(
                               color: AppColors.themeColor,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
@@ -288,7 +292,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  name.isNotEmpty ? name : 'Tenant User',
+                  name.isNotEmpty ? name : 'Tenant',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
@@ -332,10 +336,10 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
       childAspectRatio: 1.5,
       children: [
         _buildMetricCard(
-          icon: Icons.campaign_rounded,
-          iconColor: AppColors.themeColor,
+          icon: Icons.assignment_rounded,
+          iconColor: Colors.orange,
           count: demandCount.toString(),
-          label: l10n.activeDemands,
+          label: l10n.myDemands,
           isDark: isDark,
           onTap: () => Navigator.pushNamed(context, MyDemandScreen.name),
         ),
@@ -343,7 +347,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
           icon: Icons.favorite_rounded,
           iconColor: Colors.redAccent,
           count: wishlistCount.toString(),
-          label: l10n.savedHouses,
+          label: l10n.savedProperties,
           isDark: isDark,
           onTap: () {
             Navigator.pop(context);
@@ -352,7 +356,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
         ),
         _buildMetricCard(
           icon: Icons.donut_large_rounded,
-          iconColor: completion == 100 ? Colors.green : Colors.amber.shade800,
+          iconColor: Colors.blueAccent,
           count: '$completion%',
           label: l10n.profileCompletion,
           isDark: isDark,
@@ -460,9 +464,9 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: _buildActionTile(
-            icon: Icons.add_comment_rounded,
-            title: l10n.postDemand,
-            color: Colors.teal,
+            icon: Icons.post_add_rounded,
+            title: l10n.demand,
+            color: Colors.orange,
             onTap: () {
               Navigator.pop(context);
               navProvider.changeIndex(2);
@@ -472,7 +476,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: _buildActionTile(
-            icon: Icons.favorite_outline_rounded,
+            icon: Icons.favorite_rounded,
             title: l10n.wishlist,
             color: Colors.redAccent,
             onTap: () {
@@ -511,7 +515,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11.5,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
@@ -570,7 +574,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
         ),
         child: Column(
           children: [
-            const Icon(Icons.campaign_outlined, size: 48, color: _grey),
+            const Icon(Icons.assignment_outlined, size: 48, color: _grey),
             const SizedBox(height: 10),
             Text(
               l10n.noDemandsYet,
@@ -578,23 +582,9 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'আপনার পছন্দের এলাকা ও বাজেটের চাহিদা প্রকাশ করুন যাতে বাড়িওয়ালারা আপনার সাথে সরাসরি যোগাযোগ করতে পারে।',
+              'আপনার ভাড়ার প্রয়োজনীয়তা জানিয়ে চাহিদা পোস্ট করুন, বাড়িওয়ালারা সরাসরি যোগাযোগ করবে।',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : _grey),
-            ),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: () {
-                final navProvider = context.read<MainNavHolderProvider>();
-                Navigator.pop(context);
-                navProvider.changeIndex(2);
-              },
-              icon: const Icon(Icons.add_rounded, size: 18),
-              label: Text(l10n.postNewDemand),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
             ),
           ],
         ),
@@ -614,47 +604,46 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
             border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      "${demand.houseType.getLocalizedLabel(l10n)} • ${demand.month}",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                  ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppColors.themeColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
+                      color: Colors.orange.withValues(alpha: isDark ? 0.25 : 0.12),
+                      shape: BoxShape.circle,
                     ),
-                    child: Text(
-                      "${demand.budgetRange ?? '0'} ৳",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.themeColor,
-                      ),
-                    ),
+                    child: const Icon(Icons.assignment_turned_in_rounded, color: Colors.orange, size: 22),
                   ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.location_on_outlined, size: 14, color: _grey),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      "${demand.area.name}, ${demand.district.name}",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : _grey),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "${demand.houseType.getLocalizedLabel(l10n)} (${demand.roomOrSeat})",
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            Text(
+                              "বাজেট: ${demand.budgetRange ?? '0'} ৳",
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.themeColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "${demand.area.name}, ${demand.district.name}",
+                          style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : _grey),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -788,21 +777,19 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
             isLast: false,
           ),
           _buildTimelineTile(
-            icon: Icons.campaign_rounded,
-            iconColor: AppColors.themeColor,
-            title: '${l10n.activeDemands}: $demandCount টি',
+            icon: Icons.assignment_rounded,
+            iconColor: Colors.orange,
+            title: '${l10n.myDemands}: $demandCount টি পোস্ট করা হয়েছে',
             subtitle: demandCount > 0
-                ? 'আপনার চাহিদাসমূহ বাড়িওয়ালারা সরাসরি দেখতে পাচ্ছে'
-                : 'কোনো চাহিদা তৈরি করা হয়নি',
+                ? 'আপনার চাহিদাসমূহ বাড়িওয়ালারা সরাসরি দেখতে পাচ্ছেন'
+                : 'এখনো কোনো বাসা খোঁজার চাহিদা পোস্ট করা হয়নি',
             isLast: false,
           ),
           _buildTimelineTile(
             icon: Icons.favorite_rounded,
             iconColor: Colors.redAccent,
-            title: '${l10n.savedProperties}: $wishlistCount টি',
-            subtitle: wishlistCount > 0
-                ? 'আপনার পছন্দের তালিকায় সংরক্ষিত বাসা রয়েছে'
-                : 'এখনো কোনো বাসা পছন্দের তালিকায় যোগ করেননি',
+            title: '${l10n.savedProperties}: $wishlistCount টি বাসা পছন্দের তালিকায় রয়েছে',
+            subtitle: 'আপনার সংরক্ষিত বাসাগুলো সুবিধাজনক সময়ে দেখতে পারবেন',
             isLast: false,
           ),
           _buildTimelineTile(
@@ -811,7 +798,7 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
             title: isVerified ? 'এনআইডি ভেরিফাইড ভাড়াটিয়া' : 'এনআইডি ভেরিফিকেশন পেন্ডিং',
             subtitle: isVerified
                 ? 'আপনার জাতীয় পরিচয়পত্র যাচাই সম্পন্ন হয়েছে'
-                : 'বাড়িওয়ালার আস্থা বাড়াতে প্রোফাইলে এনআইডি যুক্ত করুন',
+                : 'নির্ভরযোগ্যতা বাড়াতে প্রোফাইলে এনআইডি যুক্ত করুন',
             isLast: true,
           ),
         ],
@@ -910,22 +897,36 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
       return Container(
         width: width,
         height: height,
-        color: Colors.grey[300],
-        child: const Icon(Icons.broken_image_rounded, size: 24),
+        color: Colors.grey[200],
+        child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
       );
     }
     if (src.startsWith('data:image')) {
       try {
-        final base64Str = src.split(',').last;
+        final Uint8List bytes = _base64Cache.putIfAbsent(src, () {
+          final base64Str = src.split(',').last;
+          return base64Decode(base64Str);
+        });
         return Image.memory(
-          base64Decode(base64Str),
+          bytes,
           width: width,
           height: height,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) => Container(
+            width: width,
+            height: height,
+            color: Colors.grey[200],
+            child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
+          ),
         );
       } catch (_) {
-        return const Center(child: Icon(Icons.broken_image_rounded, size: 24));
+        return Container(
+          width: width,
+          height: height,
+          color: Colors.grey[200],
+          child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
+        );
       }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
       return Image.network(
@@ -933,17 +934,32 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
         width: width,
         height: height,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
-      );
-    } else if (!kIsWeb && File(src).existsSync()) {
-      return Image.file(
-        File(src),
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
+        gaplessPlayback: true,
+        errorBuilder: (context, error, stackTrace) => Container(
+          width: width,
+          height: height,
+          color: Colors.grey[200],
+          child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
+        ),
       );
     } else {
+      try {
+        if (!kIsWeb && File(src).existsSync()) {
+          return Image.file(
+            File(src),
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) => Container(
+              width: width,
+              height: height,
+              color: Colors.grey[200],
+              child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
+            ),
+          );
+        }
+      } catch (_) {}
       return Container(
         width: width,
         height: height,

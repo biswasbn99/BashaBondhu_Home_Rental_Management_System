@@ -55,22 +55,32 @@ class TenantDemandFirestoreService {
     String tenantId, {
     String? tenantEmail,
   }) {
-    Query query = _demandsCollection;
-    if (tenantId.isNotEmpty) {
-      query = query.where('tenantId', isEqualTo: tenantId);
-    } else if (tenantEmail != null && tenantEmail.isNotEmpty) {
-      query = query.where('tenantEmail', isEqualTo: tenantEmail);
-    }
-
-    return query.snapshots().map((snapshot) {
+    return _demandsCollection.snapshots().map((snapshot) {
       final List<TenantDemandModel> list = [];
+      final String cleanId = tenantId.trim();
+      final String cleanEmail = (tenantEmail ?? '').trim().toLowerCase();
+
       for (final doc in snapshot.docs) {
         try {
           final data = doc.data();
           if (data is Map<String, dynamic>) {
-            list.add(TenantDemandModel.fromMap(data, doc.id));
+            final d = TenantDemandModel.fromMap(data, doc.id);
+            final bool matchesId = cleanId.isNotEmpty && d.tenantId == cleanId;
+            final bool matchesEmail = cleanEmail.isNotEmpty && d.tenantEmail.trim().toLowerCase() == cleanEmail;
+            if (cleanId.isEmpty && cleanEmail.isEmpty) {
+              list.add(d);
+            } else if (matchesId || matchesEmail) {
+              list.add(d);
+            }
           } else if (data is Map) {
-            list.add(TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id));
+            final d = TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id);
+            final bool matchesId = cleanId.isNotEmpty && d.tenantId == cleanId;
+            final bool matchesEmail = cleanEmail.isNotEmpty && d.tenantEmail.trim().toLowerCase() == cleanEmail;
+            if (cleanId.isEmpty && cleanEmail.isEmpty) {
+              list.add(d);
+            } else if (matchesId || matchesEmail) {
+              list.add(d);
+            }
           }
         } catch (e) {
           debugPrint('Error parsing tenant demand doc ${doc.id}: $e');
