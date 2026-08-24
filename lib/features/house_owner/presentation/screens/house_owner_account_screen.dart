@@ -141,6 +141,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
                 ),
               ),
               onTap: () {
+                debugPrint('➡️ Navigating to HouseOwnerDashboardScreen');
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const HouseOwnerDashboardScreen()),

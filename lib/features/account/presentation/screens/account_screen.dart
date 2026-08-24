@@ -26,7 +26,7 @@ class AccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
     final user = userProvider.user;
-    final bool isGuest = userProvider.isGuest;
+    final bool isGuest = userProvider.isGuest || user == null;
 
     return Scaffold(
       appBar: MainAppBar(
@@ -46,9 +46,9 @@ class AccountScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           child: isGuest
               ? const GuestAccountView()
-              : (user != null && user.isHouseOwner)
+              : user.isHouseOwner
                   ? HouseOwnerAccountScreen(user: user)
-                  : TenantAccountScreen(user: user!),
+                  : TenantAccountScreen(user: user),
         ),
       ),
     );

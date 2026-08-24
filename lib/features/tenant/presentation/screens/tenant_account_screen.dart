@@ -108,6 +108,7 @@ class TenantAccountScreen extends StatelessWidget {
             ),
           ),
           onTap: () {
+            debugPrint('➡️ Navigating to TenantDashboardScreen');
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const TenantDashboardScreen()),
