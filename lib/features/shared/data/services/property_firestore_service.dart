@@ -88,26 +88,32 @@ class PropertyFirestoreService {
 
   /// Stream properties owned by a specific house owner
   Stream<List<PropertyModel>> streamOwnerProperties(String ownerId, {String? ownerEmail}) {
-    if (ownerId.isEmpty && (ownerEmail == null || ownerEmail.isEmpty)) {
-      return streamAllProperties();
-    }
-
-    Query query = _propertiesCollection;
-    if (ownerId.isNotEmpty) {
-      query = query.where('ownerId', isEqualTo: ownerId);
-    } else if (ownerEmail != null && ownerEmail.isNotEmpty) {
-      query = query.where('ownerEmail', isEqualTo: ownerEmail);
-    }
-
-    return query.snapshots().map((snapshot) {
+    return _propertiesCollection.snapshots().map((snapshot) {
       final List<PropertyModel> list = [];
+      final String cleanId = ownerId.trim();
+      final String cleanEmail = (ownerEmail ?? '').trim().toLowerCase();
+
       for (final doc in snapshot.docs) {
         try {
           final data = doc.data();
           if (data is Map<String, dynamic>) {
-            list.add(PropertyModel.fromMap(data, doc.id));
+            final p = PropertyModel.fromMap(data, doc.id);
+            final bool matchesId = cleanId.isNotEmpty && p.ownerId == cleanId;
+            final bool matchesEmail = cleanEmail.isNotEmpty && p.ownerEmail.trim().toLowerCase() == cleanEmail;
+            if (cleanId.isEmpty && cleanEmail.isEmpty) {
+              list.add(p);
+            } else if (matchesId || matchesEmail) {
+              list.add(p);
+            }
           } else if (data is Map) {
-            list.add(PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id));
+            final p = PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id);
+            final bool matchesId = cleanId.isNotEmpty && p.ownerId == cleanId;
+            final bool matchesEmail = cleanEmail.isNotEmpty && p.ownerEmail.trim().toLowerCase() == cleanEmail;
+            if (cleanId.isEmpty && cleanEmail.isEmpty) {
+              list.add(p);
+            } else if (matchesId || matchesEmail) {
+              list.add(p);
+            }
           }
         } catch (e) {
           debugPrint('Error parsing property doc ${doc.id}: $e');

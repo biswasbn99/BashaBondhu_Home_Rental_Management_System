@@ -63,8 +63,8 @@ class AccountScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           child: isGuest
               ? const _GuestAccountView()
-              : user?.userType == 'House Owner'
-                  ? _HouseOwnerAccountView(user: user!)
+              : (user != null && user.isHouseOwner)
+                  ? _HouseOwnerAccountView(user: user)
                   : _TenantAccountView(user: user!),
         ),
       ),

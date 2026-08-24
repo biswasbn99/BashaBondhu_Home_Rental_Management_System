@@ -64,6 +64,13 @@ class UserModel {
   /// Profile is complete only when 100% of fields are filled
   bool get isProfileComplete => profileCompletionPercentage >= 100;
 
+  /// Check if user is a house owner
+  bool get isHouseOwner =>
+      userType.toLowerCase().replaceAll('_', ' ').replaceAll('-', ' ').contains('owner');
+
+  /// Check if user is a tenant
+  bool get isTenant => !isHouseOwner;
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,

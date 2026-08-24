@@ -438,7 +438,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
             color: AppColors.themeColor,
             onTap: () {
               Navigator.pop(context);
-              navProvider.changeIndex(2);
+              navProvider.changeIndex(1);
             },
           ),
         ),
@@ -562,7 +562,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
             FilledButton.icon(
               onPressed: () {
                 Navigator.pop(context);
-                navProvider.changeIndex(2);
+                navProvider.changeIndex(1);
               },
               icon: const Icon(Icons.add_rounded, size: 18),
               label: Text(l10n.homeRentPost),

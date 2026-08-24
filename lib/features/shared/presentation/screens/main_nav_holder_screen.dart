@@ -25,7 +25,7 @@ class MainNavHolderScreen extends StatelessWidget {
     final userProvider = context.watch<UserProvider>();
     final navProvider = context.watch<MainNavHolderProvider>();
 
-    final bool isOwner = userProvider.user?.userType == 'House Owner';
+    final bool isOwner = userProvider.user?.isHouseOwner ?? false;
 
     // Role-based Screens
     final List<Widget> screens = isOwner
