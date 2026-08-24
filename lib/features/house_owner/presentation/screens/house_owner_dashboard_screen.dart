@@ -9,7 +9,6 @@ import 'package:bashabondhu_home_rental_management_system/features/home_rent_pos
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/my_post_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_network_image.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
@@ -154,19 +153,17 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Avatar
+          // Avatar (Fast & Crash-proof Initials Circle)
           Container(
-            width: 68,
-            height: 68,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: user.profileImageUrl.isEmpty
-                  ? const LinearGradient(
-                      colors: [Color(0xFF00A896), Color(0xFF028090)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00A896), Color(0xFF028090)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.themeColor.withValues(alpha: 0.3),
@@ -175,26 +172,15 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
                 ),
               ],
             ),
-            child: ClipOval(
-              child: user.profileImageUrl.isNotEmpty
-                  ? AppImageWidget(
-                      imageSource: user.profileImageUrl,
-                      width: 68,
-                      height: 68,
-                      fit: BoxFit.cover,
-                      cacheWidth: 150,
-                      cacheHeight: 150,
-                    )
-                  : Center(
-                      child: Text(
-                        initials,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
+            child: Center(
+              child: Text(
+                initials,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 16),
