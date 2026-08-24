@@ -5,71 +5,21 @@ import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/models/user_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
-import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/home/presentation/screens/property_details_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home_rent_post/presentations/screens/home_rent_post_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/providers/my_post_provider.dart';
-import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/edit_rent_post_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/my_post_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/property_firestore_service.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/tenant_demand_firestore_service.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_network_image.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/data/models/tenant_demand_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/show_demand_details_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 
-class HouseOwnerDashboardScreen extends StatefulWidget {
+class HouseOwnerDashboardScreen extends StatelessWidget {
   static const String name = '/house-owner-dashboard';
 
   const HouseOwnerDashboardScreen({super.key});
 
-  @override
-  State<HouseOwnerDashboardScreen> createState() => _HouseOwnerDashboardScreenState();
-}
-
-class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
   static const Color _grey = Color(0xFF7A8A88);
-
-  final PropertyFirestoreService _propertyService = PropertyFirestoreService();
-  final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
-
-  List<TenantDemandModel> _marketDemands = [];
-  bool _isLoadingDemands = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = context.read<UserProvider>().user;
-      if (user != null) {
-        context.read<MyPostProvider>().initOwner(user.uid, ownerEmail: user.email);
-      }
-      _loadMarketDemands();
-    });
-  }
-
-  Future<void> _loadMarketDemands() async {
-    try {
-      final demands = await _demandService
-          .getAllDemands()
-          .timeout(const Duration(seconds: 3), onTimeout: () => []);
-      if (mounted) {
-        setState(() {
-          _marketDemands = demands;
-          _isLoadingDemands = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() => _isLoadingDemands = false);
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +27,7 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final userProvider = Provider.of<UserProvider>(context);
+
     final UserModel user = userProvider.user ??
         UserModel(
           uid: 'sample_owner',
@@ -89,13 +40,6 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
           createdAt: DateTime.now().toIso8601String(),
         );
 
-    final myPostProvider = context.watch<MyPostProvider>();
-    final navProvider = context.read<MainNavHolderProvider>();
-
-    final properties = myPostProvider.myPosts;
-    final int totalListings = properties.length;
-    final int availableUnits = properties.where((p) => p.isAvailable).length;
-    final int demandCount = _marketDemands.length;
     final int completion = user.profileCompletionPercentage;
     final bool isVerified = user.nidFrontImageUrl.isNotEmpty;
 
@@ -105,89 +49,70 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
         automaticallyImplyLeading: true,
       ),
       body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.themeColor,
-          onRefresh: () async {
-            if (user.uid.isNotEmpty) {
-              await userProvider.fetchUserData(user.uid);
-              if (context.mounted) {
-                context.read<MyPostProvider>().initOwner(user.uid, ownerEmail: user.email);
-              }
-            }
-            await _loadMarketDemands();
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // 1. Host Profile Overview Card
-                _buildProfileHeader(context, user, theme, isDark, l10n, completion, isVerified),
-                const SizedBox(height: 18),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 1. Host Profile Overview Card
+              _buildProfileHeader(context, user, theme, isDark, l10n, completion, isVerified),
+              const SizedBox(height: 18),
 
-                // 2. Key Metrics Analytics Grid (4 Cards)
-                _buildMetricsGrid(
-                  context,
-                  totalListings: totalListings,
-                  availableUnits: availableUnits,
-                  demandCount: demandCount,
-                  isVerified: isVerified,
-                  isDark: isDark,
-                  l10n: l10n,
-                ),
-                const SizedBox(height: 18),
+              // 2. Key Metrics Analytics Grid (4 Cards)
+              _buildMetricsGrid(
+                context,
+                totalListings: 2,
+                availableUnits: 1,
+                demandCount: 5,
+                isVerified: isVerified,
+                isDark: isDark,
+                l10n: l10n,
+              ),
+              const SizedBox(height: 18),
 
-                // 3. Monetization & Boost Promo Banner
-                _buildBoostPromoBanner(context, isDark, l10n),
-                const SizedBox(height: 24),
+              // 3. Monetization & Boost Promo Banner
+              _buildBoostPromoBanner(context, isDark, l10n),
+              const SizedBox(height: 24),
 
-                // 4. Quick Actions Hub
-                DecoratedSectionHeader(title: l10n.quickShortcuts),
-                const SizedBox(height: 12),
-                _buildQuickActionsRow(context, navProvider, l10n),
-                const SizedBox(height: 24),
+              // 4. Quick Actions Hub
+              DecoratedSectionHeader(title: l10n.quickShortcuts),
+              const SizedBox(height: 12),
+              _buildQuickActionsRow(context, l10n),
+              const SizedBox(height: 24),
 
-                // 5. My Rental Listings Section
-                _buildSectionHeaderWithAction(
-                  title: l10n.myPost,
-                  actionLabel: l10n.viewAll,
-                  onAction: () => Navigator.pushNamed(context, MyPostScreen.name),
-                ),
-                const SizedBox(height: 12),
-                _buildPropertiesList(context, properties, isDark, l10n, _propertyService, navProvider),
-                const SizedBox(height: 24),
+              // 5. My Rental Listings Section
+              _buildSectionHeaderWithAction(
+                title: l10n.myPost,
+                actionLabel: l10n.viewAll,
+                onAction: () => Navigator.pushNamed(context, MyPostScreen.name),
+              ),
+              const SizedBox(height: 12),
+              _buildSamplePropertiesList(context, isDark, l10n),
+              const SizedBox(height: 24),
 
-                // 6. Tenant Demands Market Radar
-                _buildSectionHeaderWithAction(
-                  title: l10n.marketDemandsRadar,
-                  actionLabel: l10n.viewAll,
-                  onAction: () => Navigator.pushNamed(context, TenantDemandShowScreen.name),
-                ),
-                const SizedBox(height: 12),
-                _isLoadingDemands
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: CircularProgressIndicator(color: AppColors.themeColor, strokeWidth: 2),
-                        ),
-                      )
-                    : _buildMarketDemandsList(context, _marketDemands, isDark, l10n),
-                const SizedBox(height: 24),
+              // 6. Tenant Demands Market Radar
+              _buildSectionHeaderWithAction(
+                title: l10n.marketDemandsRadar,
+                actionLabel: l10n.viewAll,
+                onAction: () => Navigator.pushNamed(context, TenantDemandShowScreen.name),
+              ),
+              const SizedBox(height: 12),
+              _buildSampleMarketDemandsList(context, isDark, l10n),
+              const SizedBox(height: 24),
 
-                // 7. Hosting Activity & History Timeline
-                DecoratedSectionHeader(title: l10n.activityHistory),
-                const SizedBox(height: 12),
-                _buildHostingActivityTimeline(
-                  user,
-                  totalListings,
-                  availableUnits,
-                  isVerified,
-                  isDark,
-                  l10n,
-                ),
-              ],
-            ),
+              // 7. Hosting Activity & History Timeline
+              DecoratedSectionHeader(title: l10n.activityHistory),
+              const SizedBox(height: 12),
+              _buildHostingActivityTimeline(
+                user,
+                totalListings: 2,
+                availableUnits: 1,
+                isVerified: isVerified,
+                isDark: isDark,
+                l10n: l10n,
+              ),
+            ],
           ),
         ),
       ),
@@ -545,7 +470,6 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
 
   Widget _buildQuickActionsRow(
     BuildContext context,
-    MainNavHolderProvider navProvider,
     AppLocalizations l10n,
   ) {
     return Row(
@@ -650,260 +574,148 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
     );
   }
 
-  Widget _buildPropertiesList(
+  Widget _buildSamplePropertiesList(
     BuildContext context,
-    List<PropertyModel> properties,
     bool isDark,
     AppLocalizations l10n,
-    PropertyFirestoreService propertyService,
-    MainNavHolderProvider navProvider,
   ) {
-    if (properties.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E2625) : const Color(0xFFF9FBFB),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-        ),
-        child: Column(
-          children: [
-            const Icon(Icons.home_work_outlined, size: 48, color: _grey),
-            const SizedBox(height: 10),
-            Text(
-              l10n.noPropertiesPosted,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.postListingPrompt,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : _grey),
-            ),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: () {
-                Navigator.pushNamed(context, HomeRentPostScreen.name);
-              },
-              icon: const Icon(Icons.add_rounded, size: 18),
-              label: Text(l10n.homeRentPost),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final recentProperties = properties.take(3).toList();
-
-    return Column(
-      children: recentProperties.map((property) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E2625) : Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-          ),
-          child: Column(
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E2625) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+      ),
+      child: Column(
+        children: [
+          Row(
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: SizedBox(
-                      width: 64,
-                      height: 64,
-                      child: property.images.isNotEmpty
-                          ? AppImageWidget(
-                              imageSource: property.images.first,
-                              width: 64,
-                              height: 64,
-                              fit: BoxFit.cover,
-                              cacheWidth: 150,
-                              cacheHeight: 150,
-                            )
-                          : Container(
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.home_work_outlined, color: Colors.grey),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.themeColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.apartment_rounded, color: AppColors.themeColor, size: 30),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                property.shortAddress.isNotEmpty ? property.shortAddress : property.houseType.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: (property.isAvailable ? Colors.green : Colors.redAccent).withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                property.isAvailable ? l10n.availableLabel : l10n.bookedLabel,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: property.isAvailable ? Colors.green : Colors.redAccent,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
                         Text(
-                          "${property.amount} ৳ / ${l10n.monthUnit}",
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.themeColor,
+                          l10n.localeName == 'bn' ? 'ফ্যামিলি ফ্ল্যাট বাসা' : 'Family Flat Apartment',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          "${property.area.name}, ${property.district.name}",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 11.5, color: isDark ? Colors.grey[400] : _grey),
+                          child: Text(
+                            l10n.availableLabel,
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton.icon(
-                    onPressed: () {
-                      Navigator.pushNamed(context, PropertyDetailsScreen.name, arguments: property);
-                    },
-                    icon: const Icon(Icons.visibility_outlined, size: 16),
-                    label: Text(l10n.viewAction, style: const TextStyle(fontSize: 12)),
-                  ),
-                  TextButton.icon(
-                    onPressed: () {
-                      Navigator.pushNamed(context, EditRentPostScreen.name, arguments: property);
-                    },
-                    icon: const Icon(Icons.edit_outlined, size: 16),
-                    label: Text(l10n.editAction, style: const TextStyle(fontSize: 12)),
-                  ),
-                  TextButton.icon(
-                    onPressed: () => _showDeleteConfirmDialog(context, property.id, propertyService, l10n),
-                    icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.redAccent),
-                    label: Text(l10n.deleteAction, style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildMarketDemandsList(
-    BuildContext context,
-    List<TenantDemandModel> demands,
-    bool isDark,
-    AppLocalizations l10n,
-  ) {
-    if (demands.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E2625) : const Color(0xFFF9FBFB),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-        ),
-        child: Center(
-          child: Text(
-            l10n.noDemandsFound,
-            style: const TextStyle(fontSize: 13, color: _grey),
-          ),
-        ),
-      );
-    }
-
-    final topDemands = demands.take(3).toList();
-
-    return Column(
-      children: topDemands.map((demand) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Material(
-            color: isDark ? const Color(0xFF1E2625) : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-              side: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-            ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () {
-                Navigator.pushNamed(context, ShowDemandDetailsScreen.name, arguments: demand);
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.purple.withValues(alpha: 0.12),
-                      child: const Icon(Icons.person_search_rounded, color: Colors.purple),
+                    const SizedBox(height: 4),
+                    Text(
+                      "22,000 ৳ / ${l10n.monthUnit}",
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.themeColor),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "${demand.userName.isNotEmpty ? demand.userName : 'Tenant'} • ${demand.houseType.getLocalizedLabel(l10n)}",
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            "${demand.area.name}, ${demand.district.name} • ${l10n.budgetLabel}: ${demand.budgetRange ?? '0'} ৳",
-                            style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : _grey),
-                          ),
-                        ],
-                      ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.localeName == 'bn' ? 'মিরপুর ১০, ঢাকা' : 'Mirpur 10, Dhaka',
+                      style: TextStyle(fontSize: 11.5, color: isDark ? Colors.grey[400] : _grey),
                     ),
-                    const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: _grey),
                   ],
                 ),
               ),
-            ),
+            ],
           ),
-        );
-      }).toList(),
+          const Divider(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, MyPostScreen.name),
+                icon: const Icon(Icons.list_alt_rounded, size: 16),
+                label: Text(l10n.myPost, style: const TextStyle(fontSize: 12)),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                onPressed: () => Navigator.pushNamed(context, HomeRentPostScreen.name),
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: Text(l10n.homeRentPost, style: const TextStyle(fontSize: 12)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSampleMarketDemandsList(
+    BuildContext context,
+    bool isDark,
+    AppLocalizations l10n,
+  ) {
+    return Material(
+      color: isDark ? const Color(0xFF1E2625) : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => Navigator.pushNamed(context, TenantDemandShowScreen.name),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.purple.withValues(alpha: 0.12),
+                child: const Icon(Icons.person_search_rounded, color: Colors.purple),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.localeName == 'bn' ? 'ফ্যামিলি ফ্ল্যাট খুঁজছেন (৩ রুম)' : 'Looking for Family Flat (3 Rooms)',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "${l10n.localeName == 'bn' ? 'মিরপুর, ঢাকা' : 'Mirpur, Dhaka'} • ${l10n.budgetLabel}: 25,000 ৳",
+                      style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : _grey),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: _grey),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildHostingActivityTimeline(
-    UserModel user,
-    int totalListings,
-    int availableUnits,
-    bool isVerified,
-    bool isDark,
-    AppLocalizations l10n,
-  ) {
+    UserModel user, {
+    required int totalListings,
+    required int availableUnits,
+    required bool isVerified,
+    required bool isDark,
+    required AppLocalizations l10n,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -924,9 +736,7 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
             icon: Icons.holiday_village_rounded,
             iconColor: AppColors.themeColor,
             title: '${l10n.totalListings}: $totalListings ($availableUnits ${l10n.availableUnits})',
-            subtitle: totalListings > 0
-                ? (l10n.localeName == 'bn' ? 'আপনার বিজ্ঞাপিত বাসাগুলো সফলভাবে প্রচারিত হচ্ছে' : 'Your posted listings are active and visible')
-                : (l10n.localeName == 'bn' ? 'এখনো কোনো বাসাভাড়া বিজ্ঞাপন তৈরি করা হয়নি' : 'No listings created yet'),
+            subtitle: l10n.localeName == 'bn' ? 'আপনার বিজ্ঞাপিত বাসাগুলো সক্রিয় রয়েছে' : 'Your posted listings are active and visible',
             isLast: false,
           ),
           _buildTimelineTile(
@@ -986,46 +796,6 @@ class _HouseOwnerDashboardScreenState extends State<HouseOwnerDashboardScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  void _showDeleteConfirmDialog(
-    BuildContext context,
-    String propertyId,
-    PropertyFirestoreService propertyService,
-    AppLocalizations l10n,
-  ) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.deletePostConfirmTitle),
-        content: Text(l10n.deletePostConfirmSubtitle),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await propertyService.deleteProperty(propertyId);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(l10n.postDeletedSuccess),
-                    backgroundColor: Colors.redAccent,
-                  ),
-                );
-              }
-            },
-            child: Text(l10n.confirm),
-          ),
-        ],
-      ),
     );
   }
 
