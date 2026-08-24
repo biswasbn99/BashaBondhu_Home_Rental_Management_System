@@ -249,7 +249,8 @@ class AccountProfileHeader extends StatelessWidget {
     }
     if (src.startsWith('data:image') || src.startsWith('/9j/') || src.startsWith('iVBOR') || src.length > 255) {
       try {
-        final Uint8List bytes = _base64Cache.putIfAbsent(src, () {
+        final cacheKey = "${src.length}_${src.substring(0, src.length > 40 ? 40 : src.length)}";
+        final Uint8List bytes = _base64Cache.putIfAbsent(cacheKey, () {
           final base64Str = src.contains(',') ? src.split(',').last : src;
           return base64Decode(base64Str.trim());
         });
@@ -257,6 +258,8 @@ class AccountProfileHeader extends StatelessWidget {
           bytes,
           width: 66,
           height: 66,
+          cacheWidth: 150,
+          cacheHeight: 150,
           fit: BoxFit.cover,
           gaplessPlayback: true,
           errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
@@ -269,6 +272,8 @@ class AccountProfileHeader extends StatelessWidget {
         src,
         width: 66,
         height: 66,
+        cacheWidth: 150,
+        cacheHeight: 150,
         fit: BoxFit.cover,
         gaplessPlayback: true,
         errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),
@@ -280,6 +285,8 @@ class AccountProfileHeader extends StatelessWidget {
             File(src),
             width: 66,
             height: 66,
+            cacheWidth: 150,
+            cacheHeight: 150,
             fit: BoxFit.cover,
             gaplessPlayback: true,
             errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image_rounded, size: 24)),

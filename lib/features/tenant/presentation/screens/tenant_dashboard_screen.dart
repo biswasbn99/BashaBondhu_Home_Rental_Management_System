@@ -1,7 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,6 +10,7 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/data/s
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_network_image.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/data/models/tenant_demand_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/edit_demand_screen.dart';
@@ -33,7 +30,6 @@ class TenantDashboardScreen extends StatefulWidget {
 
 class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
   static const Color _grey = Color(0xFF7A8A88);
-  static final Map<String, Uint8List> _base64Cache = {};
 
   final TenantDemandFirestoreService _demandService = TenantDemandFirestoreService();
 
@@ -932,80 +928,14 @@ class _TenantDashboardScreenState extends State<TenantDashboardScreen> {
   }
 
   Widget _buildImage(String src, double width, double height) {
-    if (src.isEmpty) {
-      return Container(
-        width: width,
-        height: height,
-        color: Colors.grey[200],
-        child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
-      );
-    }
-    if (src.startsWith('data:image') || src.startsWith('/9j/') || src.startsWith('iVBOR') || src.length > 255) {
-      try {
-        final Uint8List bytes = _base64Cache.putIfAbsent(src, () {
-          final base64Str = src.contains(',') ? src.split(',').last : src;
-          return base64Decode(base64Str.trim());
-        });
-        return Image.memory(
-          bytes,
-          width: width,
-          height: height,
-          fit: BoxFit.cover,
-          gaplessPlayback: true,
-          errorBuilder: (context, error, stackTrace) => Container(
-            width: width,
-            height: height,
-            color: Colors.grey[200],
-            child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
-          ),
-        );
-      } catch (_) {
-        return Container(
-          width: width,
-          height: height,
-          color: Colors.grey[200],
-          child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
-        );
-      }
-    } else if (src.startsWith('http://') || src.startsWith('https://')) {
-      return Image.network(
-        src,
-        width: width,
-        height: height,
-        fit: BoxFit.cover,
-        gaplessPlayback: true,
-        errorBuilder: (context, error, stackTrace) => Container(
-          width: width,
-          height: height,
-          color: Colors.grey[200],
-          child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
-        ),
-      );
-    } else {
-      try {
-        if (src.length <= 255 && !kIsWeb && File(src).existsSync()) {
-          return Image.file(
-            File(src),
-            width: width,
-            height: height,
-            fit: BoxFit.cover,
-            gaplessPlayback: true,
-            errorBuilder: (context, error, stackTrace) => Container(
-              width: width,
-              height: height,
-              color: Colors.grey[200],
-              child: const Icon(Icons.broken_image_rounded, size: 24, color: Colors.grey),
-            ),
-          );
-        }
-      } catch (_) {}
-      return Container(
-        width: width,
-        height: height,
-        color: Colors.grey[200],
-        child: const Icon(Icons.home_rounded, color: Colors.grey, size: 24),
-      );
-    }
+    return AppImageWidget(
+      imageSource: src,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+      cacheWidth: (width * 2).toInt(),
+      cacheHeight: (height * 2).toInt(),
+    );
   }
 
   String _formatTimestamp(String isoDate) {
