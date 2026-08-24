@@ -11,7 +11,6 @@ import 'package:bashabondhu_home_rental_management_system/features/account/prese
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/widgets/account_stat_card.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/models/user_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
-import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/house_owner_dashboard_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/property_firestore_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
@@ -108,41 +107,8 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
             const SizedBox(height: 24),
 
             // House Owner Action Hub
-            DecoratedSectionHeader(title: l10n.myDashboard),
+            DecoratedSectionHeader(title: l10n.account),
             const SizedBox(height: 12),
-            AccountActionTile(
-              icon: Icons.dashboard_customize_rounded,
-              title: l10n.myDashboard,
-              subtitle: 'বিজ্ঞাপন অ্যানালিটিক্স, ভাড়াটিয়া চাহিদা রাডার ও কার্যক্রম ইতিহাস দেখুন',
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.themeColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.insights_rounded, size: 13, color: AppColors.themeColor),
-                    SizedBox(width: 4),
-                    Text(
-                      'Analytics',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.themeColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HouseOwnerDashboardScreen()),
-                );
-              },
-            ),
             AccountActionTile(
               icon: Icons.person_pin_circle_outlined,
               title: l10n.myProfile,

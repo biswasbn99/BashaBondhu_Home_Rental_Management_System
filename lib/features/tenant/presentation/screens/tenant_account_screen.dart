@@ -14,7 +14,6 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_dashboard_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/wishlist/data/providers/wishlist_provider.dart';
 
 class TenantAccountScreen extends StatelessWidget {
@@ -75,41 +74,8 @@ class TenantAccountScreen extends StatelessWidget {
         const SizedBox(height: 24),
 
         // Tenant Action Hub
-        DecoratedSectionHeader(title: l10n.myDashboard),
+        DecoratedSectionHeader(title: l10n.account),
         const SizedBox(height: 12),
-        AccountActionTile(
-          icon: Icons.dashboard_customize_rounded,
-          title: l10n.myDashboard,
-          subtitle: 'চাহিদা, পছন্দের তালিকা ও সকল অ্যাকাউন্টের হিস্টোরি ও কার্যক্রম দেখুন',
-          trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppColors.themeColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.insights_rounded, size: 13, color: AppColors.themeColor),
-                SizedBox(width: 4),
-                Text(
-                  'Overview',
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.themeColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const TenantDashboardScreen()),
-            );
-          },
-        ),
         AccountActionTile(
           icon: Icons.person_pin_circle_outlined,
           title: l10n.myProfile,

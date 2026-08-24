@@ -8,9 +8,7 @@ import 'package:bashabondhu_home_rental_management_system/features/tenant/data/m
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/show_demand_details_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/edit_rent_post_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/house_owner_dashboard_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/screens/my_post_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_dashboard_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/edit_demand_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/main_nav_holder_screen.dart';
@@ -59,10 +57,6 @@ class AppRoutes {
         widget = EditDemandScreen(demand: demand);
       case MyProfileScreen.name:
         widget = const MyProfileScreen();
-      case TenantDashboardScreen.name:
-        widget = const TenantDashboardScreen();
-      case HouseOwnerDashboardScreen.name:
-        widget = const HouseOwnerDashboardScreen();
       
       // Admin Route
       case AdminMainScreen.name:
