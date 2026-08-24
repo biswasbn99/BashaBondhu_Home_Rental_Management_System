@@ -26,51 +26,26 @@ class AppRoutes {
       return MaterialPageRoute(builder: (_) => const AdminMainScreen());
     }
 
-    late Widget widget;
+    final Widget widget = switch (settings.name) {
+      SplashScreen.name => const SplashScreen(),
+      SignUpScreen.name => const SignUpScreen(),
+      SignInScreen.name => const SignInScreen(),
+      MainNavHolderScreen.name => const MainNavHolderScreen(),
+      HomeRentPostScreen.name => const HomeRentPostScreen(),
+      PropertyDetailsScreen.name => PropertyDetailsScreen(property: settings.arguments as PropertyModel),
+      TenantDemandShowScreen.name => const TenantDemandShowScreen(),
+      ShowDemandDetailsScreen.name => ShowDemandDetailsScreen(demand: settings.arguments as TenantDemandModel),
+      MyPostScreen.name => const MyPostScreen(),
+      EditRentPostScreen.name => EditRentPostScreen(property: settings.arguments as PropertyModel),
+      MyDemandScreen.name => const MyDemandScreen(),
+      EditDemandScreen.name => EditDemandScreen(demand: settings.arguments as TenantDemandModel),
+      MyProfileScreen.name => const MyProfileScreen(),
+      HouseOwnerDashboardScreen.name => const HouseOwnerDashboardScreen(),
+      TenantDashboardScreen.name => const TenantDashboardScreen(),
+      AdminMainScreen.name => const AdminMainScreen(),
+      _ => const Scaffold(body: Center(child: Text('Page not found'))),
+    };
 
-    switch (settings.name) {
-      case SplashScreen.name:
-        widget = const SplashScreen();
-      case SignUpScreen.name:
-        widget = const SignUpScreen();
-      case SignInScreen.name:
-        widget = const SignInScreen();
-      case MainNavHolderScreen.name:
-        widget = const MainNavHolderScreen();
-      case HomeRentPostScreen.name:
-        widget = const HomeRentPostScreen();
-      case PropertyDetailsScreen.name:
-        final property = settings.arguments as PropertyModel;
-        widget = PropertyDetailsScreen(property: property);
-      case TenantDemandShowScreen.name:
-        widget = const TenantDemandShowScreen();
-      case ShowDemandDetailsScreen.name:
-        final demand = settings.arguments as TenantDemandModel;
-        widget = ShowDemandDetailsScreen(demand: demand);
-      case MyPostScreen.name:
-        widget = const MyPostScreen();
-      case EditRentPostScreen.name:
-        final property = settings.arguments as PropertyModel;
-        widget = EditRentPostScreen(property: property);
-      case MyDemandScreen.name:
-        widget = const MyDemandScreen();
-      case EditDemandScreen.name:
-        final demand = settings.arguments as TenantDemandModel;
-        widget = EditDemandScreen(demand: demand);
-      case MyProfileScreen.name:
-        widget = const MyProfileScreen();
-      case HouseOwnerDashboardScreen.name:
-        widget = const HouseOwnerDashboardScreen();
-      case TenantDashboardScreen.name:
-        widget = const TenantDashboardScreen();
-      
-      // Admin Route
-      case AdminMainScreen.name:
-        widget = const AdminMainScreen();
-
-      default:
-        widget = const Scaffold(body: Center(child: Text('Page not found')));
-    }
     return MaterialPageRoute(builder: (_) => widget);
   }
 }

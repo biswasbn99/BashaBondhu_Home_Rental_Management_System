@@ -465,7 +465,7 @@ class HouseOwnerDashboardScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        DecoratedSectionHeader(title: title),
+        Expanded(child: DecoratedSectionHeader(title: title)),
         TextButton(
           onPressed: onAction,
           style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),

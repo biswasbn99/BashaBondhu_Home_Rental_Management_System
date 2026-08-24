@@ -17,8 +17,10 @@ class DecoratedSectionHeader extends StatelessWidget {
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 4,
@@ -29,9 +31,12 @@ class DecoratedSectionHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Expanded(
+            Flexible(
+              fit: FlexFit.loose,
               child: Text(
                 title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onSurface,
