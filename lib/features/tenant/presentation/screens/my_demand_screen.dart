@@ -412,7 +412,12 @@ class _MyDemandCard extends StatelessWidget {
           children: [
             const Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
             const SizedBox(width: 10),
-            Text(l10n.deleteDemandConfirmTitle),
+            Expanded(
+              child: Text(
+                l10n.deleteDemandConfirmTitle,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
         content: Text(l10n.deleteDemandConfirmSubtitle),

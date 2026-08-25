@@ -456,10 +456,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 // --- Save Changes Button ---
                 FilledButton(
                   onPressed: _isSaving ? null : _saveProfile,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
                   child: _isSaving
                       ? const SizedBox(
                           height: 20,

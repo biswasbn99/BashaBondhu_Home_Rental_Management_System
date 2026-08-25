@@ -40,7 +40,12 @@ class AccountLogoutButton extends StatelessWidget {
           children: [
             const Icon(Icons.logout_rounded, color: Colors.redAccent),
             const SizedBox(width: 10),
-            Text(l10n.logoutConfirmTitle),
+            Expanded(
+              child: Text(
+                l10n.logoutConfirmTitle,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
         content: Text(l10n.logoutConfirmSubtitle),

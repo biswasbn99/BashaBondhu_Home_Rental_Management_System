@@ -477,7 +477,7 @@ class TenantDashboardScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: DecoratedSectionHeader(title: title)),
+        DecoratedSectionHeader(title: title),
         TextButton(
           onPressed: onAction,
           style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),

@@ -67,7 +67,7 @@ class _FindHomeView extends StatelessWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (provider.errorMessage != null) ...[
                 _ErrorBanner(message: provider.errorMessage!),
@@ -247,21 +247,24 @@ class _FindHomeView extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Find Home Button
-              FilledButton(
-                onPressed: () {
-                  if (provider.isSearchValid) {
-                    _search(context, provider);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('অনুগ্রহ করে সকল আবশ্যকীয় তথ্য (বিভাগ, জেলা, এলাকা, সাব-এলাকা, মাস, বাসার ধরন, বাজেট এবং ভাড়াটিয়ার ধরন) নির্বাচন করুন।'),
-                        backgroundColor: Colors.redAccent,
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  }
-                },
-                child: Text(l10n.findHomeButton),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () {
+                    if (provider.isSearchValid) {
+                      _search(context, provider);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('অনুগ্রহ করে সকল আবশ্যকীয় তথ্য (বিভাগ, জেলা, এলাকা, সাব-এলাকা, মাস, বাসার ধরন, বাজেট এবং ভাড়াটিয়ার ধরন) নির্বাচন করুন।'),
+                          backgroundColor: Colors.redAccent,
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(l10n.findHomeButton),
+                ),
               ),
             ],
           ),

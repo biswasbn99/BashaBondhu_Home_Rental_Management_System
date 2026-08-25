@@ -5,7 +5,7 @@ import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/app/validators.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
-import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_in_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/widgets/auth_prompt_dialog.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/bathroom_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/belcony_dropdown_button.dart';
@@ -389,16 +389,9 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
     final l10n = context.localizations;
 
     if (userProvider.isGuest || userProvider.user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('চাহিদা পোস্ট করতে অনুগ্রহ করে প্রথমে সাইন ইন করুন।'),
-          backgroundColor: Colors.orange,
-          action: SnackBarAction(
-            label: l10n.signIn,
-            textColor: Colors.white,
-            onPressed: () => Navigator.pushNamed(context, SignInScreen.name),
-          ),
-        ),
+      AuthPromptDialog.show(
+        context,
+        requiredRole: 'Tenant',
       );
       return;
     }

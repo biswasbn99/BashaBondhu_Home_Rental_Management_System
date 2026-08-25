@@ -148,7 +148,12 @@ class _MyPostCard extends StatelessWidget {
           children: [
             const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
             const SizedBox(width: 8),
-            Text(l10n.deletePostConfirmTitle),
+            Expanded(
+              child: Text(
+                l10n.deletePostConfirmTitle,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
         content: Text(l10n.deletePostConfirmSubtitle),

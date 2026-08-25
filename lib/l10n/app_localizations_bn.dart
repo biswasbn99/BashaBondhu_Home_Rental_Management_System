@@ -722,4 +722,40 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get postDemandPromptDashboard =>
       'আপনার ভাড়ার প্রয়োজনীয়তা জানিয়ে চাহিদা পোস্ট করুন, বাড়িওয়ালারা সরাসরি যোগাযোগ করবে।';
+
+  @override
+  String get signInRequired => 'সাইন ইন আবশ্যক';
+
+  @override
+  String get signInAsTenantPrompt =>
+      'ভাড়াটিয়া হিসেবে চাহিদা পোস্ট করতে অথবা পছন্দের তালিকা ব্যবহার করতে অনুগ্রহ করে ভাড়াটিয়া হিসেবে সাইন ইন বা সাইন আপ করুন।';
+
+  @override
+  String get signInAsHouseOwnerPrompt =>
+      'বাসাভাড়ার বিজ্ঞাপন পোস্ট করতে অনুগ্রহ করে বাড়িওয়ালা (House Owner) হিসেবে সাইন ইন বা সাইন আপ করুন।';
+
+  @override
+  String get signInAsTenant => 'ভাড়াটিয়া হিসেবে সাইন ইন';
+
+  @override
+  String get signUpAsTenant => 'ভাড়াটিয়া হিসেবে সাইন আপ';
+
+  @override
+  String get signInAsHouseOwner => 'বাড়িওয়ালা হিসেবে সাইন ইন';
+
+  @override
+  String get signUpAsHouseOwner => 'বাড়িওয়ালা হিসেবে সাইন আপ';
+
+  @override
+  String get lockedRoleLabel => 'অ্যাকাউন্টের ধরন (নির্দিষ্ট)';
+
+  @override
+  String get roleLockedTooltip => 'এই কার্যক্রমের জন্য ভূমিকা নির্দিষ্ট';
+
+  @override
+  String get wishlistGuestPrompt => 'পছন্দের তালিকা দেখতে সাইন ইন করুন';
+
+  @override
+  String get wishlistGuestSubtitle =>
+      'আপনার পছন্দের বাসাগুলো সংরক্ষণ ও দেখতে ভাড়াটিয়া হিসেবে সাইন ইন করুন।';
 }

@@ -28,13 +28,17 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: titleSpacing,
       actions: actions,
       centerTitle: false,
-      title: title ?? const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AppLogo(height: 32, width: 32),
-          SizedBox(width: 8),
-          BashaBondhuTitle(fontSize: 22),
-        ],
+      title: title ?? const FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppLogo(height: 28, width: 28),
+            SizedBox(width: 6),
+            BashaBondhuTitle(fontSize: 20),
+          ],
+        ),
       ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),

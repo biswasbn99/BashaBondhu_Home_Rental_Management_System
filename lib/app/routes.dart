@@ -26,10 +26,20 @@ class AppRoutes {
       return MaterialPageRoute(builder: (_) => const AdminMainScreen());
     }
 
+    final Map<String, dynamic>? args = settings.arguments is Map<String, dynamic>
+        ? settings.arguments as Map<String, dynamic>
+        : null;
+
     final Widget widget = switch (settings.name) {
       SplashScreen.name => const SplashScreen(),
-      SignUpScreen.name => const SignUpScreen(),
-      SignInScreen.name => const SignInScreen(),
+      SignUpScreen.name => SignUpScreen(
+          preSelectedUserType: args?['preSelectedUserType'] as String?,
+          lockUserType: args?['lockUserType'] as bool? ?? false,
+        ),
+      SignInScreen.name => SignInScreen(
+          preSelectedUserType: args?['preSelectedUserType'] as String?,
+          lockUserType: args?['lockUserType'] as bool? ?? false,
+        ),
       MainNavHolderScreen.name => const MainNavHolderScreen(),
       HomeRentPostScreen.name => const HomeRentPostScreen(),
       PropertyDetailsScreen.name => PropertyDetailsScreen(property: settings.arguments as PropertyModel),

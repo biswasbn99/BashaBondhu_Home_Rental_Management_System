@@ -5,6 +5,7 @@ import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../../app/validators.dart';
 import '../../../auth/data/providers/user_provider.dart';
+import '../../../auth/presentation/widgets/auth_prompt_dialog.dart';
 import '../../../shared/presentation/providers/main_nav_holder_provider.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
 import '../../../shared/presentation/widgets/belcony_dropdown_button.dart';
@@ -81,7 +82,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // --- Validation Warning Banner if submitted with missing info ---
               if (provider.showValidationErrors && !provider.isFormValid) ...[
@@ -435,44 +436,55 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
               const SizedBox(height: 24),
 
               // --- Post Now Button ---
-              FilledButton(
-                onPressed: provider.isSubmitting
-                    ? null
-                    : () async {
-                        final success = await provider.publishPost(userProvider.user);
-                        if (success) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('🎉 আপনার বাসাভাড়া পোস্ট সফলভাবে প্রকাশিত হয়েছে!'),
-                                backgroundColor: Colors.green,
-                                duration: Duration(seconds: 3),
-                              ),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: provider.isSubmitting
+                      ? null
+                      : () async {
+                          if (userProvider.isGuest || userProvider.user == null) {
+                            AuthPromptDialog.show(
+                              context,
+                              requiredRole: 'House Owner',
                             );
+                            return;
+                          }
 
-                            // If House Owner, switch to MyPost tab (index 2)
-                            if (userProvider.user?.userType == 'House Owner') {
-                              context.read<MainNavHolderProvider>().changeIndex(2);
+                          final success = await provider.publishPost(userProvider.user);
+                          if (success) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('🎉 আপনার বাসাভাড়া পোস্ট সফলভাবে প্রকাশিত হয়েছে!'),
+                                  backgroundColor: Colors.green,
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+
+                              // If House Owner, switch to MyPost tab (index 2)
+                              if (userProvider.user?.userType == 'House Owner') {
+                                context.read<MainNavHolderProvider>().changeIndex(2);
+                              }
+                            }
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('অনুগ্রহ করে থাম্বনেইল ছবি ও প্রয়োজনীয় সব তথ্য সঠিকভাবে পূরণ করুন।'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
                             }
                           }
-                        } else {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('অনুগ্রহ করে থাম্বনেইল ছবি ও প্রয়োজনীয় সব তথ্য সঠিকভাবে পূরণ করুন।'),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                          }
-                        }
-                      },
-                child: provider.isSubmitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : Text(l10n.postNow),
+                        },
+                  child: provider.isSubmitting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text(l10n.postNow),
+                ),
               ),
               const SizedBox(height: 32),
             ],

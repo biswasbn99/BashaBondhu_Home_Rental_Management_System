@@ -4,12 +4,15 @@ import 'package:provider/provider.dart';
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../auth/data/providers/user_provider.dart';
+import '../../../auth/presentation/screens/sign_up_screen.dart';
+import '../../../auth/presentation/widgets/auth_prompt_dialog.dart';
 import '../../../home/data/models/property_model.dart';
 import '../../../home/presentation/screens/property_details_screen.dart';
 import '../../../shared/presentation/providers/main_nav_holder_provider.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
 import '../../../shared/presentation/widgets/app_network_image.dart';
 import '../../../shared/presentation/widgets/post_icon.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/providers/wishlist_provider.dart';
 
 class WishlistScreen extends StatefulWidget {
@@ -61,8 +64,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
               ]
             : null,
       ),
-      body: savedPosts.isEmpty
-          ? _buildEmptyState(context, l10n)
+      body: isGuest
+          ? _buildGuestState(context, l10n)
+          : savedPosts.isEmpty
+              ? _buildEmptyState(context, l10n)
           : ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               itemCount: savedPosts.length,
@@ -86,6 +91,93 @@ class _WishlistScreenState extends State<WishlistScreen> {
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildGuestState(BuildContext context, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xFF028090).withValues(alpha: isDark ? 0.2 : 0.1),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFF028090).withValues(alpha: 0.3), width: 2),
+              ),
+              child: const Icon(
+                Icons.favorite_rounded,
+                size: 64,
+                color: Color(0xFF028090),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              l10n.wishlistGuestPrompt,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: 19,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.wishlistGuestSubtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 13.5,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF028090),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 13),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.login_rounded, size: 18),
+              label: Text(
+                l10n.signInAsTenant,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              onPressed: () {
+                AuthPromptDialog.show(context, requiredRole: 'Tenant');
+              },
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                side: BorderSide(color: const Color(0xFF028090).withValues(alpha: 0.5)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.person_add_outlined, size: 18, color: Color(0xFF028090)),
+              label: Text(
+                l10n.signUpAsTenant,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF028090)),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  SignUpScreen.name,
+                  arguments: {
+                    'preSelectedUserType': 'Tenant',
+                    'lockUserType': true,
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 

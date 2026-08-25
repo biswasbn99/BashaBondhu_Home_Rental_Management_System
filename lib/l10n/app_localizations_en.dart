@@ -723,4 +723,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get postDemandPromptDashboard =>
       'Post your rental demand to let landlords contact you directly.';
+
+  @override
+  String get signInRequired => 'Sign In Required';
+
+  @override
+  String get signInAsTenantPrompt =>
+      'To post a rental demand or save wishlist properties, please sign in or register as a Tenant.';
+
+  @override
+  String get signInAsHouseOwnerPrompt =>
+      'To publish a home rental listing, please sign in or register as a House Owner.';
+
+  @override
+  String get signInAsTenant => 'Sign In as Tenant';
+
+  @override
+  String get signUpAsTenant => 'Sign Up as Tenant';
+
+  @override
+  String get signInAsHouseOwner => 'Sign In as House Owner';
+
+  @override
+  String get signUpAsHouseOwner => 'Sign Up as House Owner';
+
+  @override
+  String get lockedRoleLabel => 'Account Type (Locked)';
+
+  @override
+  String get roleLockedTooltip => 'Role is fixed for this action';
+
+  @override
+  String get wishlistGuestPrompt => 'Sign In to Access Wishlist';
+
+  @override
+  String get wishlistGuestSubtitle =>
+      'Sign in as a Tenant to save and manage your favorite rental properties.';
 }

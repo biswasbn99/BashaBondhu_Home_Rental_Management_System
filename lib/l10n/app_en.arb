@@ -229,5 +229,16 @@
   "noDemandsFound": "No active tenant demands found at the moment.",
   "noSavedHousesPrompt": "No properties saved to favorites yet. Explore homes on the search tab.",
   "postListingPrompt": "Create rental listings to connect directly with tenants looking for homes.",
-  "postDemandPromptDashboard": "Post your rental demand to let landlords contact you directly."
+  "postDemandPromptDashboard": "Post your rental demand to let landlords contact you directly.",
+  "signInRequired": "Sign In Required",
+  "signInAsTenantPrompt": "To post a rental demand or save wishlist properties, please sign in or register as a Tenant.",
+  "signInAsHouseOwnerPrompt": "To publish a home rental listing, please sign in or register as a House Owner.",
+  "signInAsTenant": "Sign In as Tenant",
+  "signUpAsTenant": "Sign Up as Tenant",
+  "signInAsHouseOwner": "Sign In as House Owner",
+  "signUpAsHouseOwner": "Sign Up as House Owner",
+  "lockedRoleLabel": "Account Type (Locked)",
+  "roleLockedTooltip": "Role is fixed for this action",
+  "wishlistGuestPrompt": "Sign In to Access Wishlist",
+  "wishlistGuestSubtitle": "Sign in as a Tenant to save and manage your favorite rental properties."
 }

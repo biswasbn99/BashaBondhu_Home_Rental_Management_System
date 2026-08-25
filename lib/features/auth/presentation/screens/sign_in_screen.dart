@@ -1,18 +1,24 @@
-
-import 'package:bashabondhu_home_rental_management_system/features/auth/data/services/auth_service.dart';
-import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_up_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../../app/validators.dart';
 import '../widgets/app_logo.dart';
-
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/services/auth_service.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_up_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+  const SignInScreen({
+    super.key,
+    this.preSelectedUserType,
+    this.lockUserType = false,
+  });
+
+  final String? preSelectedUserType;
+  final bool lockUserType;
 
   static const String name = '/sign-in';
 
@@ -30,10 +36,20 @@ class _SignInScreenState extends State<SignInScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.preSelectedUserType != null && widget.preSelectedUserType!.isNotEmpty) {
+      _selectedUserType = widget.preSelectedUserType;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final l10n = context.localizations;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign In'),
+        title: Text(l10n.signIn),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -41,51 +57,103 @@ class _SignInScreenState extends State<SignInScreen> {
             padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
-              autovalidateMode: .onUserInteraction,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
                 children: [
                   const SizedBox(height: 16),
-                  AppLogo(width: 100, height: 100),
+                  const AppLogo(width: 100, height: 100),
                   const SizedBox(height: 16),
-                  Text('Sign In', style: context.textTheme.titleLarge),
+                  Text(l10n.signIn, style: context.textTheme.titleLarge),
                   const SizedBox(height: 4),
                   Text(
-                    context.localizations.signInSubTitle,
+                    l10n.signInSubTitle,
                     style: context.textTheme.labelLarge,
                   ),
 
                   const SizedBox(height: 24),
-                  DropdownButtonFormField<String>(
-                    initialValue: _selectedUserType,
-                    decoration: const InputDecoration(
-                      hintText: 'Select User Type',
+
+                  // Role Selection / Locked Badge
+                  if (widget.lockUserType && _selectedUserType != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.themeColor.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.themeColor.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _selectedUserType == 'House Owner'
+                                ? Icons.home_work_rounded
+                                : Icons.person_pin_circle_rounded,
+                            color: AppColors.themeColor,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.lockedRoleLabel,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _selectedUserType == 'House Owner' ? 'House Owner' : 'Tenant',
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Tooltip(
+                            message: l10n.roleLockedTooltip,
+                            child: const Icon(Icons.lock_rounded, size: 18, color: AppColors.themeColor),
+                          ),
+                        ],
+                      ),
                     ),
-                    items: ['House Owner', 'Tenant']
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedUserType = value;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a user type';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 8),
+                  ] else ...[
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedUserType,
+                      decoration: const InputDecoration(
+                        hintText: 'Select User Type',
+                      ),
+                      items: ['House Owner', 'Tenant']
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedUserType = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select a user type';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _emailTEController,
                     textInputAction: TextInputAction.next,
-                    keyboardType: .emailAddress,
-                    decoration: InputDecoration(hintText: 'Email'),
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(hintText: 'Email'),
                     validator: Validators.validateEmail,
                   ),
                 
-                  const SizedBox(height: 8),
-                   TextFormField(
+                  const SizedBox(height: 12),
+                  TextFormField(
                     controller: _passwordTEController,
                     textInputAction: TextInputAction.done,
                     obscureText: _isPasswordObscured,
@@ -107,7 +175,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     validator: Validators.validatePassword,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
@@ -121,7 +189,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text('Sign In'),
+                          : Text(l10n.signIn),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -129,12 +197,12 @@ class _SignInScreenState extends State<SignInScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        context.localizations.doNotHaveAnAccount,
+                        l10n.doNotHaveAnAccount,
                         style: context.textTheme.labelLarge,
                       ),
                       TextButton(
                         onPressed: _onTapSignUpNavigation,
-                        child: Text(context.localizations.signUp),
+                        child: Text(l10n.signUp),
                       ),
                     ],
                   )
@@ -194,10 +262,15 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   void _onTapSignUpNavigation() {
-    Navigator.pushReplacementNamed(context, SignUpScreen.name);
+    Navigator.pushReplacementNamed(
+      context,
+      SignUpScreen.name,
+      arguments: {
+        'preSelectedUserType': _selectedUserType ?? widget.preSelectedUserType,
+        'lockUserType': widget.lockUserType,
+      },
+    );
   }
-
- 
 
   @override
   void dispose() {

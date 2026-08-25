@@ -1483,6 +1483,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Post your rental demand to let landlords contact you directly.'**
   String get postDemandPromptDashboard;
+
+  /// No description provided for @signInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In Required'**
+  String get signInRequired;
+
+  /// No description provided for @signInAsTenantPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'To post a rental demand or save wishlist properties, please sign in or register as a Tenant.'**
+  String get signInAsTenantPrompt;
+
+  /// No description provided for @signInAsHouseOwnerPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'To publish a home rental listing, please sign in or register as a House Owner.'**
+  String get signInAsHouseOwnerPrompt;
+
+  /// No description provided for @signInAsTenant.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In as Tenant'**
+  String get signInAsTenant;
+
+  /// No description provided for @signUpAsTenant.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up as Tenant'**
+  String get signUpAsTenant;
+
+  /// No description provided for @signInAsHouseOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In as House Owner'**
+  String get signInAsHouseOwner;
+
+  /// No description provided for @signUpAsHouseOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up as House Owner'**
+  String get signUpAsHouseOwner;
+
+  /// No description provided for @lockedRoleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Type (Locked)'**
+  String get lockedRoleLabel;
+
+  /// No description provided for @roleLockedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Role is fixed for this action'**
+  String get roleLockedTooltip;
+
+  /// No description provided for @wishlistGuestPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In to Access Wishlist'**
+  String get wishlistGuestPrompt;
+
+  /// No description provided for @wishlistGuestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in as a Tenant to save and manage your favorite rental properties.'**
+  String get wishlistGuestSubtitle;
 }
 
 class _AppLocalizationsDelegate

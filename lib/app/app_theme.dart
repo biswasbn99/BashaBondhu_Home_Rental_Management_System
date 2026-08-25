@@ -18,6 +18,8 @@ class AppTheme {
     textTheme: _textTheme,
     inputDecorationTheme: _inputDecorationTheme,
     filledButtonTheme: _filledButtonThemeData,
+    elevatedButtonTheme: _elevatedButtonThemeData,
+    outlinedButtonTheme: _outlinedButtonThemeData,
   );
 
   static ThemeData get darkTheme => ThemeData(
@@ -35,6 +37,8 @@ class AppTheme {
     textTheme: _textTheme,
     inputDecorationTheme: _inputDecorationTheme,
     filledButtonTheme: _filledButtonThemeData,
+    elevatedButtonTheme: _elevatedButtonThemeData,
+    outlinedButtonTheme: _outlinedButtonThemeData,
   );
 
   static final ProgressIndicatorThemeData _progressIndicatorThemeData =
@@ -69,6 +73,39 @@ class AppTheme {
     style: FilledButton.styleFrom(
       foregroundColor: Colors.white,
       backgroundColor: AppColors.themeColor,
+      minimumSize: const Size.fromHeight(50),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      textStyle: const TextStyle(
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+        fontSize: 15,
+      ),
+    ),
+  );
+
+  static final ElevatedButtonThemeData _elevatedButtonThemeData = ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      foregroundColor: Colors.white,
+      backgroundColor: AppColors.themeColor,
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      textStyle: const TextStyle(
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.5,
+        fontSize: 15,
+      ),
+    ),
+  );
+
+  static final OutlinedButtonThemeData _outlinedButtonThemeData = OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(
+      foregroundColor: AppColors.themeColor,
+      side: const BorderSide(color: AppColors.themeColor, width: 1.5),
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
