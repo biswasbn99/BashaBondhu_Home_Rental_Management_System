@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
+import '../../../../app/extensions/utility_extension.dart';
 import '../../../home/data/models/property_model.dart';
 import '../../data/providers/admin_provider.dart';
 import '../../data/services/admin_firestore_service.dart';
@@ -340,6 +341,7 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
   }
 
   void _showPropertyDetailsModal(BuildContext context, PropertyModel property, bool isBn) {
+    final l10n = context.localizations;
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
@@ -401,7 +403,7 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                 _buildInfoRow(isBn ? 'যোগাযোগের নাম' : 'Contact Name', property.contactName),
                 _buildInfoRow(isBn ? 'মোবাইল নম্বর' : 'Phone', property.userMobile.isNotEmpty ? property.userMobile : 'N/A'),
                 _buildInfoRow(isBn ? 'লোকেশন' : 'Location', "${property.area.name}, ${property.district.name}, ${property.division.name}"),
-                _buildInfoRow(isBn ? 'রুম / সিট' : 'Room/Seat', property.roomOrSeat),
+                _buildInfoRow(isBn ? 'রুম / সিট' : 'Room/Seat', property.roomOrSeat.getLocalizedRoomOrSeat(l10n)),
                 _buildInfoRow(isBn ? 'ফ্লোর' : 'Floor Number', property.floorNumber?.toString() ?? 'N/A'),
                 _buildInfoRow(isBn ? 'বাথরুম' : 'Bathrooms', property.commonBathrooms?.toString() ?? 'N/A'),
                 _buildInfoRow(isBn ? 'বিদ্যুৎ বিল' : 'Electricity', property.electricityBillType ?? 'N/A'),

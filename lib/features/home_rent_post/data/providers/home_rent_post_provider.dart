@@ -394,6 +394,21 @@ class HomeRentPostProvider extends ChangeNotifier {
   }
 
   /// Publish post to Cloud Firestore
+  double? latitude;
+  double? longitude;
+
+  void setLocation(double lat, double lng) {
+    latitude = lat;
+    longitude = lng;
+    _safeNotifyListeners();
+  }
+
+  void clearLocation() {
+    latitude = null;
+    longitude = null;
+    _safeNotifyListeners();
+  }
+
   Future<bool> publishPost(UserModel? currentUser) async {
     triggerValidation();
 
@@ -437,6 +452,8 @@ class HomeRentPostProvider extends ChangeNotifier {
         hasLift: hasLift,
         hasParking: hasParking,
         marketDistance: marketDistance,
+        latitude: latitude,
+        longitude: longitude,
         postDate: DateTime.now(),
         isAvailable: true,
       );
@@ -488,6 +505,8 @@ class HomeRentPostProvider extends ChangeNotifier {
     hasLift = null;
     hasParking = null;
     marketDistance = null;
+    latitude = null;
+    longitude = null;
     showValidationErrors = false;
     _safeNotifyListeners();
   }

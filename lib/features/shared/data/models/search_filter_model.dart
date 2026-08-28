@@ -38,7 +38,7 @@ extension TenantTypeLabel on TenantType {
   }
 }
 
-enum SortBy { lowestRent, highestRent, newest, oldest }
+enum SortBy { lowestRent, highestRent, newest, oldest, nearest }
 
 extension SortByLabel on SortBy {
   String getLocalizedLabel(AppLocalizations l10n) {
@@ -51,17 +51,19 @@ extension SortByLabel on SortBy {
         return l10n.newest;
       case SortBy.oldest:
         return l10n.oldest;
+      case SortBy.nearest:
+        return 'Nearest First';
     }
   }
 }
 
 class SearchFilterModel {
   const SearchFilterModel({
-    required this.month,
-    required this.houseType,
-    required this.division,
-    required this.district,
-    required this.upazila,
+    this.month,
+    this.houseType,
+    this.division,
+    this.district,
+    this.upazila,
     this.area,
     this.budgetRange,
     this.tenantType,
@@ -72,13 +74,18 @@ class SearchFilterModel {
     this.hasLift,
     this.hasParking,
     this.sortBy = SortBy.newest,
+    this.isRadiusSearch = false,
+    this.searchLatitude,
+    this.searchLongitude,
+    this.searchRadiusKm = 5.0,
+    this.searchCenterAddress,
   });
 
-  final String month;
-  final HouseType houseType;
-  final DivisionModel division;
-  final DistrictModel district;
-  final UpazilaModel upazila;
+  final String? month;
+  final HouseType? houseType;
+  final DivisionModel? division;
+  final DistrictModel? district;
+  final UpazilaModel? upazila;
   final UnionModel? area;
   final String? budgetRange;
   final TenantType? tenantType;
@@ -90,13 +97,66 @@ class SearchFilterModel {
   final bool? hasParking;
   final SortBy sortBy;
 
+  // Radius Search Parameters
+  final bool isRadiusSearch;
+  final double? searchLatitude;
+  final double? searchLongitude;
+  final double? searchRadiusKm;
+  final String? searchCenterAddress;
+
+  SearchFilterModel copyWith({
+    String? month,
+    HouseType? houseType,
+    DivisionModel? division,
+    DistrictModel? district,
+    UpazilaModel? upazila,
+    UnionModel? area,
+    String? budgetRange,
+    TenantType? tenantType,
+    String? roomOrSeat,
+    int? bathrooms,
+    int? balconies,
+    int? floorNumber,
+    bool? hasLift,
+    bool? hasParking,
+    SortBy? sortBy,
+    bool? isRadiusSearch,
+    double? searchLatitude,
+    double? searchLongitude,
+    double? searchRadiusKm,
+    String? searchCenterAddress,
+  }) {
+    return SearchFilterModel(
+      month: month ?? this.month,
+      houseType: houseType ?? this.houseType,
+      division: division ?? this.division,
+      district: district ?? this.district,
+      upazila: upazila ?? this.upazila,
+      area: area ?? this.area,
+      budgetRange: budgetRange ?? this.budgetRange,
+      tenantType: tenantType ?? this.tenantType,
+      roomOrSeat: roomOrSeat ?? this.roomOrSeat,
+      bathrooms: bathrooms ?? this.bathrooms,
+      balconies: balconies ?? this.balconies,
+      floorNumber: floorNumber ?? this.floorNumber,
+      hasLift: hasLift ?? this.hasLift,
+      hasParking: hasParking ?? this.hasParking,
+      sortBy: sortBy ?? this.sortBy,
+      isRadiusSearch: isRadiusSearch ?? this.isRadiusSearch,
+      searchLatitude: searchLatitude ?? this.searchLatitude,
+      searchLongitude: searchLongitude ?? this.searchLongitude,
+      searchRadiusKm: searchRadiusKm ?? this.searchRadiusKm,
+      searchCenterAddress: searchCenterAddress ?? this.searchCenterAddress,
+    );
+  }
+
   Map<String, dynamic> toQueryParams() {
     return {
-      'month': month,
-      'house_type': houseType.name,
-      'division_id': division.id,
-      'district_id': district.id,
-      'upazila_id': upazila.id,
+      if (month != null) 'month': month,
+      if (houseType != null) 'house_type': houseType!.name,
+      if (division != null) 'division_id': division!.id,
+      if (district != null) 'district_id': district!.id,
+      if (upazila != null) 'upazila_id': upazila!.id,
       if (area != null) 'area_id': area!.id,
       if (budgetRange != null) 'budget': budgetRange,
       if (tenantType != null) 'tenant_type': tenantType!.name,
@@ -107,6 +167,11 @@ class SearchFilterModel {
       if (hasLift != null) 'lift': hasLift,
       if (hasParking != null) 'parking': hasParking,
       'sort_by': sortBy.name,
+      'is_radius_search': isRadiusSearch,
+      if (searchLatitude != null) 'latitude': searchLatitude,
+      if (searchLongitude != null) 'longitude': searchLongitude,
+      if (searchRadiusKm != null) 'radius_km': searchRadiusKm,
+      if (searchCenterAddress != null) 'center_address': searchCenterAddress,
     };
   }
 }

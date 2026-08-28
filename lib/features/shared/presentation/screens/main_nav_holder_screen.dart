@@ -40,7 +40,7 @@ class MainNavHolderScreen extends StatelessWidget {
             const FindHomeScreen(),
             const DemandHomeScreen(),
             const WishlistScreen(),
-            AccountScreen(email: userProvider.user?.email ?? 'guest@example.com'),
+            AccountScreen(email: userProvider.user?.email ?? ''),
           ];
 
     // Role-based Navigation Items
@@ -48,7 +48,7 @@ class MainNavHolderScreen extends StatelessWidget {
         ? [
             BottomNavigationBarItem(icon: const Icon(Icons.domain_add), label: l10n.demand),
             BottomNavigationBarItem(icon: const Icon(Icons.add_home_work), label: l10n.postFree),
-            const BottomNavigationBarItem(icon: Icon(Icons.real_estate_agent_rounded), label: 'MyPost'),
+            BottomNavigationBarItem(icon: const Icon(Icons.real_estate_agent_rounded), label: l10n.myPost),
             BottomNavigationBarItem(icon: const Icon(Icons.person), label: l10n.account),
           ]
         : [

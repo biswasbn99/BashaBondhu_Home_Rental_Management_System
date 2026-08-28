@@ -49,9 +49,9 @@ class AuthPromptDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       elevation: 8,
       backgroundColor: theme.colorScheme.surface,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -59,8 +59,8 @@ class AuthPromptDialog extends StatelessWidget {
             // Role Icon with soft halo
             Center(
               child: Container(
-                width: 72,
-                height: 72,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   color: roleColor.withValues(alpha: isDark ? 0.25 : 0.12),
                   shape: BoxShape.circle,
@@ -70,16 +70,16 @@ class AuthPromptDialog extends StatelessWidget {
                   ),
                 ),
                 child: Center(
-                  child: Icon(roleIcon, size: 36, color: roleColor),
+                  child: Icon(roleIcon, size: 30, color: roleColor),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             // Role Badge
             Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
                   color: roleColor.withValues(alpha: isDark ? 0.2 : 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -92,17 +92,17 @@ class AuthPromptDialog extends StatelessWidget {
                     Text(
                       roleBadgeText,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.bold,
                         color: roleColor,
-                        letterSpacing: 0.6,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
             // Dialog Title
             Text(
@@ -110,22 +110,22 @@ class AuthPromptDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 20,
+                fontSize: 18.5,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
             // Explanation Message
             Text(
               messageText,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 13.5,
-                height: 1.4,
+                fontSize: 13,
+                height: 1.35,
                 color: isDark ? Colors.grey[300] : const Color(0xFF4A5568),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
 
             // 1. Primary Action: Sign In as [Role]
             FilledButton.icon(
@@ -147,7 +147,8 @@ class AuthPromptDialog extends StatelessWidget {
               ),
               style: FilledButton.styleFrom(
                 backgroundColor: roleColor,
-                padding: const EdgeInsets.symmetric(vertical: 13),
+                minimumSize: const Size.fromHeight(46),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -174,14 +175,15 @@ class AuthPromptDialog extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: roleColor),
               ),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                minimumSize: const Size.fromHeight(44),
+                padding: const EdgeInsets.symmetric(vertical: 11),
                 side: BorderSide(color: roleColor.withValues(alpha: 0.5)),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
 
             // 3. Cancel Action
             TextButton(
@@ -200,4 +202,3 @@ class AuthPromptDialog extends StatelessWidget {
     );
   }
 }
-

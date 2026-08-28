@@ -37,6 +37,8 @@ class PropertyModel {
   final bool? hasLift;
   final bool? hasParking;
   final String? marketDistance;
+  final double? latitude;
+  final double? longitude;
   final DateTime postDate;
   final bool isAvailable;
 
@@ -72,6 +74,8 @@ class PropertyModel {
     this.hasLift,
     this.hasParking,
     this.marketDistance,
+    this.latitude,
+    this.longitude,
     required this.postDate,
     this.isAvailable = true,
   });
@@ -108,12 +112,14 @@ class PropertyModel {
       'hasLift': hasLift,
       'hasParking': hasParking,
       'marketDistance': marketDistance,
-      'postDate': Timestamp.fromDate(postDate),
+      'latitude': latitude,
+      'longitude': longitude,
+      'postDate': postDate.toIso8601String(),
       'isAvailable': isAvailable,
     };
   }
 
-  factory PropertyModel.fromMap(Map<String, dynamic> map, String docId) {
+  factory PropertyModel.fromMap(Map<String, dynamic> map, String id) {
     HouseType parseHouseType(dynamic type) {
       if (type is String) {
         for (final val in HouseType.values) {
@@ -138,6 +144,7 @@ class PropertyModel {
 
     DateTime parseDate(dynamic d) {
       if (d is Timestamp) return d.toDate();
+      if (d is int) return DateTime.fromMillisecondsSinceEpoch(d);
       if (d is String) return DateTime.tryParse(d) ?? DateTime.now();
       return DateTime.now();
     }
@@ -181,25 +188,33 @@ class PropertyModel {
       return null;
     }
 
+    double? parseDouble(dynamic v) {
+      if (v == null) return null;
+      if (v is double) return v;
+      if (v is int) return v.toDouble();
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v);
+      return null;
+    }
+
     bool? parseBool(dynamic v) {
       if (v == null) return null;
       if (v is bool) return v;
-      if (v is String) return v.toLowerCase() == 'true' || v == '1';
-      if (v is num) return v != 0;
+      if (v is String) return v.toLowerCase() == 'true';
       return null;
     }
 
     return PropertyModel(
-      id: docId,
+      id: id,
       ownerId: map['ownerId']?.toString() ?? '',
       ownerEmail: map['ownerEmail']?.toString() ?? '',
       images: parseImages(map['images']),
-      month: map['month']?.toString() ?? 'Current Month',
+      month: map['month']?.toString() ?? 'January',
       houseType: parseHouseType(map['houseType']),
       tenantType: parseTenantType(map['tenantType']),
       roomOrSeat: map['roomOrSeat']?.toString() ?? '',
       contactName: map['contactName']?.toString() ?? '',
-      amount: map['amount']?.toString() ?? '0',
+      amount: map['amount']?.toString() ?? '',
       userMobile: map['userMobile']?.toString() ?? '',
       userWhatsApp: map['userWhatsApp']?.toString() ?? '',
       division: parseDivision(map['division']),
@@ -221,7 +236,9 @@ class PropertyModel {
       hasLift: parseBool(map['hasLift']),
       hasParking: parseBool(map['hasParking']),
       marketDistance: map['marketDistance']?.toString(),
-      postDate: parseDate(map['postDate']),
+      latitude: parseDouble(map['latitude']),
+      longitude: parseDouble(map['longitude']),
+      postDate: parseDate(map['postDate'] ?? map['createdAt'] ?? map['timestamp']),
       isAvailable: parseBool(map['isAvailable']) ?? true,
     );
   }
@@ -258,6 +275,8 @@ class PropertyModel {
     bool? hasLift,
     bool? hasParking,
     String? marketDistance,
+    double? latitude,
+    double? longitude,
     DateTime? postDate,
     bool? isAvailable,
   }) {
@@ -293,6 +312,8 @@ class PropertyModel {
       hasLift: hasLift ?? this.hasLift,
       hasParking: hasParking ?? this.hasParking,
       marketDistance: marketDistance ?? this.marketDistance,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       postDate: postDate ?? this.postDate,
       isAvailable: isAvailable ?? this.isAvailable,
     );

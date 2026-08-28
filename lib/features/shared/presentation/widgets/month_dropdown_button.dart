@@ -16,11 +16,16 @@ class MonthDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.localizations;
+
     return FilterDropdown<String>(
-      hint: context.localizations.month,
+      hint: l10n.month,
       value: value,
       items: months
-          .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+          .map((m) => DropdownMenuItem(
+                value: m,
+                child: Text(m.getLocalizedMonth(l10n)),
+              ))
           .toList(),
       onChanged: onChanged,
     );

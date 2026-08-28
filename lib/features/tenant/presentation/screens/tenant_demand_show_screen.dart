@@ -222,7 +222,7 @@ class _DemandCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      demand.month,
+                      demand.month.getLocalizedMonth(l10n),
                       style: TextStyle(
                         fontSize: 11,
                         color: theme.colorScheme.onSurfaceVariant,
@@ -253,7 +253,7 @@ class _DemandCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        '${demand.houseType.getLocalizedLabel(l10n)} • ${demand.roomOrSeat}',
+                        '${demand.houseType.getLocalizedLabel(l10n)} • ${demand.roomOrSeat.getLocalizedRoomOrSeat(l10n)}',
                         style: const TextStyle(
                           color: AppColors.themeColor,
                           fontSize: 12,

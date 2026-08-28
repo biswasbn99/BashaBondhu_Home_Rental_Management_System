@@ -43,7 +43,7 @@ class _MyPostScreenState extends State<MyPostScreen> {
       appBar: MainAppBar(
         automaticallyImplyLeading: false,
         title: Text(
-          'MyPost',
+          l10n.myPost,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -278,7 +278,7 @@ class _MyPostCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        post.month,
+                        post.month.getLocalizedMonth(l10n),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -322,7 +322,7 @@ class _MyPostCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        post.roomOrSeat,
+                        post.roomOrSeat.getLocalizedRoomOrSeat(l10n),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 17,
@@ -337,7 +337,7 @@ class _MyPostCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'Floor: ${post.floorNumber}',
+                          '${l10n.floorLabel}: ${post.floorNumber}',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,

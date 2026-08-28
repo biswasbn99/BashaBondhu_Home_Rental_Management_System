@@ -202,7 +202,7 @@ class _MyDemandCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    demand.month,
+                    demand.month.getLocalizedMonth(l10n),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 11,
@@ -306,7 +306,7 @@ class _MyDemandCard extends StatelessWidget {
                     const Icon(Icons.bed_outlined, size: 16, color: Colors.grey),
                     const SizedBox(width: 6),
                     Text(
-                      demand.roomOrSeat,
+                      demand.roomOrSeat.getLocalizedRoomOrSeat(l10n),
                       style: TextStyle(fontSize: 12.5, color: theme.colorScheme.onSurfaceVariant),
                     ),
                     if (demand.userWhatsApp.isNotEmpty) ...[

@@ -131,7 +131,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parking => 'Parking';
 
   @override
-  String get sortBy => 'Sort By';
+  String get sortBy => 'Sort Properties';
 
   @override
   String get lowestRent => 'Lowest Rent';
@@ -402,7 +402,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deletePhoto => 'Delete Photo';
 
   @override
-  String get myPost => 'MyPost';
+  String get myPost => 'My Post';
 
   @override
   String get editPost => 'Edit Post';
@@ -759,4 +759,236 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get wishlistGuestSubtitle =>
       'Sign in as a Tenant to save and manage your favorite rental properties.';
+
+  @override
+  String get january => 'January';
+
+  @override
+  String get february => 'February';
+
+  @override
+  String get march => 'March';
+
+  @override
+  String get april => 'April';
+
+  @override
+  String get may => 'May';
+
+  @override
+  String get june => 'June';
+
+  @override
+  String get july => 'July';
+
+  @override
+  String get august => 'August';
+
+  @override
+  String get september => 'September';
+
+  @override
+  String get october => 'October';
+
+  @override
+  String get november => 'November';
+
+  @override
+  String get december => 'December';
+
+  @override
+  String get welcomeTitle => 'Welcome';
+
+  @override
+  String get welcomeSubtitle =>
+      'Sign in to get the full benefits of your account';
+
+  @override
+  String get findHomeSubtitle => 'Easily find your dream home';
+
+  @override
+  String get themeMode => 'Theme Mode';
+
+  @override
+  String get darkMode => 'Dark Mode';
+
+  @override
+  String get lightMode => 'Light Mode';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get languageBn => 'বাংলা';
+
+  @override
+  String get languageEn => 'English';
+
+  @override
+  String get footerAppTitle => 'BashaBondhu Home Rental';
+
+  @override
+  String get footerVersion => 'Version 1.0.0';
+
+  @override
+  String get footerCopyright => '© 2026 BashaBondhu Inc. All rights reserved.';
+
+  @override
+  String get yesLogout => 'Yes, Logout';
+
+  @override
+  String get sort => 'Sort';
+
+  @override
+  String get sortNewest => 'Newest First';
+
+  @override
+  String get sortNewestSubtitle => 'Most recently published';
+
+  @override
+  String get sortOldest => 'Oldest First';
+
+  @override
+  String get sortOldestSubtitle => 'Earlier published';
+
+  @override
+  String get sortPriceLowToHigh => 'Rent: Low to High';
+
+  @override
+  String get sortPriceLowToHighSubtitle => 'Lowest rent first';
+
+  @override
+  String get sortPriceHighToLow => 'Rent: High to Low';
+
+  @override
+  String get sortPriceHighToLowSubtitle => 'Highest rent first';
+
+  @override
+  String get floorLabel => 'Floor';
+
+  @override
+  String get sortNewestShort => 'Newest';
+
+  @override
+  String get sortOldestShort => 'Oldest';
+
+  @override
+  String get sortPriceLowShort => 'Rent: Low ➔ High';
+
+  @override
+  String get sortPriceHighShort => 'Rent: High ➔ Low';
+
+  @override
+  String get propertyMapLocation => 'Property Location on Map (Optional)';
+
+  @override
+  String get mapLocationSubtitle =>
+      'Pinpoint the exact location on map so tenants can get live GPS directions';
+
+  @override
+  String get pickOnMap => 'Pick on Map';
+
+  @override
+  String get useCurrentLocation => 'Use Current Location';
+
+  @override
+  String get changeLocation => 'Change Location';
+
+  @override
+  String get clearLocation => 'Remove';
+
+  @override
+  String get confirmLocation => 'Confirm This Location';
+
+  @override
+  String get locationPinned => 'Location Pinned on Map';
+
+  @override
+  String get viewDirections => 'Get Directions';
+
+  @override
+  String get distanceAway => 'away from you';
+
+  @override
+  String get fetchingLocation => 'Fetching GPS location...';
+
+  @override
+  String get locationPermissionDenied => 'Location permission denied';
+
+  @override
+  String get locationServiceDisabled =>
+      'Please enable GPS location on your device';
+
+  @override
+  String get openInGoogleMaps => 'Open in Google Maps';
+
+  @override
+  String get locationNotSet => 'Exact map location not specified';
+
+  @override
+  String get searchAddressOrArea => 'Search area, road or address...';
+
+  @override
+  String get searchingLocation => 'Searching location...';
+
+  @override
+  String get noLocationFound => 'No matching location found';
+
+  @override
+  String get dragMapToAdjust => 'Drag map to place pin at exact house spot';
+
+  @override
+  String get viewLargeMap => 'View Full Map';
+
+  @override
+  String get radiusSearchTab => 'Nearby (Radius)';
+
+  @override
+  String get areaSearchTab => 'By Area';
+
+  @override
+  String get searchRadius => 'Search Radius';
+
+  @override
+  String get searchRadiusSubtitle =>
+      'Find houses within a specific distance of your location';
+
+  @override
+  String get centerPoint => 'Search Center Location';
+
+  @override
+  String get useMyGps => 'Use My Current GPS';
+
+  @override
+  String get pickCenterOnMap => 'Pick on Map';
+
+  @override
+  String get listView => 'List View';
+
+  @override
+  String get mapView => 'Map View';
+
+  @override
+  String get noHousesFoundInRadius =>
+      'No rental homes found within this distance. Try increasing the radius.';
+
+  @override
+  String get selectSearchCenterPrompt =>
+      'Please select a center location (GPS or Map) for radius search.';
+
+  @override
+  String get nearestFirst => 'Nearest First';
+
+  @override
+  String get noHousesFoundTitle => 'No Rental Homes Found';
+
+  @override
+  String get noHousesFoundSubtitle =>
+      'No houses match your selected location and radius. Try expanding your search distance or modifying filters.';
+
+  @override
+  String get changeFilters => 'Change Filters';
+
+  @override
+  String get viewAllHomes => 'View All Homes';
 }

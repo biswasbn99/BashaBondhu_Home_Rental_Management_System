@@ -127,7 +127,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get parking => 'পার্কিং';
 
   @override
-  String get sortBy => 'সর্ট বাই';
+  String get sortBy => 'পোস্ট সাজান (Sort)';
 
   @override
   String get lowestRent => 'সর্বনিম্ন ভাড়া';
@@ -400,7 +400,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get deletePhoto => 'মুছে ফেলুন';
 
   @override
-  String get myPost => 'MyPost';
+  String get myPost => 'আমার পোস্ট';
 
   @override
   String get editPost => 'পোস্ট সম্পাদনা করুন';
@@ -758,4 +758,237 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get wishlistGuestSubtitle =>
       'আপনার পছন্দের বাসাগুলো সংরক্ষণ ও দেখতে ভাড়াটিয়া হিসেবে সাইন ইন করুন।';
+
+  @override
+  String get january => 'জানুয়ারি';
+
+  @override
+  String get february => 'ফেব্রুয়ারি';
+
+  @override
+  String get march => 'মার্চ';
+
+  @override
+  String get april => 'এপ্রিল';
+
+  @override
+  String get may => 'মে';
+
+  @override
+  String get june => 'জুন';
+
+  @override
+  String get july => 'জুলাই';
+
+  @override
+  String get august => 'আগস্ট';
+
+  @override
+  String get september => 'সেপ্টেম্বর';
+
+  @override
+  String get october => 'অক্টোবর';
+
+  @override
+  String get november => 'নভেম্বর';
+
+  @override
+  String get december => 'ডিসেম্বর';
+
+  @override
+  String get welcomeTitle => 'স্বাগতম';
+
+  @override
+  String get welcomeSubtitle =>
+      'লগইন করে আপনার অ্যাকাউন্টের সম্পূর্ণ সুবিধা নিন';
+
+  @override
+  String get findHomeSubtitle => 'সহজেই খুঁজুন আপনার স্বপ্নের বাসা';
+
+  @override
+  String get themeMode => 'থিম মোড';
+
+  @override
+  String get darkMode => 'ডার্ক মোড';
+
+  @override
+  String get lightMode => 'লাইট মোড';
+
+  @override
+  String get language => 'ভাষা';
+
+  @override
+  String get languageBn => 'বাংলা';
+
+  @override
+  String get languageEn => 'English';
+
+  @override
+  String get footerAppTitle => 'বাসাবন্ধু হোম রেন্টাল';
+
+  @override
+  String get footerVersion => 'ভার্সন ১.০.০';
+
+  @override
+  String get footerCopyright =>
+      '© ২০২৬ বাসাবন্ধু ইনকর্পোরেটেড। সর্বস্বত্ব সংরক্ষিত।';
+
+  @override
+  String get yesLogout => 'হ্যাঁ, লগআউট';
+
+  @override
+  String get sort => 'সাজান';
+
+  @override
+  String get sortNewest => 'নতুন পোস্ট আগে';
+
+  @override
+  String get sortNewestSubtitle => 'সাম্প্রতিক প্রকাশিত বিজ্ঞাপন';
+
+  @override
+  String get sortOldest => 'পুরাতন পোস্ট আগে';
+
+  @override
+  String get sortOldestSubtitle => 'আগের প্রকাশিত বিজ্ঞাপন';
+
+  @override
+  String get sortPriceLowToHigh => 'ভাড়া: কম থেকে বেশি';
+
+  @override
+  String get sortPriceLowToHighSubtitle => 'সবচেয়ে কম ভাড়ার বাসা আগে';
+
+  @override
+  String get sortPriceHighToLow => 'ভাড়া: বেশি থেকে কম';
+
+  @override
+  String get sortPriceHighToLowSubtitle => 'সবচেয়ে বেশি ভাড়ার বাসা আগে';
+
+  @override
+  String get floorLabel => 'তলা';
+
+  @override
+  String get sortNewestShort => 'নতুন';
+
+  @override
+  String get sortOldestShort => 'পুরাতন';
+
+  @override
+  String get sortPriceLowShort => 'ভাড়া: কম ➔ বেশি';
+
+  @override
+  String get sortPriceHighShort => 'ভাড়া: বেশি ➔ কম';
+
+  @override
+  String get propertyMapLocation => 'ম্যাপে বাসার অবস্থান (ঐচ্ছিক)';
+
+  @override
+  String get mapLocationSubtitle =>
+      'ম্যাপে বাসার সঠিক অবস্থান নির্বাচন করুন যাতে ভাড়াটিয়ারা লাইভ ডিরেকশন দেখতে পারে';
+
+  @override
+  String get pickOnMap => 'ম্যাপে নির্বাচন করুন';
+
+  @override
+  String get useCurrentLocation => 'বর্তমান লোকেশন নিন';
+
+  @override
+  String get changeLocation => 'লোকেশন পরিবর্তন';
+
+  @override
+  String get clearLocation => 'মুছে ফেলুন';
+
+  @override
+  String get confirmLocation => 'এই লোকেশন নিশ্চিত করুন';
+
+  @override
+  String get locationPinned => 'ম্যাপে লোকেশন যুক্ত হয়েছে';
+
+  @override
+  String get viewDirections => 'ডিরেকশন দেখুন';
+
+  @override
+  String get distanceAway => 'দূরে';
+
+  @override
+  String get fetchingLocation => 'জিপিএস লোকেশন নেওয়া হচ্ছে...';
+
+  @override
+  String get locationPermissionDenied => 'লোকেশন পারমিশন দেওয়া হয়নি';
+
+  @override
+  String get locationServiceDisabled =>
+      'দয়া করে আপনার ফোনের জিপিএস লোকেশন অন করুন';
+
+  @override
+  String get openInGoogleMaps => 'গুগল ম্যাপসে দেখুন';
+
+  @override
+  String get locationNotSet => 'বাড়িওয়ালা ম্যাপ লোকেশন যুক্ত করেননি';
+
+  @override
+  String get searchAddressOrArea => 'এলাকা, রোড বা ঠিকানা খুঁজুন...';
+
+  @override
+  String get searchingLocation => 'ঠিকানা খোঁজা হচ্ছে...';
+
+  @override
+  String get noLocationFound => 'কোনো ঠিকানা পাওয়া যায়নি';
+
+  @override
+  String get dragMapToAdjust => 'বাসার সঠিক অবস্থানে পিন রাখতে ম্যাপ সরান';
+
+  @override
+  String get viewLargeMap => 'বড় ম্যাপ দেখুন';
+
+  @override
+  String get radiusSearchTab => 'কাছাকাছি (দূরত্ব অনুযায়ী)';
+
+  @override
+  String get areaSearchTab => 'এলাকা অনুযায়ী';
+
+  @override
+  String get searchRadius => 'অনুসন্ধানের পরিধি (রেডিয়াস)';
+
+  @override
+  String get searchRadiusSubtitle =>
+      'আপনার নির্ধারিত স্থান থেকে নির্দিষ্ট দূরত্বের ভেতরের সকল বাসা খুঁজুন';
+
+  @override
+  String get centerPoint => 'কেন্দ্রীয় অবস্থান নির্বাচন';
+
+  @override
+  String get useMyGps => 'আমার বর্তমান জিপিএস';
+
+  @override
+  String get pickCenterOnMap => 'ম্যাপ থেকে নির্ধারণ করুন';
+
+  @override
+  String get listView => 'লিস্ট ভিউ';
+
+  @override
+  String get mapView => 'ম্যাপ ভিউ';
+
+  @override
+  String get noHousesFoundInRadius =>
+      'এই দূরত্বের মধ্যে কোনো বাসা পাওয়া যায়নি। পরিধি বাড়িয়ে আবার চেষ্টা করুন।';
+
+  @override
+  String get selectSearchCenterPrompt =>
+      'দূরত্ব অনুযায়ী খুঁজতে দয়া করে কেন্দ্রীয় অবস্থান (জিপিএস বা ম্যাপ) নির্বাচন করুন।';
+
+  @override
+  String get nearestFirst => 'নিকটবর্তী প্রথমে';
+
+  @override
+  String get noHousesFoundTitle => 'কোনো বাসা পাওয়া যায়নি';
+
+  @override
+  String get noHousesFoundSubtitle =>
+      'আপনার নির্বাচিত দূরত্বের মধ্যে কোনো বাসা পাওয়া যায়নি। পরিধি বাড়িয়ে অথবা ফিল্টার পরিবর্তন করে পুনরায় চেষ্টা করুন।';
+
+  @override
+  String get changeFilters => 'ফিল্টার পরিবর্তন করুন';
+
+  @override
+  String get viewAllHomes => 'সকল বাসা দেখুন';
 }

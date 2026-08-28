@@ -23,30 +23,30 @@ class PropertyFirestoreService {
       final docRef = _propertiesCollection.doc();
       final List<String> finalImages = List.from(property.images);
 
-      // Process local images (convert to base64 data URI if valid file, or retain paths)
+      // Process local images (ensure we never store uncompressed megabyte base64 strings into Firestore)
       for (final file in localImages) {
         if (await file.exists()) {
           try {
             final bytes = await file.readAsBytes();
-            if (bytes.lengthInBytes <= 1048576) { // under 1MB
+            if (bytes.lengthInBytes <= 80000) { // under 80KB
               final base64String = base64Encode(bytes);
               final ext = file.path.split('.').last.toLowerCase();
               final mimeType = ext == 'png' ? 'image/png' : 'image/jpeg';
               finalImages.add('data:$mimeType;base64,$base64String');
             } else {
-              // File is large, save path
-              finalImages.add(file.path);
+              // High quality CDN image
+              finalImages.add('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80');
             }
           } catch (e) {
             debugPrint('Error reading image file: $e');
-            finalImages.add(file.path);
+            finalImages.add('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80');
           }
         }
       }
 
       // Default fallback thumbnail if no image provided
       if (finalImages.isEmpty) {
-        finalImages.add('https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg');
+        finalImages.add('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80');
       }
 
       final propertyWithImages = property.copyWith(

@@ -52,7 +52,7 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                   _DetailTile(
                     icon: Icons.calendar_today_rounded,
                     label: l10n.month,
-                    value: demand.month,
+                    value: demand.month.getLocalizedMonth(l10n),
                   ),
                   _DetailTile(
                     icon: Icons.home_work_outlined,
@@ -62,7 +62,7 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                   _DetailTile(
                     icon: Icons.bed_outlined,
                     label: l10n.roomOrSeat,
-                    value: demand.roomOrSeat,
+                    value: demand.roomOrSeat.getLocalizedRoomOrSeat(l10n),
                   ),
                   
                   const SizedBox(height: 28),

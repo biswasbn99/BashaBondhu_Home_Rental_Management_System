@@ -13,8 +13,8 @@ class AppImageWidget extends StatelessWidget {
     this.height,
     this.borderRadius,
     this.placeholderIconSize = 48,
-    this.cacheWidth = 200,
-    this.cacheHeight = 200,
+    this.cacheWidth = 400,
+    this.cacheHeight = 400,
   });
 
   final dynamic imageSource; // String (URL, base64, path) or File or null
@@ -68,11 +68,60 @@ class AppImageWidget extends StatelessWidget {
       final str = (imageSource as String).trim();
       if (str.isEmpty) return _buildPlaceholder(context);
 
-      // Base64 Data URI or Raw Base64
-      if (str.startsWith('data:image') || str.startsWith('/9j/') || str.startsWith('iVBOR') || str.length > 255) {
+      // 1. Network URL (HTTP/HTTPS) - prioritize this
+      if (str.startsWith('http://') || str.startsWith('https://')) {
+        return Image.network(
+          str,
+          fit: fit,
+          width: width,
+          height: height,
+          cacheWidth: cacheWidth,
+          cacheHeight: cacheHeight,
+          gaplessPlayback: true,
+          loadingBuilder: (ctx, child, progress) {
+            if (progress == null) return child;
+            return Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  value: progress.expectedTotalBytes != null
+                      ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                      : null,
+                  strokeWidth: 2,
+                  color: AppColors.themeColor,
+                ),
+              ),
+            );
+          },
+          errorBuilder: (ctx, err, stack) => _buildPlaceholder(context),
+        );
+      }
+
+      // 2. Local File Path
+      if (!kIsWeb && (str.startsWith('/') || str.startsWith('file://') || str.contains(':\\'))) {
         try {
-          // Fast key using length + substring prefix to avoid hashing megabytes
-          final cacheKey = "${str.length}_${str.substring(0, str.length > 40 ? 40 : str.length)}";
+          final cleanPath = str.replaceFirst('file://', '');
+          final file = File(cleanPath);
+          if (file.existsSync()) {
+            return Image.file(
+              file,
+              fit: fit,
+              width: width,
+              height: height,
+              cacheWidth: cacheWidth,
+              cacheHeight: cacheHeight,
+              gaplessPlayback: true,
+              errorBuilder: (ctx, err, stack) => _buildPlaceholder(context),
+            );
+          }
+        } catch (_) {}
+      }
+
+      // 3. Base64 Image
+      if (str.startsWith('data:image') || str.startsWith('/9j/') || str.startsWith('iVBOR')) {
+        try {
+          final cacheKey = "${str.length}_${str.substring(0, str.length > 30 ? 30 : str.length)}";
           final Uint8List bytes = _base64Cache.putIfAbsent(cacheKey, () {
             final base64Content = str.contains(',') ? str.split(',').last : str;
             return base64Decode(base64Content.trim());
@@ -91,56 +140,6 @@ class AppImageWidget extends StatelessWidget {
         } catch (_) {
           return _buildPlaceholder(context);
         }
-      }
-
-      // Network URL
-      if (str.startsWith('http://') || str.startsWith('https://')) {
-        return Image.network(
-          str,
-          fit: fit,
-          width: width,
-          height: height,
-          cacheWidth: cacheWidth,
-          cacheHeight: cacheHeight,
-          gaplessPlayback: true,
-          loadingBuilder: (ctx, child, progress) {
-            if (progress == null) return child;
-            return Center(
-              child: SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  value: progress.expectedTotalBytes != null
-                      ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
-                      : null,
-                  strokeWidth: 2,
-                  color: AppColors.themeColor,
-                ),
-              ),
-            );
-          },
-          errorBuilder: (ctx, err, stack) => _buildPlaceholder(context),
-        );
-      }
-
-      // Local File Path (only if valid short path)
-      if (str.length <= 255 && !kIsWeb) {
-        try {
-          final cleanPath = str.replaceFirst('file://', '');
-          final file = File(cleanPath);
-          if (file.existsSync()) {
-            return Image.file(
-              file,
-              fit: fit,
-              width: width,
-              height: height,
-              cacheWidth: cacheWidth,
-              cacheHeight: cacheHeight,
-              gaplessPlayback: true,
-              errorBuilder: (ctx, err, stack) => _buildPlaceholder(context),
-            );
-          }
-        } catch (_) {}
       }
     }
 

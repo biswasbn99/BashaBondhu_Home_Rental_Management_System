@@ -372,7 +372,7 @@ class _WishlistCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        property.roomOrSeat,
+                        property.roomOrSeat.getLocalizedRoomOrSeat(l10n),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 17,
@@ -387,7 +387,7 @@ class _WishlistCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'Floor: ${property.floorNumber}',
+                          '${l10n.floorLabel}: ${property.floorNumber}',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,

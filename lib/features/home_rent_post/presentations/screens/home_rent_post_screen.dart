@@ -25,6 +25,7 @@ import '../widgets/counter_dropdown.dart';
 import '../widgets/distance_dropdown.dart';
 import '../widgets/electricity_bill_dropdown.dart';
 import '../widgets/multi_image_picker_widget.dart';
+import '../widgets/property_location_picker_card.dart';
 import '../widgets/validated_text_area.dart';
 
 class HomeRentPostScreen extends StatelessWidget {
@@ -296,6 +297,20 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                 initialValue: provider.shortAddress,
                 onChanged: provider.setShortAddress,
                 validator: (val) => Validators.validateText(val),
+              ),
+              const SizedBox(height: 16),
+
+              // --- Property Exact Location on Map ---
+              PropertyLocationPickerCard(
+                latitude: provider.latitude,
+                longitude: provider.longitude,
+                onLocationChanged: (lat, lng) {
+                  if (lat != null && lng != null) {
+                    provider.setLocation(lat, lng);
+                  } else {
+                    provider.clearLocation();
+                  }
+                },
               ),
               const SizedBox(height: 24),
 

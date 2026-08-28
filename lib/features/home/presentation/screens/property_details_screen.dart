@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../shared/data/models/search_filter_model.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
 import '../../../shared/presentation/widgets/app_network_image.dart';
@@ -22,11 +27,85 @@ class PropertyDetailsScreen extends StatefulWidget {
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   int _currentImageIndex = 0;
   final PageController _pageController = PageController();
+  String? _tenantDistanceString;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateDistanceToProperty();
+  }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _calculateDistanceToProperty() async {
+    final p = widget.property;
+    if (p.latitude == null || p.longitude == null) return;
+
+    try {
+      final isServiceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!isServiceEnabled) return;
+
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        return;
+      }
+
+      Position? currentPos = await Geolocator.getLastKnownPosition();
+      currentPos ??= await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 4),
+        ),
+      );
+
+      final distanceMeters = const Distance().as(
+        LengthUnit.Meter,
+        LatLng(currentPos.latitude, currentPos.longitude),
+        LatLng(p.latitude!, p.longitude!),
+      );
+
+      final distanceKm = distanceMeters / 1000;
+      if (mounted) {
+        final l10n = context.localizations;
+        final isBn = l10n.localeName == 'bn';
+
+        String formatNum(String s) {
+          if (!isBn) return s;
+          const en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+          const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+          var res = s;
+          for (int i = 0; i < 10; i++) {
+            res = res.replaceAll(en[i], bn[i]);
+          }
+          return res;
+        }
+
+        final distStr = distanceKm < 1.0
+            ? '${formatNum(distanceMeters.toStringAsFixed(0))} ${isBn ? "মিটার" : "m"}'
+            : '${formatNum(distanceKm.toStringAsFixed(1))} ${isBn ? "কিমি" : "km"}';
+
+        setState(() {
+          _tenantDistanceString = '$distStr ${l10n.distanceAway}';
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _openGoogleMapsNavigation(double lat, double lng) async {
+    final uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng');
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri);
+      }
+    } catch (e) {
+      debugPrint('Error launching Google Maps: $e');
+    }
   }
 
   @override
@@ -75,7 +154,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   DecoratedSectionHeader(title: l10n.locationLabel),
                   const SizedBox(height: 12),
                   _buildInfoRow(Icons.map_outlined, locationText),
-                  _buildInfoRow(Icons.location_on_outlined, p.shortAddress),
+                  if (p.shortAddress.isNotEmpty)
+                    _buildInfoRow(Icons.location_on_outlined, p.shortAddress),
+
+                  // Interactive Map & Navigation Card (If coordinates are provided)
+                  if (p.latitude != null && p.longitude != null)
+                    _buildMapSection(p, l10n, theme, isDark),
+
                   const SizedBox(height: 24),
 
                   // Facilities Section
@@ -87,9 +172,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     children: [
                       if (p.tenantType != null)
                         _buildAmenityChip(Icons.people_outline_rounded, p.tenantType!.getLocalizedLabel(l10n), theme),
-                      _buildAmenityChip(Icons.bed_outlined, p.roomOrSeat, theme),
+                      _buildAmenityChip(Icons.bed_outlined, p.roomOrSeat.getLocalizedRoomOrSeat(l10n), theme),
                       if (p.floorNumber != null)
-                        _buildAmenityChip(Icons.stairs_outlined, 'Floor: ${p.floorNumber}', theme),
+                        _buildAmenityChip(Icons.stairs_outlined, '${l10n.floorLabel}: ${p.floorNumber}', theme),
                       if (p.attachedBathrooms != null && p.attachedBathrooms! > 0)
                         _buildAmenityChip(Icons.bathtub_outlined, '${p.attachedBathrooms} ${l10n.attachedBathroom}', theme),
                       if (p.commonBathrooms != null && p.commonBathrooms! > 0)
@@ -108,10 +193,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         _buildAmenityChip(Icons.wifi_rounded, l10n.wifi, theme),
                       if (p.hasGenerator == true)
                         _buildAmenityChip(Icons.bolt_outlined, l10n.generator, theme),
+                      if (p.hasSecurityGuard == true)
+                        _buildAmenityChip(Icons.security_rounded, l10n.securityGuard, theme),
                       if (p.hasCctv == true)
                         _buildAmenityChip(Icons.videocam_outlined, l10n.cctv, theme),
-                      if (p.hasSecurityGuard == true)
-                        _buildAmenityChip(Icons.security_outlined, l10n.securityGuard, theme),
                       if (p.marketDistance != null && p.marketDistance!.isNotEmpty)
                         _buildAmenityChip(Icons.storefront_outlined, '${l10n.marketDistance}: ${p.marketDistance}', theme),
                     ],
@@ -183,6 +268,125 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
+  Widget _buildMapSection(PropertyModel p, AppLocalizations l10n, ThemeData theme, bool isDark) {
+    if (p.latitude == null || p.longitude == null) return const SizedBox.shrink();
+
+    final propertyLatLng = LatLng(p.latitude!, p.longitude!);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            height: 180,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Stack(
+              children: [
+                FlutterMap(
+                  options: MapOptions(
+                    initialCenter: propertyLatLng,
+                    initialZoom: 15.5,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.example.bashabondhu_home_rental_management_system',
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: propertyLatLng,
+                          width: 46,
+                          height: 46,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.35),
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.home_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                // Distance Badge (if tenant location computed)
+                if (_tenantDistanceString != null)
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.navigation_rounded, color: AppColors.themeColor, size: 13),
+                          const SizedBox(width: 4),
+                          Text(
+                            _tenantDistanceString!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Live Google Maps Direction Button
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () => _openGoogleMapsNavigation(p.latitude!, p.longitude!),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.themeColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            icon: const Icon(Icons.directions_rounded, size: 18),
+            label: Text(
+              l10n.viewDirections,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildImageGallery(PropertyModel p) {
     final images = p.images;
 
@@ -219,131 +423,67 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   );
                 },
               ),
-              if (images.length > 1)
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${_currentImageIndex + 1} / ${images.length}',
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
+              Positioned(
+                bottom: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    '${_currentImageIndex + 1}/${images.length}',
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
                   ),
                 ),
+              ),
             ],
           ),
         ),
-        if (images.length > 1) ...[
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 60,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              itemCount: images.length,
-              separatorBuilder: (c, i) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final isSelected = index == _currentImageIndex;
-                return GestureDetector(
-                  onTap: () {
-                    _pageController.animateToPage(
-                      index,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: isSelected ? AppColors.themeColor : Colors.transparent,
-                        width: 2,
-                      ),
-                    ),
-                    child: AppImageWidget(
-                      imageSource: images[index],
-                      borderRadius: BorderRadius.circular(6),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
       ],
     );
   }
 
-  Widget _buildPriceSection(PropertyModel p, dynamic l10n, ThemeData theme) {
+  Widget _buildPriceSection(PropertyModel p, AppLocalizations l10n, ThemeData theme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "৳ ${p.amount}",
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.themeColor),
+              '৳ ${p.amount}',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+              ),
             ),
-            Text(l10n.perMonth, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
+            Text(
+              '${l10n.perMonth} (${p.month.getLocalizedMonth(l10n)})',
+              style: TextStyle(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
+            ),
           ],
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.themeColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    p.houseType.name.toUpperCase(),
-                    style: const TextStyle(
-                      color: AppColors.themeColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                if (p.tenantType != null) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      p.tenantType!.getLocalizedLabel(l10n),
-                      style: const TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.themeColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            p.houseType.getLocalizedLabel(l10n),
+            style: const TextStyle(
+              color: AppColors.themeColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
             ),
-            const SizedBox(height: 4),
-            Text(
-              '${l10n.month}: ${p.month}',
-              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
-            ),
-          ],
+          ),
         ),
       ],
     );
@@ -351,24 +491,27 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   Widget _buildInfoRow(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 18, color: AppColors.themeColor),
-          const SizedBox(width: 8),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildAmenityChip(IconData icon, String label, ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[800] : Colors.grey[100],
+        color: theme.brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[100],
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -379,7 +522,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 12.5,
               fontWeight: FontWeight.w500,
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -389,40 +532,52 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  Widget _buildContactButtons(PropertyModel p, dynamic l10n) {
+  Widget _buildContactButtons(PropertyModel p, AppLocalizations l10n) {
     return Row(
       children: [
         Expanded(
           child: FilledButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('কল করুন: ${p.userMobile}'),
-                  backgroundColor: AppColors.themeColor,
-                ),
-              );
-            },
-            icon: const Icon(Icons.call_rounded),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.themeColor,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            icon: const Icon(Icons.phone),
             label: Text(l10n.callNow),
+            onPressed: () => _launchCaller(p.userMobile),
           ),
         ),
-        const SizedBox(width: 12),
-        Container(
-          decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(12)),
-          child: IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('হোয়াটসঅ্যাপ: ${p.userWhatsApp}'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            icon: const Icon(Icons.chat_outlined, color: Colors.white),
-            padding: const EdgeInsets.all(16),
+        if (p.userWhatsApp.isNotEmpty) ...[
+          const SizedBox(width: 12),
+          Expanded(
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF25D366),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.chat),
+              label: const Text('WhatsApp'),
+              onPressed: () => _launchWhatsApp(p.userWhatsApp),
+            ),
           ),
-        ),
+        ],
       ],
     );
+  }
+
+  Future<void> _launchCaller(String number) async {
+    final uri = Uri(scheme: 'tel', path: number);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> _launchWhatsApp(String number) async {
+    final cleanNumber = number.replaceAll(RegExp(r'[^0-9]'), '');
+    final uri = Uri.parse('https://wa.me/$cleanNumber');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 }

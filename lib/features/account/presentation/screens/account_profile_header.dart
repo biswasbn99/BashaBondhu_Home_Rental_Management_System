@@ -26,9 +26,8 @@ class AccountProfileHeader extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final String name = user != null
-        ? user!.fullName.isNotEmpty ? user!.fullName : "${user!.firstName} ${user!.lastName}".trim()
+        ? (user!.fullName.isNotEmpty ? user!.fullName : "${user!.firstName} ${user!.lastName}".trim())
         : l10n.guestUser;
-    final String email = user != null ? user!.email : 'guest@bashabondhu.com';
     final String initials = user?.initials ?? 'GU';
     final bool isOwner = user?.userType == 'House Owner';
     final bool isTenant = user?.userType == 'Tenant';
@@ -197,16 +196,30 @@ class AccountProfileHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
 
-                    // Email / Phone
-                    Text(
-                      user?.mobile.isNotEmpty == true ? user!.mobile : email,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: theme.colorScheme.onSurfaceVariant,
+                    // Email / Phone (only for logged-in user; for guest, show inviting subtitle)
+                    if (user != null) ...[
+                      Text(
+                        user!.mobile.isNotEmpty ? user!.mobile : user!.email,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
+                    ] else ...[
+                      Text(
+                        l10n.localeName == 'bn'
+                            ? 'লগইন করে সম্পূর্ণ সুবিধা নিন'
+                            : 'Sign in to access all features',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
 
                     if (user != null && user!.city.isNotEmpty) ...[
                       const SizedBox(height: 4),

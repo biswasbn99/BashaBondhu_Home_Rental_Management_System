@@ -11,9 +11,46 @@ import '../../data/models/property_model.dart';
 import '../screens/property_details_screen.dart';
 
 class PropertyCard extends StatelessWidget {
-  const PropertyCard({super.key, required this.property});
+  const PropertyCard({
+    super.key,
+    required this.property,
+    this.distanceKm,
+  });
 
   final PropertyModel property;
+  final double? distanceKm;
+
+  static String formatDateTimeWithDay(DateTime dt, String languageCode) {
+    final isBn = languageCode == 'bn';
+    final daysEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final daysBn = ['সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার', 'রবিবার'];
+    final monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final monthsBn = ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টে', 'অক্টো', 'নভে', 'ডিসে'];
+
+    final dayName = isBn ? daysBn[dt.weekday - 1] : daysEn[dt.weekday - 1];
+    final monthName = isBn ? monthsBn[dt.month - 1] : monthsEn[dt.month - 1];
+
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final period = dt.hour >= 12 ? (isBn ? 'PM' : 'PM') : (isBn ? 'AM' : 'AM');
+
+    String convertNumber(String input) {
+      if (!isBn) return input;
+      const enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+      var result = input;
+      for (int i = 0; i < 10; i++) {
+        result = result.replaceAll(enDigits[i], bnDigits[i]);
+      }
+      return result;
+    }
+
+    final formattedDayNum = convertNumber(dt.day.toString());
+    final formattedYear = convertNumber(dt.year.toString());
+    final formattedTime = '${convertNumber(hour.toString())}:${convertNumber(minute)} $period';
+
+    return '$dayName, $formattedDayNum $monthName $formattedYear • $formattedTime';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +67,8 @@ class PropertyCard extends StatelessWidget {
       property.area.getLocalizedName(languageCode),
       property.district.getLocalizedName(languageCode),
     ].join(', ');
+
+    final dateDayTimeString = formatDateTimeWithDay(property.postDate, languageCode);
 
     return Card(
       elevation: 3,
@@ -93,7 +132,7 @@ class PropertyCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        property.houseType.name.toUpperCase(),
+                        property.houseType.getLocalizedLabel(l10n),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -109,7 +148,7 @@ class PropertyCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        property.month,
+                        property.month.getLocalizedMonth(l10n),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -180,7 +219,7 @@ class PropertyCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        property.roomOrSeat,
+                        property.roomOrSeat.getLocalizedRoomOrSeat(l10n),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: 17,
@@ -195,7 +234,7 @@ class PropertyCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'Floor: ${property.floorNumber}',
+                          '${l10n.floorLabel}: ${property.floorNumber}',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -233,19 +272,102 @@ class PropertyCard extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 6,
                   children: [
+                    if (distanceKm != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.themeColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: AppColors.themeColor.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.near_me_rounded, size: 13, color: AppColors.themeColor),
+                            const SizedBox(width: 4),
+                            Text(
+                              distanceKm! < 1.0
+                                  ? '${(distanceKm! * 1000).toStringAsFixed(0).toLocalizedDigits(languageCode)} ${languageCode == 'bn' ? 'মিটার দূরে' : 'm away'}'
+                                  : '${distanceKm!.toStringAsFixed(1).toLocalizedDigits(languageCode)} ${languageCode == 'bn' ? 'কিমি দূরে' : 'km away'}',
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.themeColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     if (property.attachedBathrooms != null && property.attachedBathrooms! > 0)
-                      _buildChip(Icons.bathtub_outlined, '${property.attachedBathrooms} Attached Bath', theme),
+                      _buildChip(
+                        Icons.bathtub_outlined,
+                        '${property.attachedBathrooms} ${languageCode == 'bn' ? 'অ্যাটাচড বাথ' : 'Attached Bath'}',
+                        theme,
+                      ),
                     if (property.balconies != null && property.balconies! > 0)
-                      _buildChip(Icons.balcony_outlined, '${property.balconies} Balcony', theme),
+                      _buildChip(
+                        Icons.balcony_outlined,
+                        '${property.balconies} ${languageCode == 'bn' ? 'বারান্দা' : 'Balcony'}',
+                        theme,
+                      ),
                     if (property.hasLift == true)
-                      _buildChip(Icons.elevator_outlined, 'Lift', theme),
+                      _buildChip(
+                        Icons.elevator_outlined,
+                        languageCode == 'bn' ? 'লিফট' : 'Lift',
+                        theme,
+                      ),
                     if (property.hasGenerator == true)
-                      _buildChip(Icons.bolt_outlined, 'Generator', theme),
+                      _buildChip(
+                        Icons.bolt_outlined,
+                        languageCode == 'bn' ? 'জেনারেটর' : 'Generator',
+                        theme,
+                      ),
                     if (property.hasWifi == true)
-                      _buildChip(Icons.wifi, 'WiFi', theme),
+                      _buildChip(
+                        Icons.wifi,
+                        languageCode == 'bn' ? 'ওয়াইফাই' : 'WiFi',
+                        theme,
+                      ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
+
+                // Post Date, Day and Time Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E2827) : const Color(0xFFEEF7F6),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.themeColor.withValues(alpha: isDark ? 0.25 : 0.15),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.schedule_rounded,
+                        size: 14,
+                        color: AppColors.themeColor,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          dateDayTimeString,
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.grey[300] : const Color(0xFF2C5E58),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
 
                 // View Details Button
                 SizedBox(
@@ -276,7 +398,6 @@ class PropertyCard extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildChip(IconData icon, String label, ThemeData theme) {
     return Container(

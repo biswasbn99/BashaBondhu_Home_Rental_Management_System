@@ -335,7 +335,7 @@ abstract class AppLocalizations {
   /// No description provided for @sortBy.
   ///
   /// In en, this message translates to:
-  /// **'Sort By'**
+  /// **'Sort Properties'**
   String get sortBy;
 
   /// No description provided for @lowestRent.
@@ -863,7 +863,7 @@ abstract class AppLocalizations {
   /// No description provided for @myPost.
   ///
   /// In en, this message translates to:
-  /// **'MyPost'**
+  /// **'My Post'**
   String get myPost;
 
   /// No description provided for @editPost.
@@ -1549,6 +1549,456 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in as a Tenant to save and manage your favorite rental properties.'**
   String get wishlistGuestSubtitle;
+
+  /// No description provided for @january.
+  ///
+  /// In en, this message translates to:
+  /// **'January'**
+  String get january;
+
+  /// No description provided for @february.
+  ///
+  /// In en, this message translates to:
+  /// **'February'**
+  String get february;
+
+  /// No description provided for @march.
+  ///
+  /// In en, this message translates to:
+  /// **'March'**
+  String get march;
+
+  /// No description provided for @april.
+  ///
+  /// In en, this message translates to:
+  /// **'April'**
+  String get april;
+
+  /// No description provided for @may.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get may;
+
+  /// No description provided for @june.
+  ///
+  /// In en, this message translates to:
+  /// **'June'**
+  String get june;
+
+  /// No description provided for @july.
+  ///
+  /// In en, this message translates to:
+  /// **'July'**
+  String get july;
+
+  /// No description provided for @august.
+  ///
+  /// In en, this message translates to:
+  /// **'August'**
+  String get august;
+
+  /// No description provided for @september.
+  ///
+  /// In en, this message translates to:
+  /// **'September'**
+  String get september;
+
+  /// No description provided for @october.
+  ///
+  /// In en, this message translates to:
+  /// **'October'**
+  String get october;
+
+  /// No description provided for @november.
+  ///
+  /// In en, this message translates to:
+  /// **'November'**
+  String get november;
+
+  /// No description provided for @december.
+  ///
+  /// In en, this message translates to:
+  /// **'December'**
+  String get december;
+
+  /// No description provided for @welcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get welcomeTitle;
+
+  /// No description provided for @welcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to get the full benefits of your account'**
+  String get welcomeSubtitle;
+
+  /// No description provided for @findHomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easily find your dream home'**
+  String get findHomeSubtitle;
+
+  /// No description provided for @themeMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Mode'**
+  String get themeMode;
+
+  /// No description provided for @darkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Mode'**
+  String get darkMode;
+
+  /// No description provided for @lightMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Light Mode'**
+  String get lightMode;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @languageBn.
+  ///
+  /// In en, this message translates to:
+  /// **'বাংলা'**
+  String get languageBn;
+
+  /// No description provided for @languageEn.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEn;
+
+  /// No description provided for @footerAppTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'BashaBondhu Home Rental'**
+  String get footerAppTitle;
+
+  /// No description provided for @footerVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version 1.0.0'**
+  String get footerVersion;
+
+  /// No description provided for @footerCopyright.
+  ///
+  /// In en, this message translates to:
+  /// **'© 2026 BashaBondhu Inc. All rights reserved.'**
+  String get footerCopyright;
+
+  /// No description provided for @yesLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Logout'**
+  String get yesLogout;
+
+  /// No description provided for @sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sort;
+
+  /// No description provided for @sortNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest First'**
+  String get sortNewest;
+
+  /// No description provided for @sortNewestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Most recently published'**
+  String get sortNewestSubtitle;
+
+  /// No description provided for @sortOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest First'**
+  String get sortOldest;
+
+  /// No description provided for @sortOldestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier published'**
+  String get sortOldestSubtitle;
+
+  /// No description provided for @sortPriceLowToHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent: Low to High'**
+  String get sortPriceLowToHigh;
+
+  /// No description provided for @sortPriceLowToHighSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest rent first'**
+  String get sortPriceLowToHighSubtitle;
+
+  /// No description provided for @sortPriceHighToLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent: High to Low'**
+  String get sortPriceHighToLow;
+
+  /// No description provided for @sortPriceHighToLowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest rent first'**
+  String get sortPriceHighToLowSubtitle;
+
+  /// No description provided for @floorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor'**
+  String get floorLabel;
+
+  /// No description provided for @sortNewestShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get sortNewestShort;
+
+  /// No description provided for @sortOldestShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest'**
+  String get sortOldestShort;
+
+  /// No description provided for @sortPriceLowShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent: Low ➔ High'**
+  String get sortPriceLowShort;
+
+  /// No description provided for @sortPriceHighShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent: High ➔ Low'**
+  String get sortPriceHighShort;
+
+  /// No description provided for @propertyMapLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Property Location on Map (Optional)'**
+  String get propertyMapLocation;
+
+  /// No description provided for @mapLocationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinpoint the exact location on map so tenants can get live GPS directions'**
+  String get mapLocationSubtitle;
+
+  /// No description provided for @pickOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick on Map'**
+  String get pickOnMap;
+
+  /// No description provided for @useCurrentLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Current Location'**
+  String get useCurrentLocation;
+
+  /// No description provided for @changeLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Location'**
+  String get changeLocation;
+
+  /// No description provided for @clearLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get clearLocation;
+
+  /// No description provided for @confirmLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm This Location'**
+  String get confirmLocation;
+
+  /// No description provided for @locationPinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Pinned on Map'**
+  String get locationPinned;
+
+  /// No description provided for @viewDirections.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Directions'**
+  String get viewDirections;
+
+  /// No description provided for @distanceAway.
+  ///
+  /// In en, this message translates to:
+  /// **'away from you'**
+  String get distanceAway;
+
+  /// No description provided for @fetchingLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching GPS location...'**
+  String get fetchingLocation;
+
+  /// No description provided for @locationPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permission denied'**
+  String get locationPermissionDenied;
+
+  /// No description provided for @locationServiceDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enable GPS location on your device'**
+  String get locationServiceDisabled;
+
+  /// No description provided for @openInGoogleMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Google Maps'**
+  String get openInGoogleMaps;
+
+  /// No description provided for @locationNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact map location not specified'**
+  String get locationNotSet;
+
+  /// No description provided for @searchAddressOrArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Search area, road or address...'**
+  String get searchAddressOrArea;
+
+  /// No description provided for @searchingLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching location...'**
+  String get searchingLocation;
+
+  /// No description provided for @noLocationFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching location found'**
+  String get noLocationFound;
+
+  /// No description provided for @dragMapToAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag map to place pin at exact house spot'**
+  String get dragMapToAdjust;
+
+  /// No description provided for @viewLargeMap.
+  ///
+  /// In en, this message translates to:
+  /// **'View Full Map'**
+  String get viewLargeMap;
+
+  /// No description provided for @radiusSearchTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby (Radius)'**
+  String get radiusSearchTab;
+
+  /// No description provided for @areaSearchTab.
+  ///
+  /// In en, this message translates to:
+  /// **'By Area'**
+  String get areaSearchTab;
+
+  /// No description provided for @searchRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Radius'**
+  String get searchRadius;
+
+  /// No description provided for @searchRadiusSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find houses within a specific distance of your location'**
+  String get searchRadiusSubtitle;
+
+  /// No description provided for @centerPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Center Location'**
+  String get centerPoint;
+
+  /// No description provided for @useMyGps.
+  ///
+  /// In en, this message translates to:
+  /// **'Use My Current GPS'**
+  String get useMyGps;
+
+  /// No description provided for @pickCenterOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick on Map'**
+  String get pickCenterOnMap;
+
+  /// No description provided for @listView.
+  ///
+  /// In en, this message translates to:
+  /// **'List View'**
+  String get listView;
+
+  /// No description provided for @mapView.
+  ///
+  /// In en, this message translates to:
+  /// **'Map View'**
+  String get mapView;
+
+  /// No description provided for @noHousesFoundInRadius.
+  ///
+  /// In en, this message translates to:
+  /// **'No rental homes found within this distance. Try increasing the radius.'**
+  String get noHousesFoundInRadius;
+
+  /// No description provided for @selectSearchCenterPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a center location (GPS or Map) for radius search.'**
+  String get selectSearchCenterPrompt;
+
+  /// No description provided for @nearestFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest First'**
+  String get nearestFirst;
+
+  /// No description provided for @noHousesFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Rental Homes Found'**
+  String get noHousesFoundTitle;
+
+  /// No description provided for @noHousesFoundSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No houses match your selected location and radius. Try expanding your search distance or modifying filters.'**
+  String get noHousesFoundSubtitle;
+
+  /// No description provided for @changeFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Filters'**
+  String get changeFilters;
+
+  /// No description provided for @viewAllHomes.
+  ///
+  /// In en, this message translates to:
+  /// **'View All Homes'**
+  String get viewAllHomes;
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
+import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/app/providers/locale_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/app/providers/theme_provider.dart';
 
@@ -10,6 +11,7 @@ class AccountThemeSettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.localizations;
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.currentThemeMode == ThemeMode.dark ||
         (themeProvider.currentThemeMode == ThemeMode.system &&
@@ -44,12 +46,12 @@ class AccountThemeSettingTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Theme Mode',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
+                Text(
+                  l10n.themeMode,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
                 ),
                 Text(
-                  isDark ? 'Dark Mode' : 'Light Mode',
+                  isDark ? l10n.darkMode : l10n.lightMode,
                   style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
@@ -73,6 +75,7 @@ class AccountLanguageSettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.localizations;
     final localeProvider = Provider.of<LocaleProvider>(context);
     final isBangla = localeProvider.currentLocale.languageCode == 'bn';
     final theme = Theme.of(context);
@@ -102,12 +105,12 @@ class AccountLanguageSettingTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Language / ভাষা',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
+                Text(
+                  l10n.language,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
                 ),
                 Text(
-                  isBangla ? 'বাংলা (Bangla)' : 'English',
+                  isBangla ? l10n.languageBn : l10n.languageEn,
                   style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
@@ -125,4 +128,3 @@ class AccountLanguageSettingTile extends StatelessWidget {
     );
   }
 }
-

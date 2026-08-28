@@ -12,6 +12,7 @@ import '../../../home_rent_post/presentations/widgets/amenities_dropdown.dart';
 import '../../../home_rent_post/presentations/widgets/counter_dropdown.dart';
 import '../../../home_rent_post/presentations/widgets/distance_dropdown.dart';
 import '../../../home_rent_post/presentations/widgets/electricity_bill_dropdown.dart';
+import '../../../home_rent_post/presentations/widgets/property_location_picker_card.dart';
 import '../../../home_rent_post/presentations/widgets/validated_text_area.dart';
 import '../../../shared/data/models/area_model.dart';
 import '../../../shared/data/models/district_model.dart';
@@ -78,6 +79,8 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
   late bool? _hasLift;
   late bool? _hasParking;
   late String? _marketDistance;
+  double? _latitude;
+  double? _longitude;
 
   List<DivisionModel> _divisions = [];
   List<DistrictModel> _districts = [];
@@ -140,6 +143,8 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
     _hasLift = p.hasLift;
     _hasParking = p.hasParking;
     _marketDistance = p.marketDistance;
+    _latitude = p.latitude;
+    _longitude = p.longitude;
 
     _loadInitialLocations();
   }
@@ -366,6 +371,8 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
       hasLift: _hasLift,
       hasParking: _hasParking,
       marketDistance: _marketDistance,
+      latitude: _latitude,
+      longitude: _longitude,
       postDate: widget.property.postDate,
     );
 
@@ -615,6 +622,19 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
                 initialValue: _shortAddress,
                 onChanged: (val) => _shortAddress = val,
                 validator: (val) => Validators.validateText(val),
+              ),
+              const SizedBox(height: 16),
+
+              // --- Property Exact Location on Map ---
+              PropertyLocationPickerCard(
+                latitude: _latitude,
+                longitude: _longitude,
+                onLocationChanged: (lat, lng) {
+                  setState(() {
+                    _latitude = lat;
+                    _longitude = lng;
+                  });
+                },
               ),
               const SizedBox(height: 24),
 

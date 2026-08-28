@@ -67,16 +67,16 @@ class GuestAccountView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'স্বাগতম / Welcome',
-                          style: TextStyle(
+                        Text(
+                          l10n.welcomeTitle,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          'লগইন করে আপনার অ্যাকাউন্টের সম্পূর্ণ সুবিধা নিন',
+                          l10n.welcomeSubtitle,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.85),
                             fontSize: 12.5,
@@ -122,20 +122,14 @@ class GuestAccountView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // Quick Feature Links
+        // Quick Feature Link - Find Home only
         DecoratedSectionHeader(title: l10n.findHome),
         const SizedBox(height: 12),
         AccountActionTile(
           icon: Icons.search_rounded,
           title: l10n.findHome,
-          subtitle: 'সহজেই খুঁজুন আপনার স্বপ্নের বাসা',
+          subtitle: l10n.findHomeSubtitle,
           onTap: () => context.read<MainNavHolderProvider>().changeIndex(1),
-        ),
-        AccountActionTile(
-          icon: Icons.favorite_border_rounded,
-          title: l10n.wishlist,
-          subtitle: 'আপনার সংরক্ষিত বাসাগুলো দেখুন',
-          onTap: () => context.read<MainNavHolderProvider>().changeIndex(3),
         ),
         const SizedBox(height: 24),
 
@@ -152,4 +146,3 @@ class GuestAccountView extends StatelessWidget {
     );
   }
 }
-

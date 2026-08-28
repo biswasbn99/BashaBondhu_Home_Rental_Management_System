@@ -6,6 +6,7 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/data/m
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/repository/location_repository.dart';
 import 'package:bashabondhu_home_rental_management_system/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 class FindHomeProvider extends ChangeNotifier {
   FindHomeProvider({LocationRepository? repository})
@@ -24,6 +25,127 @@ class FindHomeProvider extends ChangeNotifier {
   void _safeNotifyListeners() {
     if (!_isDisposed) {
       notifyListeners();
+    }
+  }
+
+  // --- Search Mode ---
+  bool isRadiusSearchMode = true; // Default: Nearby Radius Search (e.g. 5km)
+  double searchRadiusKm = 5.0;
+  double searchLatitude = 23.8103; // Default center (Dhaka)
+  double searchLongitude = 90.4125;
+  String? searchLocationName;
+  bool isFetchingGps = false;
+
+  void setSearchMode(bool isRadius) {
+    isRadiusSearchMode = isRadius;
+    _safeNotifyListeners();
+  }
+
+  void setRadiusKm(double km) {
+    searchRadiusKm = km;
+    _safeNotifyListeners();
+  }
+
+  void setCenterLocation(double lat, double lng, [String? name]) {
+    searchLatitude = lat;
+    searchLongitude = lng;
+    searchLocationName = name;
+    _safeNotifyListeners();
+  }
+
+  bool _hasAttemptedAutoLocation = false;
+
+  Future<void> initLocationOnOpen(AppLocalizations l10n) async {
+    if (_hasAttemptedAutoLocation) return;
+    _hasAttemptedAutoLocation = true;
+
+    try {
+      final isServiceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!isServiceEnabled) return;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        Position? position = await Geolocator.getLastKnownPosition();
+        position ??= await Geolocator.getCurrentPosition(
+          locationSettings: AndroidSettings(
+            accuracy: LocationAccuracy.medium,
+            forceLocationManager: true,
+            timeLimit: const Duration(seconds: 4),
+          ),
+        );
+        searchLatitude = position.latitude;
+        searchLongitude = position.longitude;
+        searchLocationName = l10n.useMyGps;
+        _safeNotifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Auto location acquisition failed gracefully: $e');
+    }
+  }
+
+  Future<bool> fetchCurrentGps(AppLocalizations l10n, [BuildContext? context]) async {
+    isFetchingGps = true;
+    _safeNotifyListeners();
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (context != null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.locationServiceDisabled)),
+          );
+        }
+        isFetchingGps = false;
+        _safeNotifyListeners();
+        return false;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (context != null && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.locationPermissionDenied)),
+            );
+          }
+          isFetchingGps = false;
+          _safeNotifyListeners();
+          return false;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (context != null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.locationPermissionDenied)),
+          );
+        }
+        isFetchingGps = false;
+        _safeNotifyListeners();
+        return false;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+
+      searchLatitude = position.latitude;
+      searchLongitude = position.longitude;
+      searchLocationName = l10n.useMyGps;
+      isFetchingGps = false;
+      _safeNotifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error getting GPS in FindHomeProvider: $e');
+      isFetchingGps = false;
+      _safeNotifyListeners();
+      return false;
     }
   }
 
@@ -276,35 +398,61 @@ class FindHomeProvider extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  bool get isSearchValid =>
-      selectedMonth != null &&
-      selectedHouseType != null &&
-      selectedDivision != null &&
-      selectedDistrict != null &&
-      selectedUpazila != null &&
-      selectedArea != null &&
-      selectedBudgetRange != null &&
-      selectedTenantType != null;
+  bool get isSearchValid {
+    if (isRadiusSearchMode) {
+      return true;
+    } else {
+      return selectedMonth != null &&
+          selectedHouseType != null &&
+          selectedDivision != null &&
+          selectedDistrict != null &&
+          selectedUpazila != null &&
+          selectedArea != null &&
+          selectedBudgetRange != null &&
+          selectedTenantType != null;
+    }
+  }
 
   SearchFilterModel buildFilter() {
-    assert(isSearchValid, 'buildFilter() called before all required fields are set');
-    return SearchFilterModel(
-      month: selectedMonth!,
-      houseType: selectedHouseType!,
-      division: selectedDivision!,
-      district: selectedDistrict!,
-      upazila: selectedUpazila!,
-      area: selectedArea,
-      budgetRange: selectedBudgetRange!,
-      tenantType: selectedTenantType!,
-      roomOrSeat: selectedRoomOrSeat,
-      bathrooms: selectedBathrooms,
-      balconies: selectedBalconies,
-      floorNumber: selectedFloorNumber,
-      hasLift: hasLift,
-      hasParking: hasParking,
-      sortBy: selectedSortBy,
-    );
+    if (isRadiusSearchMode) {
+      return SearchFilterModel(
+        isRadiusSearch: true,
+        searchLatitude: searchLatitude,
+        searchLongitude: searchLongitude,
+        searchRadiusKm: searchRadiusKm,
+        searchCenterAddress: searchLocationName,
+        month: selectedMonth,
+        houseType: selectedHouseType,
+        budgetRange: selectedBudgetRange,
+        tenantType: selectedTenantType,
+        roomOrSeat: selectedRoomOrSeat,
+        bathrooms: selectedBathrooms,
+        balconies: selectedBalconies,
+        floorNumber: selectedFloorNumber,
+        hasLift: hasLift,
+        hasParking: hasParking,
+        sortBy: SortBy.nearest,
+      );
+    } else {
+      return SearchFilterModel(
+        isRadiusSearch: false,
+        month: selectedMonth!,
+        houseType: selectedHouseType!,
+        division: selectedDivision!,
+        district: selectedDistrict!,
+        upazila: selectedUpazila!,
+        area: selectedArea,
+        budgetRange: selectedBudgetRange!,
+        tenantType: selectedTenantType!,
+        roomOrSeat: selectedRoomOrSeat,
+        bathrooms: selectedBathrooms,
+        balconies: selectedBalconies,
+        floorNumber: selectedFloorNumber,
+        hasLift: hasLift,
+        hasParking: hasParking,
+        sortBy: selectedSortBy,
+      );
+    }
   }
 
   void resetFilters() {

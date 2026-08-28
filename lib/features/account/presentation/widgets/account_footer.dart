@@ -13,15 +13,16 @@ class AccountFooter extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            'BashaBondhu Home Rental • ${l10n.appVersion} 1.0.0',
+            '${l10n.footerAppTitle} • ${l10n.footerVersion}',
             style: TextStyle(
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
               fontSize: 11.5,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 2),
           Text(
-            '© 2026 BashaBondhu Inc. All rights reserved.',
+            l10n.footerCopyright,
             style: TextStyle(
               color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
               fontSize: 10.5,
@@ -32,4 +33,3 @@ class AccountFooter extends StatelessWidget {
     );
   }
 }
-
