@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
+import '../../../../app/utils/privacy_helper.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../../../shared/data/models/search_filter_model.dart';
 import '../../../shared/presentation/widgets/app_network_image.dart';
@@ -25,7 +26,7 @@ class PropertyCard extends StatelessWidget {
     final daysEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     final daysBn = ['সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার', 'রবিবার'];
     final monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final monthsBn = ['জানু', 'ফেব্রু', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টে', 'অক্টো', 'নভে', 'ডিসে'];
+    final monthsBn = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
 
     final dayName = isBn ? daysBn[dt.weekday - 1] : daysEn[dt.weekday - 1];
     final monthName = isBn ? monthsBn[dt.month - 1] : monthsEn[dt.month - 1];
@@ -59,14 +60,30 @@ class PropertyCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final languageCode = Localizations.localeOf(context).languageCode;
     final userProvider = context.watch<UserProvider>();
+    final user = userProvider.user;
+    final isGuest = userProvider.isGuest || user == null;
     final wishlistProvider = context.watch<WishlistProvider>();
     final isFav = wishlistProvider.isFavorite(property.id);
 
-    final locationText = [
-      if (property.subArea != null) property.subArea!.getLocalizedName(languageCode),
-      property.area.getLocalizedName(languageCode),
-      property.district.getLocalizedName(languageCode),
-    ].join(', ');
+    final isUnlocked = PrivacyHelper.isPropertyUnlocked(
+      propertyId: property.id,
+      isGuest: isGuest,
+      isSubscribed: user?.isSubscribed ?? false,
+      unlockedPropertyIds: user?.unlockedPropertyIds ?? [],
+    );
+
+    final subAreaName = property.subArea?.getLocalizedName(languageCode) ?? '';
+    final areaName = property.area.getLocalizedName(languageCode);
+    final districtName = property.district.getLocalizedName(languageCode);
+
+    final locationText = PrivacyHelper.formatLocationWithPrivacy(
+      subAreaName: subAreaName,
+      areaName: areaName,
+      districtName: districtName,
+      isUnlocked: isUnlocked,
+      isGuest: isGuest,
+      languageCode: languageCode,
+    );
 
     final dateDayTimeString = formatDateTimeWithDay(property.postDate, languageCode);
 
@@ -177,6 +194,35 @@ class PropertyCard extends StatelessWidget {
                   ],
                 ),
               ),
+
+              // Image Count / Locked Badge
+              if (property.images.length > 1)
+                Positioned(
+                  bottom: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isGuest) ...[
+                          const Icon(Icons.lock_rounded, color: Colors.amber, size: 12),
+                          const SizedBox(width: 4),
+                        ],
+                        Text(
+                          isGuest
+                              ? '${1.toLocalizedDigits(languageCode)}/${property.images.length.toLocalizedDigits(languageCode)} ${languageCode == 'bn' ? '(বাকি ছবি লক)' : '(Locked)'}'
+                              : '${1.toLocalizedDigits(languageCode)}/${property.images.length.toLocalizedDigits(languageCode)}',
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
               // Wishlist Heart Icon
               Positioned(
@@ -332,7 +378,50 @@ class PropertyCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                // Contact Row (Masked if locked: 017******45)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.phone_iphone_rounded, size: 15, color: Colors.grey),
+                      const SizedBox(width: 5),
+                      Text(
+                        isUnlocked ? property.userMobile : PrivacyHelper.maskPhoneNumber(property.userMobile),
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: isUnlocked ? FontWeight.w600 : FontWeight.bold,
+                          color: isUnlocked ? theme.colorScheme.onSurfaceVariant : Colors.amber.shade800,
+                        ),
+                      ),
+                      if (!isUnlocked) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.amber.shade700, width: 0.8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.lock_rounded, size: 10, color: Colors.amber),
+                              const SizedBox(width: 3),
+                              Text(
+                                l10n.locked,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.amber.shade900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
 
                 // Post Date, Day and Time Badge
                 Container(

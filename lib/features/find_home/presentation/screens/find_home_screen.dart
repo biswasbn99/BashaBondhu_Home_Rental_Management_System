@@ -19,6 +19,8 @@ import '../../../shared/presentation/widgets/number_of_room_or_seat_dropdown_but
 import '../../../shared/presentation/widgets/parking_dropdown_button.dart';
 import '../../../shared/presentation/widgets/post_icon.dart';
 import '../../../shared/presentation/widgets/tenant_type_dropdown_button.dart';
+import '../../../subscription/data/providers/subscription_provider.dart';
+import '../../../subscription/presentation/screens/tenant_subscription_screen.dart';
 import '../providers/find_home_provider.dart';
 import 'search_result.dart';
 
@@ -607,13 +609,68 @@ class _FindHomeView extends StatelessWidget {
     );
   }
 
-  void _search(BuildContext context, FindHomeProvider provider) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SearchResultScreen(filter: provider.buildFilter()),
-      ),
-    );
+  void _search(BuildContext context, FindHomeProvider provider) async {
+    final userProvider = context.read<UserProvider>();
+    final user = userProvider.user;
+    final isGuest = userProvider.isGuest || user == null;
+    final isRadius = !isGuest && provider.isRadiusSearchMode;
+
+    final l10n = context.localizations;
+
+    if (isRadius) {
+      if (!isGuest && !user.isSubscribed && user.freeRadiusSearchesRemaining <= 0) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            title: Row(
+              children: [
+                const Icon(Icons.workspace_premium_rounded, color: Colors.deepOrange),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.radiusLimitReachedTitle,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              l10n.radiusLimitReachedSubtitle,
+              style: const TextStyle(fontSize: 13.5, height: 1.4),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l10n.maybeLater),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: AppColors.themeColor),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+                },
+                child: Text(l10n.viewPackages),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      if (!isGuest && !user.isSubscribed) {
+        await context.read<SubscriptionProvider>().incrementRadiusSearchCount(context, user);
+      }
+    }
+
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SearchResultScreen(filter: provider.buildFilter()),
+        ),
+      );
+    }
   }
 }
 

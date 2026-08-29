@@ -67,6 +67,11 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
+  void updateUser(UserModel updatedUser) {
+    _user = updatedUser;
+    notifyListeners();
+  }
+
   void clearUser() {
     _user = null;
     notifyListeners();

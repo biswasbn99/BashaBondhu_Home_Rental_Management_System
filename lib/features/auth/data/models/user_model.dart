@@ -14,6 +14,13 @@ class UserModel {
   final String nidBackImageUrl;
   final String createdAt;
 
+  // Subscription & Gating Fields
+  final List<String> unlockedPropertyIds; // properties unlocked by tenant
+  final List<String> unlockedDemandIds;   // demands unlocked by house owner
+  final int radiusSearchCount;            // radius search uses for free tier
+  final String subscriptionPlanId;        // plan id if active
+  final String subscriptionExpiryDate;    // ISO string
+
   UserModel({
     required this.uid,
     required this.email,
@@ -29,6 +36,11 @@ class UserModel {
     this.nidFrontImageUrl = '',
     this.nidBackImageUrl = '',
     String? createdAt,
+    this.unlockedPropertyIds = const [],
+    this.unlockedDemandIds = const [],
+    this.radiusSearchCount = 0,
+    this.subscriptionPlanId = '',
+    this.subscriptionExpiryDate = '',
   }) : createdAt = createdAt ?? DateTime.now().toIso8601String();
 
   String get fullName {
@@ -71,6 +83,41 @@ class UserModel {
   /// Check if user is a tenant
   bool get isTenant => !isHouseOwner;
 
+  /// Parsed expiry date
+  DateTime? get expiryDateTime {
+    if (subscriptionExpiryDate.isEmpty) return null;
+    try {
+      return DateTime.parse(subscriptionExpiryDate);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Check if user has an active premium subscription
+  bool get isSubscribed {
+    final expiry = expiryDateTime;
+    if (expiry == null) return false;
+    return expiry.isAfter(DateTime.now());
+  }
+
+  /// Free property unlocks remaining (5 max for free tenant)
+  int get freePropertyUnlocksRemaining {
+    if (isSubscribed) return 999;
+    return (5 - unlockedPropertyIds.length).clamp(0, 5);
+  }
+
+  /// Free demand unlocks remaining (2 max for free owner)
+  int get freeDemandUnlocksRemaining {
+    if (isSubscribed) return 999;
+    return (2 - unlockedDemandIds.length).clamp(0, 2);
+  }
+
+  /// Free radius searches remaining (3 max for free tenant)
+  int get freeRadiusSearchesRemaining {
+    if (isSubscribed) return 999;
+    return (3 - radiusSearchCount).clamp(0, 3);
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -87,6 +134,11 @@ class UserModel {
       'nidFrontImageUrl': nidFrontImageUrl,
       'nidBackImageUrl': nidBackImageUrl,
       'createdAt': createdAt,
+      'unlockedPropertyIds': unlockedPropertyIds,
+      'unlockedDemandIds': unlockedDemandIds,
+      'radiusSearchCount': radiusSearchCount,
+      'subscriptionPlanId': subscriptionPlanId,
+      'subscriptionExpiryDate': subscriptionExpiryDate,
     };
   }
 
@@ -106,6 +158,11 @@ class UserModel {
       nidFrontImageUrl: map['nidFrontImageUrl'] ?? '',
       nidBackImageUrl: map['nidBackImageUrl'] ?? '',
       createdAt: map['createdAt'] ?? '',
+      unlockedPropertyIds: List<String>.from(map['unlockedPropertyIds'] ?? []),
+      unlockedDemandIds: List<String>.from(map['unlockedDemandIds'] ?? []),
+      radiusSearchCount: (map['radiusSearchCount'] as num?)?.toInt() ?? 0,
+      subscriptionPlanId: map['subscriptionPlanId'] ?? '',
+      subscriptionExpiryDate: map['subscriptionExpiryDate'] ?? '',
     );
   }
 
@@ -124,6 +181,11 @@ class UserModel {
     String? nidFrontImageUrl,
     String? nidBackImageUrl,
     String? createdAt,
+    List<String>? unlockedPropertyIds,
+    List<String>? unlockedDemandIds,
+    int? radiusSearchCount,
+    String? subscriptionPlanId,
+    String? subscriptionExpiryDate,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -140,6 +202,11 @@ class UserModel {
       nidFrontImageUrl: nidFrontImageUrl ?? this.nidFrontImageUrl,
       nidBackImageUrl: nidBackImageUrl ?? this.nidBackImageUrl,
       createdAt: createdAt ?? this.createdAt,
+      unlockedPropertyIds: unlockedPropertyIds ?? this.unlockedPropertyIds,
+      unlockedDemandIds: unlockedDemandIds ?? this.unlockedDemandIds,
+      radiusSearchCount: radiusSearchCount ?? this.radiusSearchCount,
+      subscriptionPlanId: subscriptionPlanId ?? this.subscriptionPlanId,
+      subscriptionExpiryDate: subscriptionExpiryDate ?? this.subscriptionExpiryDate,
     );
   }
 }

@@ -6,6 +6,7 @@ import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../../app/validators.dart';
 import '../widgets/app_logo.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/services/auth_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
@@ -230,6 +231,11 @@ class _SignInScreenState extends State<SignInScreen> {
           if (!mounted) return;
 
           if (userType == _selectedUserType) {
+            // Explicitly ensure user data and subscription status are loaded
+            await context.read<UserProvider>().fetchUserData(credential.user!.uid);
+
+            if (!mounted) return;
+
             // Reset nav index before popping
             context.read<MainNavHolderProvider>().resetIndex();
             

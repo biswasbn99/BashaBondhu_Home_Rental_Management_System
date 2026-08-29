@@ -13,6 +13,8 @@ import 'package:bashabondhu_home_rental_management_system/features/auth/data/mod
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/subscription_history_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/tenant_subscription_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_dashboard_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/wishlist/data/providers/wishlist_provider.dart';
@@ -28,6 +30,8 @@ class TenantAccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.localizations;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final wishlistProvider = context.watch<WishlistProvider>();
     final navProvider = context.read<MainNavHolderProvider>();
 
@@ -72,13 +76,76 @@ class TenantAccountScreen extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 16),
+
+        // --- 🌟 Prominent Subscription Status & Upgrade Card ---
+        _buildSubscriptionBannerCard(context, user, isDark, l10n),
         const SizedBox(height: 24),
 
         // Tenant Action Hub
         DecoratedSectionHeader(title: l10n.account),
         const SizedBox(height: 12),
 
-        // 1. My Dashboard Button (Right ABOVE Profile Information)
+        // 1. My Subscription Packages Button
+        AccountActionTile(
+          icon: Icons.card_membership_rounded,
+          title: l10n.mySubscription,
+          subtitle: user.isSubscribed
+              ? (l10n.localeName == 'bn'
+                  ? 'প্রিমিয়াম প্যাকেজ সক্রিয় • সকল সুবিধা ও মেয়াদ দেখুন'
+                  : 'Premium package active • View perks & validity')
+              : (l10n.localeName == 'bn'
+                  ? 'বাড়িওয়ালার নম্বর আনলক ও সাপোর্ট প্যাকেজগুলো দেখুন (৳১০০, ৳২০০, ৳৩৫০)'
+                  : 'Unlock contact numbers & view support packages (৳100, ৳200, ৳350)'),
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: (user.isSubscribed ? Colors.green : Colors.deepOrange).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  user.isSubscribed ? Icons.verified_rounded : Icons.star_rounded,
+                  size: 13,
+                  color: user.isSubscribed ? Colors.green : Colors.deepOrange,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  user.isSubscribed ? 'Premium' : 'প্যাকেজ',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: user.isSubscribed ? Colors.green : Colors.deepOrange,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          onTap: () {
+            Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+          },
+        ),
+
+        // 2. Subscription History & Receipts
+        AccountActionTile(
+          icon: Icons.receipt_long_rounded,
+          title: l10n.subscriptionHistory,
+          subtitle: l10n.localeName == 'bn'
+              ? 'অতীতের সকল সাবস্ক্রিপশন প্যাকেজ ও পেমেন্ট হিস্ট্রি দেখুন'
+              : 'View all past subscription packages and bKash payment records',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SubscriptionHistoryScreen(user: user),
+              ),
+            );
+          },
+        ),
+
+        // 3. My Dashboard Button
         AccountActionTile(
           icon: Icons.dashboard_customize_rounded,
           title: l10n.myDashboard,
@@ -116,7 +183,7 @@ class TenantAccountScreen extends StatelessWidget {
           },
         ),
 
-        // 2. Profile Information
+        // 4. Profile Information
         AccountActionTile(
           icon: Icons.person_pin_circle_outlined,
           title: l10n.myProfile,
@@ -141,7 +208,7 @@ class TenantAccountScreen extends StatelessWidget {
           onTap: () => Navigator.pushNamed(context, MyProfileScreen.name),
         ),
 
-        // 3. My Demands
+        // 5. My Demands
         AccountActionTile(
           icon: Icons.assignment_outlined,
           title: l10n.myDemands,
@@ -151,7 +218,7 @@ class TenantAccountScreen extends StatelessWidget {
           onTap: () => Navigator.pushNamed(context, MyDemandScreen.name),
         ),
 
-        // 4. Find a Home
+        // 6. Find a Home
         AccountActionTile(
           icon: Icons.search_rounded,
           title: l10n.findHome,
@@ -161,7 +228,7 @@ class TenantAccountScreen extends StatelessWidget {
           onTap: () => navProvider.changeIndex(1),
         ),
 
-        // 5. Wishlist
+        // 7. Wishlist
         AccountActionTile(
           icon: Icons.favorite_border_rounded,
           title: l10n.wishlist,
@@ -171,7 +238,7 @@ class TenantAccountScreen extends StatelessWidget {
           onTap: () => navProvider.changeIndex(3),
         ),
 
-        // 6. Demand Post
+        // 8. Demand Post
         AccountActionTile(
           icon: Icons.mark_email_unread_outlined,
           title: l10n.demand,
@@ -196,6 +263,123 @@ class TenantAccountScreen extends StatelessWidget {
 
         const AccountFooter(),
       ],
+    );
+  }
+
+  Widget _buildSubscriptionBannerCard(
+    BuildContext context,
+    UserModel user,
+    bool isDark,
+    dynamic l10n,
+  ) {
+    final bool isSubscribed = user.isSubscribed;
+    final int freeUnlocksLeft = user.freePropertyUnlocksRemaining;
+
+    final String languageCode = Localizations.localeOf(context).languageCode;
+    final int usedUnlocks = (5 - freeUnlocksLeft) > 0 ? (5 - freeUnlocksLeft) : 0;
+    final int usedRadius = (3 - user.freeRadiusSearchesRemaining) > 0 ? (3 - user.freeRadiusSearchesRemaining) : 0;
+
+    final String quotaText = isSubscribed
+        ? l10n.tenantPremiumSubtitle
+        : l10n.tenantQuotaStatus(
+            freeUnlocksLeft.toLocalizedDigits(languageCode),
+            usedUnlocks.toLocalizedDigits(languageCode),
+            user.freeRadiusSearchesRemaining.toLocalizedDigits(languageCode),
+            usedRadius.toLocalizedDigits(languageCode),
+          );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isSubscribed
+              ? (isDark
+                  ? [const Color(0xFF163228), const Color(0xFF0F241D)]
+                  : [const Color(0xFFE4F9ED), const Color(0xFFC7F3DC)])
+              : (isDark
+                  ? [const Color(0xFF2E2416), const Color(0xFF20180D)]
+                  : [const Color(0xFFFFF4E5), const Color(0xFFFFE7CC)]),
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSubscribed ? Colors.green.shade600 : Colors.deepOrange.shade400,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isSubscribed ? Colors.green : Colors.deepOrange).withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (isSubscribed ? Colors.green : Colors.deepOrange).withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isSubscribed ? Icons.verified_rounded : Icons.workspace_premium_rounded,
+                  color: isSubscribed ? Colors.green : Colors.deepOrange,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isSubscribed ? l10n.tenantPremiumActive : l10n.freeAccountLimited,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: isSubscribed ? Colors.green : Colors.deepOrange.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      quotaText,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[300] : Colors.grey[800],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: isSubscribed ? Colors.green.shade700 : Colors.deepOrange,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: Icon(isSubscribed ? Icons.check_circle_rounded : Icons.star_rounded, size: 18),
+              label: Text(
+                isSubscribed ? l10n.subscriptionDetailsAndPackages : l10n.activateSupportPackage,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

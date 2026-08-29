@@ -228,7 +228,12 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
                 onTap: () async {
                   Navigator.pop(ctx);
                   if (isThumbnail || replaceIndex != null) {
-                    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                    final picked = await picker.pickImage(
+                      source: ImageSource.gallery,
+                      maxWidth: 800,
+                      maxHeight: 800,
+                      imageQuality: 70,
+                    );
                     if (picked != null) {
                       setState(() {
                         final file = File(picked.path);
@@ -244,7 +249,11 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
                       });
                     }
                   } else {
-                    final pickedList = await picker.pickMultiImage(imageQuality: 85);
+                    final pickedList = await picker.pickMultiImage(
+                      maxWidth: 800,
+                      maxHeight: 800,
+                      imageQuality: 70,
+                    );
                     if (pickedList.isNotEmpty) {
                       setState(() {
                         for (final xFile in pickedList) {
@@ -261,7 +270,12 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
                 title: Text(l10n.cameraOption),
                 onTap: () async {
                   Navigator.pop(ctx);
-                  final picked = await picker.pickImage(source: ImageSource.camera, imageQuality: 85);
+                  final picked = await picker.pickImage(
+                    source: ImageSource.camera,
+                    maxWidth: 800,
+                    maxHeight: 800,
+                    imageQuality: 70,
+                  );
                   if (picked != null) {
                     setState(() {
                       final file = File(picked.path);

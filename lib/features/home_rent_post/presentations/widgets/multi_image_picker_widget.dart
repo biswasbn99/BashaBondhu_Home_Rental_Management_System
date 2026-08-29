@@ -96,7 +96,9 @@ class MultiImagePickerWidget extends StatelessWidget {
                   if (isThumbnail) {
                     final pickedFile = await picker.pickImage(
                       source: ImageSource.gallery,
-                      imageQuality: 85,
+                      maxWidth: 800,
+                      maxHeight: 800,
+                      imageQuality: 70,
                     );
                     if (pickedFile != null) {
                       if (onThumbnailSet != null) {
@@ -108,14 +110,18 @@ class MultiImagePickerWidget extends StatelessWidget {
                   } else if (replaceIndex != null) {
                     final pickedFile = await picker.pickImage(
                       source: ImageSource.gallery,
-                      imageQuality: 85,
+                      maxWidth: 800,
+                      maxHeight: 800,
+                      imageQuality: 70,
                     );
                     if (pickedFile != null && onImageReplaced != null) {
                       onImageReplaced!(replaceIndex, File(pickedFile.path));
                     }
                   } else {
                     final pickedFiles = await picker.pickMultiImage(
-                      imageQuality: 85,
+                      maxWidth: 800,
+                      maxHeight: 800,
+                      imageQuality: 70,
                       limit: maxTotalImages - images.length,
                     );
                     if (pickedFiles.isNotEmpty) {
@@ -154,7 +160,9 @@ class MultiImagePickerWidget extends StatelessWidget {
                   Navigator.pop(ctx);
                   final pickedFile = await picker.pickImage(
                     source: ImageSource.camera,
-                    imageQuality: 85,
+                    maxWidth: 800,
+                    maxHeight: 800,
+                    imageQuality: 70,
                   );
                   if (pickedFile != null) {
                     if (isThumbnail) {

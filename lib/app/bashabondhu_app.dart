@@ -16,7 +16,7 @@ import 'package:provider/provider.dart';
 
 
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/providers/my_post_provider.dart';
-
+import 'package:bashabondhu_home_rental_management_system/features/subscription/data/providers/subscription_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/wishlist/data/providers/wishlist_provider.dart';
 
 class BashabondhuApp extends StatefulWidget {
@@ -50,6 +50,7 @@ class _BashabondhuAppState extends State<BashabondhuApp> {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => MyPostProvider()),
         ChangeNotifierProvider(create: (_) => WishlistProvider()),
+        ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, _, _) {

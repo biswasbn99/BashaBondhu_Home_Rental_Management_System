@@ -991,4 +991,205 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get viewAllHomes => 'সকল বাসা দেখুন';
+
+  @override
+  String get mySubscription => 'সাবস্ক্রিপশন ও প্রিমিয়াম প্যাকেজ';
+
+  @override
+  String get subscriptionPackages => 'সাবস্ক্রিপশন প্যাকেজসমূহ';
+
+  @override
+  String get subscriptionHistory => 'সাবস্ক্রিপশন ইতিহাস';
+
+  @override
+  String get choosePlan => 'প্যাকেজ নিন';
+
+  @override
+  String get bKashPayment => 'বিকাশ পেমেন্ট গেটওয়ে';
+
+  @override
+  String get adminBkashAccount => 'অ্যাডমিন বিকাশ একাউন্ট (Send Money)';
+
+  @override
+  String get trxIdLabel => 'বিকাশ TrxID দিন';
+
+  @override
+  String get senderPhoneLabel => 'প্রেরকের বিকাশ মোবাইল নম্বর';
+
+  @override
+  String get verifyAndActivate => 'পেমেন্ট যাচাই ও প্যাকেজ সক্রিয় করুন';
+
+  @override
+  String get demoInstantActivate =>
+      '⚡ ইনস্ট্যান্ট টেস্ট অ্যাক্টিভেশন (পরীক্ষামূলক)';
+
+  @override
+  String get unlockPromptHeader =>
+      'আপনি যদি নাম্বার আনলক করে বাড়িওয়ালাদের সাথে সরাসরি যোগাযোগ করতে চান, সেক্ষেত্রে নিচের যেকোনো একটি সাপোর্ট প্যাকেজ অ্যাক্টিভ করুন';
+
+  @override
+  String get ownerUnlockPromptHeader =>
+      'আপনি যদি আনলিমিটেড বাসাভাড়া বিজ্ঞাপন পোস্ট করতে এবং সকল ভাড়াটিয়াদের নম্বর আনলক করতে চান, তবে নিচের যেকোনো একটি প্যাকেজ অ্যাক্টিভ করুন';
+
+  @override
+  String tenantQuotaStatus(
+    String remainingUnlocks,
+    String usedUnlocks,
+    String remainingRadius,
+    String usedRadius,
+  ) {
+    return 'নম্বর আনলক বাকি: $remainingUnlocks/৫ (ব্যবহৃত: $usedUnlocks/৫) • রেডিয়াস সার্চ বাকি: $remainingRadius/৩ (ব্যবহৃত: $usedRadius/৩)';
+  }
+
+  @override
+  String ownerQuotaStatus(
+    String remainingPosts,
+    String usedPosts,
+    String remainingUnlocks,
+    String usedUnlocks,
+  ) {
+    return 'বিজ্ঞাপন পোস্ট বাকি: $remainingPosts/২ (ব্যবহৃত: $usedPosts/২) • ভাড়াটিয়া নম্বর আনলক বাকি: $remainingUnlocks/২ (ব্যবহৃত: $usedUnlocks/২)';
+  }
+
+  @override
+  String get tenantPremiumActive => '👑 প্রিমিয়াম মেম্বারশিপ সক্রিয়';
+
+  @override
+  String get tenantPremiumSubtitle =>
+      'আনলিমিটেড নম্বর আনলক, রেডিয়াস সার্চ ও চাহিদা পোস্ট সক্রিয়';
+
+  @override
+  String get ownerPremiumActive => '👑 বাড়িওয়ালা প্রিমিয়াম সক্রিয়';
+
+  @override
+  String get ownerPremiumSubtitle =>
+      'আনলিমিটেড বাসা বিজ্ঞাপন পোস্ট ও সকল ভাড়াটিয়া নম্বর আনলক সক্রিয়';
+
+  @override
+  String get freeAccountLimited => 'ফ্রি অ্যাকাউন্ট (লিমিট চলছে)';
+
+  @override
+  String get freeOwnerAccountLimited => 'ফ্রি বাড়িওয়ালা অ্যাকাউন্ট (সীমিত)';
+
+  @override
+  String get activateSupportPackage => '👑 সাপোর্ট প্যাকেজ অ্যাক্টিভ করুন';
+
+  @override
+  String get activateOwnerPackage => '👑 বাড়িওয়ালা প্যাকেজ অ্যাক্টিভ করুন';
+
+  @override
+  String get subscriptionDetailsAndPackages => 'সাবস্ক্রিপশন ডিটেইলস ও প্যাকেজ';
+
+  @override
+  String get mapLockedTitle => 'ম্যাপ ও জিপিএস লোকেশন লক করা আছে';
+
+  @override
+  String get mapLockedSubtitle =>
+      'বাসার সঠিক লোকেশন ও গুগল ম্যাপস ডিরেকশন পেতে তথ্য আনলক করুন।';
+
+  @override
+  String get unlockMap => 'ম্যাপ আনলক করুন';
+
+  @override
+  String unlockInfoAndNumberWithQuota(String remaining) {
+    return 'তথ্য ও নম্বর আনলক করুন ($remaining/৫টি ফ্রি বাকি)';
+  }
+
+  @override
+  String unlockInfoAndNumberWithQuotaOwner(String remaining) {
+    return 'ভাড়াটিয়ার নম্বর আনলক ($remaining/২টি ফ্রি বাকি)';
+  }
+
+  @override
+  String get loginToUnlockInfo => 'লগইন করে নম্বর ও তথ্য আনলক করুন';
+
+  @override
+  String get unlockWithSupportPackage =>
+      '👑 সাপোর্ট প্যাকেজ নিয়ে নম্বর আনলক করুন';
+
+  @override
+  String get unlockPropertyDialogTitle => 'তথ্য ও নম্বর আনলক';
+
+  @override
+  String unlockPropertyDialogContent(String remaining) {
+    return 'আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই বাসার সঠিক সাব-এরিয়া, বাড়িওয়ালার ফোন নম্বর ও অতিরিক্ত সকল ছবি আনলক করতে চান?\n\n(আপনার ফ্রি আনলক বাকি: $remaining/৫টি)';
+  }
+
+  @override
+  String get unlockDemandDialogTitle => 'ভাড়াটিয়ার নম্বর আনলক';
+
+  @override
+  String unlockDemandDialogContent(String remaining) {
+    return 'আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই ভাড়াটিয়ার সম্পূর্ণ ফোন ও হোয়াটসঅ্যাপ নম্বর আনলক করতে চান?\n\n(আপনার ফ্রি আনলক বাকি: $remaining/২টি)';
+  }
+
+  @override
+  String get unlockSuccessMessage =>
+      'বাসার সকল তথ্য, সাব-এরিয়া ও বাড়িওয়ালার নম্বর সফলভাবে আনলক হয়েছে!';
+
+  @override
+  String get unlockDemandSuccessMessage =>
+      'ভাড়াটিয়ার নম্বর সফলভাবে আনলক হয়েছে!';
+
+  @override
+  String get yesUnlock => 'হ্যাঁ, আনলক করুন';
+
+  @override
+  String photosLockedBadge(String current, String total) {
+    return '$current/$total (বাকি ছবি দেখতে আনলক করুন)';
+  }
+
+  @override
+  String get locked => 'লক করা';
+
+  @override
+  String get loginToUnlockTenantContact => 'লগইন করে ভাড়াটিয়ার নম্বর দেখুন';
+
+  @override
+  String get unlockWithHouseOwnerPackage =>
+      '👑 বাড়িওয়ালা প্যাকেজ নিয়ে নম্বর আনলক করুন';
+
+  @override
+  String get radiusLimitReachedTitle => 'রেডিয়াস সার্চের ফ্রি সীমা শেষ';
+
+  @override
+  String get radiusLimitReachedSubtitle =>
+      'আপনি ৩টি ফ্রি রেডিয়াস সার্চ ব্যবহার করে ফেলেছেন। আনলিমিটেড রেডিয়াস সার্চ উপভোগ করতে আমাদের যেকোনো সাপোর্ট প্যাকেজ অ্যাক্টিভ করুন।';
+
+  @override
+  String get maybeLater => 'পরে করব';
+
+  @override
+  String get viewPackages => 'প্যাকেজ দেখুন';
+
+  @override
+  String get tenantQuotaOverviewTitle =>
+      'আপনার ফ্রি অ্যাকাউন্টের লিমিট ওভারভিউ';
+
+  @override
+  String get ownerQuotaOverviewTitle =>
+      'ফ্রি বাড়িওয়ালা অ্যাকাউন্টের লিমিট ওভারভিউ';
+
+  @override
+  String get propertyUnlocksQuotaLabel => 'বাসা ও বাড়িওয়ালার নম্বর আনলক:';
+
+  @override
+  String get radiusSearchQuotaLabel => 'রেডিয়াস (দূরত্ব অনুযায়ী) সার্চ:';
+
+  @override
+  String get demandPostQuotaLabel => 'ভাড়ার চাহিদা পোস্ট:';
+
+  @override
+  String get ownerDemandUnlocksQuotaLabel => 'ভাড়াটিয়াদের নম্বর আনলক:';
+
+  @override
+  String get ownerPostQuotaLabel => 'বাসাভাড়া বিজ্ঞাপন পোস্ট:';
+
+  @override
+  String quotaRemainingWithUsed(String remaining, String total, String used) {
+    return '$remaining/$totalটি বাকি (ব্যবহৃত: $used/$total)';
+  }
+
+  @override
+  String get maxTwoFree => 'সর্বোচ্চ ২টি ফ্রি';
 }

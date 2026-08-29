@@ -317,5 +317,109 @@
   "noHousesFoundTitle": "No Rental Homes Found",
   "noHousesFoundSubtitle": "No houses match your selected location and radius. Try expanding your search distance or modifying filters.",
   "changeFilters": "Change Filters",
-  "viewAllHomes": "View All Homes"
+  "viewAllHomes": "View All Homes",
+  "mySubscription": "Subscription & Premium Packages",
+  "subscriptionPackages": "Subscription Packages",
+  "subscriptionHistory": "Subscription History",
+  "choosePlan": "Choose Plan",
+  "bKashPayment": "bKash Payment Gateway",
+  "adminBkashAccount": "Admin bKash Account (Send Money)",
+  "trxIdLabel": "bKash Transaction ID (TrxID)",
+  "senderPhoneLabel": "Sender bKash Phone Number",
+  "verifyAndActivate": "Verify Payment & Activate Package",
+  "demoInstantActivate": "⚡ Instant Demo Activation (For Testing)",
+  "unlockPromptHeader": "If you want to unlock numbers and contact landlords directly, please activate any of the support packages below.",
+  "ownerUnlockPromptHeader": "If you want to post unlimited house listings and unlock tenant contact numbers, please activate any of the packages below.",
+  "tenantQuotaStatus": "Number unlocks remaining: {remainingUnlocks}/5 (Used: {usedUnlocks}/5) • Radius searches remaining: {remainingRadius}/3 (Used: {usedRadius}/3)",
+  "@tenantQuotaStatus": {
+    "placeholders": {
+      "remainingUnlocks": {"type": "String"},
+      "usedUnlocks": {"type": "String"},
+      "remainingRadius": {"type": "String"},
+      "usedRadius": {"type": "String"}
+    }
+  },
+  "ownerQuotaStatus": "Ad posts remaining: {remainingPosts}/2 (Used: {usedPosts}/2) • Tenant number unlocks remaining: {remainingUnlocks}/2 (Used: {usedUnlocks}/2)",
+  "@ownerQuotaStatus": {
+    "placeholders": {
+      "remainingPosts": {"type": "String"},
+      "usedPosts": {"type": "String"},
+      "remainingUnlocks": {"type": "String"},
+      "usedUnlocks": {"type": "String"}
+    }
+  },
+  "tenantPremiumActive": "👑 Premium Membership Active",
+  "tenantPremiumSubtitle": "Unlimited number unlocks, radius searches & demand posts active",
+  "ownerPremiumActive": "👑 House Owner Premium Active",
+  "ownerPremiumSubtitle": "Unlimited house listing posts & all tenant number unlocks active",
+  "freeAccountLimited": "Free Account (Active Limits)",
+  "freeOwnerAccountLimited": "Free House Owner Account (Limited)",
+  "activateSupportPackage": "👑 Activate Support Package",
+  "activateOwnerPackage": "👑 Activate Owner Package",
+  "subscriptionDetailsAndPackages": "Subscription Details & Packages",
+  "mapLockedTitle": "Map & GPS Location Locked",
+  "mapLockedSubtitle": "Unlock property details to view exact location and Google Maps navigation directions.",
+  "unlockMap": "Unlock Map",
+  "unlockInfoAndNumberWithQuota": "Unlock Info & Contacts ({remaining}/5 Free Remaining)",
+  "@unlockInfoAndNumberWithQuota": {
+    "placeholders": {
+      "remaining": {"type": "String"}
+    }
+  },
+  "unlockInfoAndNumberWithQuotaOwner": "Unlock Tenant Contact ({remaining}/2 Free Remaining)",
+  "@unlockInfoAndNumberWithQuotaOwner": {
+    "placeholders": {
+      "remaining": {"type": "String"}
+    }
+  },
+  "loginToUnlockInfo": "Login to Unlock Info & Contacts",
+  "unlockWithSupportPackage": "👑 Get Support Package to Unlock",
+  "unlockPropertyDialogTitle": "Unlock Property Details & Contact",
+  "unlockPropertyDialogContent": "Do you want to use 1 free credit to unlock the exact sub-area, landlord's contact numbers, and all gallery photos?\n\n(Your free unlocks remaining: {remaining}/5)",
+  "@unlockPropertyDialogContent": {
+    "placeholders": {
+      "remaining": {"type": "String"}
+    }
+  },
+  "unlockDemandDialogTitle": "Unlock Tenant Contact Number",
+  "unlockDemandDialogContent": "Do you want to use 1 free credit to unlock this tenant's phone and WhatsApp number?\n\n(Your free unlocks remaining: {remaining}/2)",
+  "@unlockDemandDialogContent": {
+    "placeholders": {
+      "remaining": {"type": "String"}
+    }
+  },
+  "unlockSuccessMessage": "Property details, sub-area, and landlord contact unlocked successfully!",
+  "unlockDemandSuccessMessage": "Tenant contact unlocked successfully!",
+  "yesUnlock": "Yes, Unlock",
+  "no": "No",
+  "photosLockedBadge": "{current}/{total} (Unlock to view all photos)",
+  "@photosLockedBadge": {
+    "placeholders": {
+      "current": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+  "locked": "Locked",
+  "loginToUnlockTenantContact": "Login to View Tenant Contact",
+  "unlockWithHouseOwnerPackage": "👑 Get House Owner Package to Unlock",
+  "radiusLimitReachedTitle": "Free Radius Searches Limit Reached",
+  "radiusLimitReachedSubtitle": "You have used all 3 free radius searches. Activate any support package to enjoy unlimited radius searches.",
+  "maybeLater": "Maybe Later",
+  "viewPackages": "View Packages",
+  "tenantQuotaOverviewTitle": "Free Account Limit Overview",
+  "ownerQuotaOverviewTitle": "Free House Owner Limit Overview",
+  "propertyUnlocksQuotaLabel": "Property & Landlord Contact Unlocks:",
+  "radiusSearchQuotaLabel": "Radius (Nearby) Search:",
+  "demandPostQuotaLabel": "Rental Demand Posts:",
+  "ownerDemandUnlocksQuotaLabel": "Tenant Contact Unlocks:",
+  "ownerPostQuotaLabel": "Rental House Posts:",
+  "quotaRemainingWithUsed": "{remaining}/{total} Left (Used: {used}/{total})",
+  "@quotaRemainingWithUsed": {
+    "placeholders": {
+      "remaining": {"type": "String"},
+      "total": {"type": "String"},
+      "used": {"type": "String"}
+    }
+  },
+  "maxTwoFree": "Max 2 Free"
 }

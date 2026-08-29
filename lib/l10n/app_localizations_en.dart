@@ -991,4 +991,203 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewAllHomes => 'View All Homes';
+
+  @override
+  String get mySubscription => 'Subscription & Premium Packages';
+
+  @override
+  String get subscriptionPackages => 'Subscription Packages';
+
+  @override
+  String get subscriptionHistory => 'Subscription History';
+
+  @override
+  String get choosePlan => 'Choose Plan';
+
+  @override
+  String get bKashPayment => 'bKash Payment Gateway';
+
+  @override
+  String get adminBkashAccount => 'Admin bKash Account (Send Money)';
+
+  @override
+  String get trxIdLabel => 'bKash Transaction ID (TrxID)';
+
+  @override
+  String get senderPhoneLabel => 'Sender bKash Phone Number';
+
+  @override
+  String get verifyAndActivate => 'Verify Payment & Activate Package';
+
+  @override
+  String get demoInstantActivate => '⚡ Instant Demo Activation (For Testing)';
+
+  @override
+  String get unlockPromptHeader =>
+      'If you want to unlock numbers and contact landlords directly, please activate any of the support packages below.';
+
+  @override
+  String get ownerUnlockPromptHeader =>
+      'If you want to post unlimited house listings and unlock tenant contact numbers, please activate any of the packages below.';
+
+  @override
+  String tenantQuotaStatus(
+    String remainingUnlocks,
+    String usedUnlocks,
+    String remainingRadius,
+    String usedRadius,
+  ) {
+    return 'Number unlocks remaining: $remainingUnlocks/5 (Used: $usedUnlocks/5) • Radius searches remaining: $remainingRadius/3 (Used: $usedRadius/3)';
+  }
+
+  @override
+  String ownerQuotaStatus(
+    String remainingPosts,
+    String usedPosts,
+    String remainingUnlocks,
+    String usedUnlocks,
+  ) {
+    return 'Ad posts remaining: $remainingPosts/2 (Used: $usedPosts/2) • Tenant number unlocks remaining: $remainingUnlocks/2 (Used: $usedUnlocks/2)';
+  }
+
+  @override
+  String get tenantPremiumActive => '👑 Premium Membership Active';
+
+  @override
+  String get tenantPremiumSubtitle =>
+      'Unlimited number unlocks, radius searches & demand posts active';
+
+  @override
+  String get ownerPremiumActive => '👑 House Owner Premium Active';
+
+  @override
+  String get ownerPremiumSubtitle =>
+      'Unlimited house listing posts & all tenant number unlocks active';
+
+  @override
+  String get freeAccountLimited => 'Free Account (Active Limits)';
+
+  @override
+  String get freeOwnerAccountLimited => 'Free House Owner Account (Limited)';
+
+  @override
+  String get activateSupportPackage => '👑 Activate Support Package';
+
+  @override
+  String get activateOwnerPackage => '👑 Activate Owner Package';
+
+  @override
+  String get subscriptionDetailsAndPackages =>
+      'Subscription Details & Packages';
+
+  @override
+  String get mapLockedTitle => 'Map & GPS Location Locked';
+
+  @override
+  String get mapLockedSubtitle =>
+      'Unlock property details to view exact location and Google Maps navigation directions.';
+
+  @override
+  String get unlockMap => 'Unlock Map';
+
+  @override
+  String unlockInfoAndNumberWithQuota(String remaining) {
+    return 'Unlock Info & Contacts ($remaining/5 Free Remaining)';
+  }
+
+  @override
+  String unlockInfoAndNumberWithQuotaOwner(String remaining) {
+    return 'Unlock Tenant Contact ($remaining/2 Free Remaining)';
+  }
+
+  @override
+  String get loginToUnlockInfo => 'Login to Unlock Info & Contacts';
+
+  @override
+  String get unlockWithSupportPackage => '👑 Get Support Package to Unlock';
+
+  @override
+  String get unlockPropertyDialogTitle => 'Unlock Property Details & Contact';
+
+  @override
+  String unlockPropertyDialogContent(String remaining) {
+    return 'Do you want to use 1 free credit to unlock the exact sub-area, landlord\'s contact numbers, and all gallery photos?\n\n(Your free unlocks remaining: $remaining/5)';
+  }
+
+  @override
+  String get unlockDemandDialogTitle => 'Unlock Tenant Contact Number';
+
+  @override
+  String unlockDemandDialogContent(String remaining) {
+    return 'Do you want to use 1 free credit to unlock this tenant\'s phone and WhatsApp number?\n\n(Your free unlocks remaining: $remaining/2)';
+  }
+
+  @override
+  String get unlockSuccessMessage =>
+      'Property details, sub-area, and landlord contact unlocked successfully!';
+
+  @override
+  String get unlockDemandSuccessMessage =>
+      'Tenant contact unlocked successfully!';
+
+  @override
+  String get yesUnlock => 'Yes, Unlock';
+
+  @override
+  String photosLockedBadge(String current, String total) {
+    return '$current/$total (Unlock to view all photos)';
+  }
+
+  @override
+  String get locked => 'Locked';
+
+  @override
+  String get loginToUnlockTenantContact => 'Login to View Tenant Contact';
+
+  @override
+  String get unlockWithHouseOwnerPackage =>
+      '👑 Get House Owner Package to Unlock';
+
+  @override
+  String get radiusLimitReachedTitle => 'Free Radius Searches Limit Reached';
+
+  @override
+  String get radiusLimitReachedSubtitle =>
+      'You have used all 3 free radius searches. Activate any support package to enjoy unlimited radius searches.';
+
+  @override
+  String get maybeLater => 'Maybe Later';
+
+  @override
+  String get viewPackages => 'View Packages';
+
+  @override
+  String get tenantQuotaOverviewTitle => 'Free Account Limit Overview';
+
+  @override
+  String get ownerQuotaOverviewTitle => 'Free House Owner Limit Overview';
+
+  @override
+  String get propertyUnlocksQuotaLabel =>
+      'Property & Landlord Contact Unlocks:';
+
+  @override
+  String get radiusSearchQuotaLabel => 'Radius (Nearby) Search:';
+
+  @override
+  String get demandPostQuotaLabel => 'Rental Demand Posts:';
+
+  @override
+  String get ownerDemandUnlocksQuotaLabel => 'Tenant Contact Unlocks:';
+
+  @override
+  String get ownerPostQuotaLabel => 'Rental House Posts:';
+
+  @override
+  String quotaRemainingWithUsed(String remaining, String total, String used) {
+    return '$remaining/$total Left (Used: $used/$total)';
+  }
+
+  @override
+  String get maxTwoFree => 'Max 2 Free';
 }

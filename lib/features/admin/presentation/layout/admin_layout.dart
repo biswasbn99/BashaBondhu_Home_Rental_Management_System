@@ -190,6 +190,8 @@ class AdminLayout extends StatelessWidget {
         return isBn ? 'ইউজার ম্যানেজমেন্ট' : 'User Management';
       case AdminModule.properties:
         return isBn ? 'বাসাভাড়া বিজ্ঞাপন' : 'Property Management';
+      case AdminModule.subscriptions:
+        return isBn ? 'সাবস্ক্রিপশন ও অফার ম্যানেজমেন্ট' : 'Subscription & Offer Management';
       case AdminModule.locations:
         return isBn ? 'লোকেশন' : 'Location Management';
       case AdminModule.categories:

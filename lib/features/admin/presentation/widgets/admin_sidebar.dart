@@ -96,6 +96,13 @@ class AdminSidebar extends StatelessWidget {
                     isDark: isDark,
                   ),
                   _SidebarItem(
+                    icon: Icons.card_membership_rounded,
+                    label: isBn ? 'সাবস্ক্রিপশন ও প্যাকেজ' : 'Subscriptions',
+                    module: AdminModule.subscriptions,
+                    isSelected: adminProvider.currentModule == AdminModule.subscriptions,
+                    isDark: isDark,
+                  ),
+                  _SidebarItem(
                     icon: Icons.location_on_rounded,
                     label: isBn ? 'লোকেশন' : 'Locations',
                     module: AdminModule.locations,

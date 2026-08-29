@@ -15,6 +15,9 @@ import 'package:bashabondhu_home_rental_management_system/features/tenant/presen
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/show_demand_details_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_dashboard_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/house_owner_subscription_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/subscription_history_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/tenant_subscription_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../features/auth/presentation/screens/splash_screen.dart';
@@ -52,6 +55,9 @@ class AppRoutes {
       MyProfileScreen.name => const MyProfileScreen(),
       HouseOwnerDashboardScreen.name => const HouseOwnerDashboardScreen(),
       TenantDashboardScreen.name => const TenantDashboardScreen(),
+      TenantSubscriptionScreen.name => const TenantSubscriptionScreen(),
+      HouseOwnerSubscriptionScreen.name => const HouseOwnerSubscriptionScreen(),
+      SubscriptionHistoryScreen.name => const SubscriptionHistoryScreen(),
       AdminMainScreen.name => const AdminMainScreen(),
       _ => const Scaffold(body: Center(child: Text('Page not found'))),
     };

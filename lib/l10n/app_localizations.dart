@@ -1999,6 +1999,340 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View All Homes'**
   String get viewAllHomes;
+
+  /// No description provided for @mySubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription & Premium Packages'**
+  String get mySubscription;
+
+  /// No description provided for @subscriptionPackages.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Packages'**
+  String get subscriptionPackages;
+
+  /// No description provided for @subscriptionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription History'**
+  String get subscriptionHistory;
+
+  /// No description provided for @choosePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Plan'**
+  String get choosePlan;
+
+  /// No description provided for @bKashPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'bKash Payment Gateway'**
+  String get bKashPayment;
+
+  /// No description provided for @adminBkashAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin bKash Account (Send Money)'**
+  String get adminBkashAccount;
+
+  /// No description provided for @trxIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'bKash Transaction ID (TrxID)'**
+  String get trxIdLabel;
+
+  /// No description provided for @senderPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sender bKash Phone Number'**
+  String get senderPhoneLabel;
+
+  /// No description provided for @verifyAndActivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Payment & Activate Package'**
+  String get verifyAndActivate;
+
+  /// No description provided for @demoInstantActivate.
+  ///
+  /// In en, this message translates to:
+  /// **'⚡ Instant Demo Activation (For Testing)'**
+  String get demoInstantActivate;
+
+  /// No description provided for @unlockPromptHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'If you want to unlock numbers and contact landlords directly, please activate any of the support packages below.'**
+  String get unlockPromptHeader;
+
+  /// No description provided for @ownerUnlockPromptHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'If you want to post unlimited house listings and unlock tenant contact numbers, please activate any of the packages below.'**
+  String get ownerUnlockPromptHeader;
+
+  /// No description provided for @tenantQuotaStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Number unlocks remaining: {remainingUnlocks}/5 (Used: {usedUnlocks}/5) • Radius searches remaining: {remainingRadius}/3 (Used: {usedRadius}/3)'**
+  String tenantQuotaStatus(
+    String remainingUnlocks,
+    String usedUnlocks,
+    String remainingRadius,
+    String usedRadius,
+  );
+
+  /// No description provided for @ownerQuotaStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad posts remaining: {remainingPosts}/2 (Used: {usedPosts}/2) • Tenant number unlocks remaining: {remainingUnlocks}/2 (Used: {usedUnlocks}/2)'**
+  String ownerQuotaStatus(
+    String remainingPosts,
+    String usedPosts,
+    String remainingUnlocks,
+    String usedUnlocks,
+  );
+
+  /// No description provided for @tenantPremiumActive.
+  ///
+  /// In en, this message translates to:
+  /// **'👑 Premium Membership Active'**
+  String get tenantPremiumActive;
+
+  /// No description provided for @tenantPremiumSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited number unlocks, radius searches & demand posts active'**
+  String get tenantPremiumSubtitle;
+
+  /// No description provided for @ownerPremiumActive.
+  ///
+  /// In en, this message translates to:
+  /// **'👑 House Owner Premium Active'**
+  String get ownerPremiumActive;
+
+  /// No description provided for @ownerPremiumSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited house listing posts & all tenant number unlocks active'**
+  String get ownerPremiumSubtitle;
+
+  /// No description provided for @freeAccountLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Account (Active Limits)'**
+  String get freeAccountLimited;
+
+  /// No description provided for @freeOwnerAccountLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Free House Owner Account (Limited)'**
+  String get freeOwnerAccountLimited;
+
+  /// No description provided for @activateSupportPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'👑 Activate Support Package'**
+  String get activateSupportPackage;
+
+  /// No description provided for @activateOwnerPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'👑 Activate Owner Package'**
+  String get activateOwnerPackage;
+
+  /// No description provided for @subscriptionDetailsAndPackages.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Details & Packages'**
+  String get subscriptionDetailsAndPackages;
+
+  /// No description provided for @mapLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Map & GPS Location Locked'**
+  String get mapLockedTitle;
+
+  /// No description provided for @mapLockedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock property details to view exact location and Google Maps navigation directions.'**
+  String get mapLockedSubtitle;
+
+  /// No description provided for @unlockMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Map'**
+  String get unlockMap;
+
+  /// No description provided for @unlockInfoAndNumberWithQuota.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Info & Contacts ({remaining}/5 Free Remaining)'**
+  String unlockInfoAndNumberWithQuota(String remaining);
+
+  /// No description provided for @unlockInfoAndNumberWithQuotaOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Tenant Contact ({remaining}/2 Free Remaining)'**
+  String unlockInfoAndNumberWithQuotaOwner(String remaining);
+
+  /// No description provided for @loginToUnlockInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Login to Unlock Info & Contacts'**
+  String get loginToUnlockInfo;
+
+  /// No description provided for @unlockWithSupportPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'👑 Get Support Package to Unlock'**
+  String get unlockWithSupportPackage;
+
+  /// No description provided for @unlockPropertyDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Property Details & Contact'**
+  String get unlockPropertyDialogTitle;
+
+  /// No description provided for @unlockPropertyDialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to use 1 free credit to unlock the exact sub-area, landlord\'s contact numbers, and all gallery photos?\n\n(Your free unlocks remaining: {remaining}/5)'**
+  String unlockPropertyDialogContent(String remaining);
+
+  /// No description provided for @unlockDemandDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Tenant Contact Number'**
+  String get unlockDemandDialogTitle;
+
+  /// No description provided for @unlockDemandDialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to use 1 free credit to unlock this tenant\'s phone and WhatsApp number?\n\n(Your free unlocks remaining: {remaining}/2)'**
+  String unlockDemandDialogContent(String remaining);
+
+  /// No description provided for @unlockSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Property details, sub-area, and landlord contact unlocked successfully!'**
+  String get unlockSuccessMessage;
+
+  /// No description provided for @unlockDemandSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenant contact unlocked successfully!'**
+  String get unlockDemandSuccessMessage;
+
+  /// No description provided for @yesUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Unlock'**
+  String get yesUnlock;
+
+  /// No description provided for @photosLockedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total} (Unlock to view all photos)'**
+  String photosLockedBadge(String current, String total);
+
+  /// No description provided for @locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get locked;
+
+  /// No description provided for @loginToUnlockTenantContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Login to View Tenant Contact'**
+  String get loginToUnlockTenantContact;
+
+  /// No description provided for @unlockWithHouseOwnerPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'👑 Get House Owner Package to Unlock'**
+  String get unlockWithHouseOwnerPackage;
+
+  /// No description provided for @radiusLimitReachedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Radius Searches Limit Reached'**
+  String get radiusLimitReachedTitle;
+
+  /// No description provided for @radiusLimitReachedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You have used all 3 free radius searches. Activate any support package to enjoy unlimited radius searches.'**
+  String get radiusLimitReachedSubtitle;
+
+  /// No description provided for @maybeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe Later'**
+  String get maybeLater;
+
+  /// No description provided for @viewPackages.
+  ///
+  /// In en, this message translates to:
+  /// **'View Packages'**
+  String get viewPackages;
+
+  /// No description provided for @tenantQuotaOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Account Limit Overview'**
+  String get tenantQuotaOverviewTitle;
+
+  /// No description provided for @ownerQuotaOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Free House Owner Limit Overview'**
+  String get ownerQuotaOverviewTitle;
+
+  /// No description provided for @propertyUnlocksQuotaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Property & Landlord Contact Unlocks:'**
+  String get propertyUnlocksQuotaLabel;
+
+  /// No description provided for @radiusSearchQuotaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Radius (Nearby) Search:'**
+  String get radiusSearchQuotaLabel;
+
+  /// No description provided for @demandPostQuotaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental Demand Posts:'**
+  String get demandPostQuotaLabel;
+
+  /// No description provided for @ownerDemandUnlocksQuotaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenant Contact Unlocks:'**
+  String get ownerDemandUnlocksQuotaLabel;
+
+  /// No description provided for @ownerPostQuotaLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental House Posts:'**
+  String get ownerPostQuotaLabel;
+
+  /// No description provided for @quotaRemainingWithUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining}/{total} Left (Used: {used}/{total})'**
+  String quotaRemainingWithUsed(String remaining, String total, String used);
+
+  /// No description provided for @maxTwoFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Max 2 Free'**
+  String get maxTwoFree;
 }
 
 class _AppLocalizationsDelegate

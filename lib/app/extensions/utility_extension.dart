@@ -115,4 +115,14 @@ extension StringNumberLocalizationExtension on String {
     }
     return res;
   }
+
+  String toEnglishDigits() {
+    const enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    var res = this;
+    for (int i = 0; i < 10; i++) {
+      res = res.replaceAll(bnDigits[i], enDigits[i]);
+    }
+    return res;
+  }
 }

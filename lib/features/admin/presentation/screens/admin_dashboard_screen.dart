@@ -221,6 +221,77 @@ class AdminDashboardView extends StatelessWidget {
                           );
                         },
                       ),
+                      const SizedBox(height: 24),
+
+                      // Subscription Management Quick Banner
+                      InkWell(
+                        onTap: () => adminProvider.changeModule(AdminModule.subscriptions),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: isDark
+                                  ? [const Color(0xFF1E1B4B), const Color(0xFF0F172A)]
+                                  : [const Color(0xFFEFF6FF), Colors.white],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFF6366F1).withValues(alpha: 0.35), width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF6366F1).withValues(alpha: isDark ? 0.2 : 0.06),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(Icons.card_membership_rounded, color: Color(0xFF6366F1), size: 28),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      isBn ? '💳 সাবস্ক্রিপশন ও প্যাকেজ ম্যানেজমেন্ট' : '💳 Subscription & Package Management',
+                                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      isBn
+                                          ? 'ভাড়াটিয়া ও বাড়িওয়ালাদের প্যাকেজ তৈরি, মূল্য পরিবর্তন, অফার সেট এবং SSLCOMMERZ গেটওয়ে ম্যানেজ করুন'
+                                          : 'Create plans, edit prices, set discount deals, and configure SSLCOMMERZ gateway',
+                                      style: TextStyle(fontSize: 12.5, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              FilledButton.icon(
+                                onPressed: () => adminProvider.changeModule(AdminModule.subscriptions),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: const Color(0xFF6366F1),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                                label: Text(isBn ? 'প্যাকেজ ওপেন করুন' : 'Manage Plans'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
                       const SizedBox(height: 30),
 
                       // Tables Section (Recent Submissions & Pending Verifications)

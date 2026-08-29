@@ -16,6 +16,8 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/data/s
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/house_owner_subscription_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/subscription_history_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
 
 class HouseOwnerAccountScreen extends StatefulWidget {
@@ -56,6 +58,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.localizations;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final navProvider = context.read<MainNavHolderProvider>();
 
     return StreamBuilder<List<PropertyModel>>(
@@ -105,13 +108,76 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+
+            // --- 🌟 Prominent Subscription Status & Upgrade Card for House Owner ---
+            _buildOwnerSubscriptionBannerCard(context, widget.user, isDark, l10n, postCount),
             const SizedBox(height: 24),
 
             // House Owner Action Hub
             DecoratedSectionHeader(title: l10n.account),
             const SizedBox(height: 12),
 
-            // 1. My Dashboard Button (Right ABOVE Profile Information)
+            // 1. My Subscription Packages Button
+            AccountActionTile(
+              icon: Icons.card_membership_rounded,
+              title: l10n.mySubscription,
+              subtitle: widget.user.isSubscribed
+                  ? (l10n.localeName == 'bn'
+                      ? 'বাড়িওয়ালা প্রিমিয়াম প্যাকেজ সক্রিয় • সকল সুবিধা ও মেয়াদ দেখুন'
+                      : 'Owner Premium active • View perks & validity')
+                  : (l10n.localeName == 'bn'
+                      ? 'আনলিমিটেড বিজ্ঞাপন ও ভাড়াটিয়া নম্বর আনলক প্যাকেজ (৳৩০০, ৳৫০০, ৳১০০০)'
+                      : 'Unlimited listings & tenant unlocking packs (৳300, ৳500, ৳1000)'),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: (widget.user.isSubscribed ? Colors.green : Colors.amber.shade800).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      widget.user.isSubscribed ? Icons.verified_rounded : Icons.star_rounded,
+                      size: 13,
+                      color: widget.user.isSubscribed ? Colors.green : Colors.amber.shade800,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      widget.user.isSubscribed ? 'Premium' : 'প্যাকেজ',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: widget.user.isSubscribed ? Colors.green : Colors.amber.shade800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              onTap: () {
+                Navigator.pushNamed(context, HouseOwnerSubscriptionScreen.name);
+              },
+            ),
+
+            // 2. Subscription History & Receipts
+            AccountActionTile(
+              icon: Icons.receipt_long_rounded,
+              title: l10n.subscriptionHistory,
+              subtitle: l10n.localeName == 'bn'
+                  ? 'অতীতের সকল সাবস্ক্রিপশন প্যাকেজ ও পেমেন্ট হিস্ট্রি দেখুন'
+                  : 'View all past subscription packages and bKash payment records',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SubscriptionHistoryScreen(user: widget.user),
+                  ),
+                );
+              },
+            ),
+
+            // 3. My Dashboard Button
             AccountActionTile(
               icon: Icons.dashboard_customize_rounded,
               title: l10n.myDashboard,
@@ -149,7 +215,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
               },
             ),
 
-            // 2. Profile Information
+            // 4. Profile Information
             AccountActionTile(
               icon: Icons.person_pin_circle_outlined,
               title: l10n.myProfile,
@@ -174,7 +240,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
               onTap: () => Navigator.pushNamed(context, MyProfileScreen.name),
             ),
 
-            // 3. My Post
+            // 5. My Post
             AccountActionTile(
               icon: Icons.view_list_rounded,
               title: l10n.myPost,
@@ -184,7 +250,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
               onTap: () => navProvider.changeIndex(2),
             ),
 
-            // 4. Post Now
+            // 6. Post Now
             AccountActionTile(
               icon: Icons.add_home_work_outlined,
               title: l10n.postNow,
@@ -194,7 +260,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
               onTap: () => navProvider.changeIndex(1),
             ),
 
-            // 5. All Tenant Demands
+            // 7. All Tenant Demands
             AccountActionTile(
               icon: Icons.campaign_rounded,
               title: l10n.allTenantDemands,
@@ -221,6 +287,125 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildOwnerSubscriptionBannerCard(
+    BuildContext context,
+    UserModel user,
+    bool isDark,
+    dynamic l10n,
+    int postCount,
+  ) {
+    final bool isSubscribed = user.isSubscribed;
+    final int freeDemandUnlocksLeft = user.freeDemandUnlocksRemaining;
+    final int remainingPosts = (2 - postCount) > 0 ? (2 - postCount) : 0;
+    final int usedPosts = postCount > 2 ? 2 : postCount;
+    final int usedUnlocks = (2 - freeDemandUnlocksLeft) > 0 ? (2 - freeDemandUnlocksLeft) : 0;
+
+    final String languageCode = Localizations.localeOf(context).languageCode;
+
+    final String quotaText = isSubscribed
+        ? l10n.ownerPremiumSubtitle
+        : l10n.ownerQuotaStatus(
+            remainingPosts.toLocalizedDigits(languageCode),
+            usedPosts.toLocalizedDigits(languageCode),
+            freeDemandUnlocksLeft.toLocalizedDigits(languageCode),
+            usedUnlocks.toLocalizedDigits(languageCode),
+          );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isSubscribed
+              ? (isDark
+                  ? [const Color(0xFF163228), const Color(0xFF0F241D)]
+                  : [const Color(0xFFE4F9ED), const Color(0xFFC7F3DC)])
+              : (isDark
+                  ? [const Color(0xFF332910), const Color(0xFF241C08)]
+                  : [const Color(0xFFFFF9E6), const Color(0xFFFFECC0)]),
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSubscribed ? Colors.green.shade600 : Colors.amber.shade700,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isSubscribed ? Colors.green : Colors.amber).withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (isSubscribed ? Colors.green : Colors.amber).withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isSubscribed ? Icons.verified_rounded : Icons.workspace_premium_rounded,
+                  color: isSubscribed ? Colors.green : Colors.amber.shade800,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isSubscribed ? l10n.ownerPremiumActive : l10n.freeOwnerAccountLimited,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: isSubscribed ? Colors.green : Colors.amber.shade900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      quotaText,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.grey[300] : Colors.grey[800],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: isSubscribed ? Colors.green.shade700 : Colors.amber.shade800,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: Icon(isSubscribed ? Icons.check_circle_rounded : Icons.star_rounded, size: 18),
+              label: Text(
+                isSubscribed ? l10n.subscriptionDetailsAndPackages : l10n.activateOwnerPackage,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, HouseOwnerSubscriptionScreen.name);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

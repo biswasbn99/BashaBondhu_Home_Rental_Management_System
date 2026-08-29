@@ -23,30 +23,19 @@ class PropertyFirestoreService {
       final docRef = _propertiesCollection.doc();
       final List<String> finalImages = List.from(property.images);
 
-      // Process local images (ensure we never store uncompressed megabyte base64 strings into Firestore)
+      // Process local images
       for (final file in localImages) {
         if (await file.exists()) {
           try {
             final bytes = await file.readAsBytes();
-            if (bytes.lengthInBytes <= 80000) { // under 80KB
-              final base64String = base64Encode(bytes);
-              final ext = file.path.split('.').last.toLowerCase();
-              final mimeType = ext == 'png' ? 'image/png' : 'image/jpeg';
-              finalImages.add('data:$mimeType;base64,$base64String');
-            } else {
-              // High quality CDN image
-              finalImages.add('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80');
-            }
+            final base64String = base64Encode(bytes);
+            final ext = file.path.split('.').last.toLowerCase();
+            final mimeType = ext == 'png' ? 'image/png' : 'image/jpeg';
+            finalImages.add('data:$mimeType;base64,$base64String');
           } catch (e) {
             debugPrint('Error reading image file: $e');
-            finalImages.add('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80');
           }
         }
-      }
-
-      // Default fallback thumbnail if no image provided
-      if (finalImages.isEmpty) {
-        finalImages.add('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop&q=80');
       }
 
       final propertyWithImages = property.copyWith(
@@ -55,7 +44,7 @@ class PropertyFirestoreService {
       );
 
       await docRef.set(propertyWithImages.toMap());
-      debugPrint('✅ Property created in Firestore: ${docRef.id}');
+      debugPrint('✅ Property created in Firestore: ${docRef.id} with ${finalImages.length} images');
       return docRef.id;
     } catch (e) {
       debugPrint('❌ Error creating property in Firestore: $e');
@@ -66,7 +55,6 @@ class PropertyFirestoreService {
   /// Stream all active properties for HomeScreen / FindHomeScreen
   Stream<List<PropertyModel>> streamAllProperties() {
     return _propertiesCollection
-        .orderBy('postDate', descending: true)
         .snapshots()
         .map((snapshot) {
       final List<PropertyModel> list = [];
@@ -82,6 +70,7 @@ class PropertyFirestoreService {
           debugPrint('Error parsing property doc ${doc.id}: $e');
         }
       }
+      list.sort((a, b) => b.postDate.compareTo(a.postDate));
       return list;
     });
   }
