@@ -10,6 +10,7 @@ import '../../../shared/presentation/providers/main_nav_holder_provider.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
 import '../../../shared/presentation/widgets/post_icon.dart';
 import '../../../wishlist/data/providers/wishlist_provider.dart';
+import '../../../ai_assistant/presentation/widgets/ai_floating_button.dart';
 import '../../data/models/property_model.dart';
 import '../widgets/property_card.dart';
 
@@ -150,6 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ]
             : null,
       ),
+      floatingActionButton: const AIFloatingButton(),
       body: StreamBuilder<List<PropertyModel>>(
         stream: _firestoreService.streamAllProperties(),
         builder: (context, snapshot) {

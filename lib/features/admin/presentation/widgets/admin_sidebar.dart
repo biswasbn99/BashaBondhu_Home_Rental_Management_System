@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/providers/theme_provider.dart';
+import '../../../ai_assistant/presentation/screens/ai_assistant_screen.dart';
 import '../../data/providers/admin_provider.dart';
 
 class AdminSidebar extends StatelessWidget {
@@ -143,6 +144,51 @@ class AdminSidebar extends StatelessWidget {
                     module: AdminModule.settings,
                     isSelected: adminProvider.currentModule == AdminModule.settings,
                     isDark: isDark,
+                  ),
+                  const SizedBox(height: 8),
+                  // AI Assistant Item
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.pushNamed(context, AIAssistantScreen.name);
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF00A896), AppColors.themeColor],
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.themeColor.withValues(alpha: 0.3),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  isBn ? 'এআই অ্যাডমিন সহকারী' : 'AI Admin Assistant',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

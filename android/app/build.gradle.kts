@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.example.bashabondhu_home_rental_management_system"
     compileSdk = 36
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

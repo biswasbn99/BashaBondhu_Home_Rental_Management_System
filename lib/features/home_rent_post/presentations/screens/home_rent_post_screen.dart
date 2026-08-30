@@ -17,8 +17,10 @@ import '../../../shared/presentation/widgets/location_dropdown.dart';
 import '../../../shared/presentation/widgets/month_dropdown_button.dart';
 import '../../../shared/presentation/widgets/number_of_room_or_seat_dropdown_button.dart';
 import '../../../shared/presentation/widgets/parking_dropdown_button.dart';
+import '../../../shared/data/models/search_filter_model.dart';
 import '../../../shared/presentation/widgets/post_icon.dart';
 import '../../../shared/presentation/widgets/tenant_type_dropdown_button.dart';
+import '../../../ai_assistant/presentation/providers/ai_assistant_provider.dart';
 import '../../data/providers/home_rent_post_provider.dart';
 import '../widgets/amenities_dropdown.dart';
 import '../widgets/counter_dropdown.dart';
@@ -62,6 +64,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
   Widget build(BuildContext context) {
     final provider = context.watch<HomeRentPostProvider>();
     final l10n = context.localizations;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isBn = languageCode == 'bn';
     final userProvider = Provider.of<UserProvider>(context);
     final bool isGuest = userProvider.isGuest;
 
@@ -438,10 +442,83 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
               ),
               const SizedBox(height: 24),
 
-              // --- Description Section ---
-              DecoratedSectionHeader(title: l10n.detailedDescription),
-              const SizedBox(height: 12),
+              // --- Description Section with AI Generation Action ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: DecoratedSectionHeader(title: l10n.detailedDescription)),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.themeColor,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    ),
+                    icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+                    label: Text(
+                      isBn ? 'এআই দিয়ে লিখুন' : 'AI Generate',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                    ),
+                    onPressed: () async {
+                      final area = provider.selectedUpazila?.getLocalizedName(languageCode) ??
+                          (isBn ? 'ঢাকা' : 'Dhaka');
+                      final houseType = provider.selectedHouseType?.getLocalizedLabel(l10n) ??
+                          (isBn ? 'ফ্ল্যাট' : 'Flat');
+                      final roomOrSeat = provider.selectedRoomOrSeat?.getLocalizedRoomOrSeat(l10n) ??
+                          (isBn ? '২ বেডরুম' : '2 Bedrooms');
+                      final floor = provider.floorNumber?.toString() ?? '1';
+                      final amount = provider.amount.isNotEmpty ? provider.amount : '15000';
+                      final amenities = <String>[
+                        if (provider.hasLift == true) (isBn ? 'লিফট' : 'Lift'),
+                        if (provider.hasParking == true) (isBn ? 'পার্কিং' : 'Parking'),
+                        if (provider.hasGenerator == true) (isBn ? 'জেনারেটর' : 'Generator'),
+                        if (provider.hasCctv == true) (isBn ? 'সিসিটিভি' : 'CCTV'),
+                        if (provider.hasSecurityGuard == true) (isBn ? 'দারোয়ান' : 'Security Guard'),
+                      ];
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(isBn ? 'এআই বিবরণ তৈরি করছে...' : 'AI is generating description...'),
+                            ],
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+
+                      final genText = await context.read<AIAssistantProvider>().generateAdDescriptionForOwner(
+                            area: area,
+                            houseType: houseType,
+                            roomOrSeat: roomOrSeat,
+                            floor: floor,
+                            amount: amount,
+                            amenities: amenities,
+                            languageCode: languageCode,
+                          );
+
+                      if (context.mounted) {
+                        provider.setDetailedDescription(genText);
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isBn ? '✨ এআই বিবরণ সফলভাবে যুক্ত হয়েছে!' : '✨ AI description generated!'),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               ValidatedTextArea(
+                key: ValueKey('desc_${provider.detailedDescription.hashCode}'),
                 hint: l10n.detailedDescription,
                 maxWords: 999,
                 initialValue: provider.detailedDescription,

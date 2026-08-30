@@ -13,6 +13,7 @@ import 'package:bashabondhu_home_rental_management_system/features/auth/data/mod
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
+import 'package:bashabondhu_home_rental_management_system/features/ai_assistant/presentation/screens/ai_assistant_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/subscription_history_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/tenant_subscription_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
@@ -85,6 +86,38 @@ class TenantAccountScreen extends StatelessWidget {
         // Tenant Action Hub
         DecoratedSectionHeader(title: l10n.account),
         const SizedBox(height: 12),
+
+        // 0. BashaBondhu AI Assistant
+        AccountActionTile(
+          icon: Icons.auto_awesome_rounded,
+          title: l10n.localeName == 'bn' ? 'বাসাবন্ধু এআই সহকারী' : 'BashaBondhu AI Assistant',
+          subtitle: l10n.localeName == 'bn'
+              ? 'চ্যাটে দ্রুত বাসা খুঁজুন ও এলাকার ভাড়ার তথ্য জানুন'
+              : 'Smart chat search for rental homes & area insights',
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00A896), AppColors.themeColor],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.bolt_rounded, size: 13, color: Colors.white),
+                SizedBox(width: 3),
+                Text(
+                  'AI Chat',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+          onTap: () {
+            Navigator.pushNamed(context, AIAssistantScreen.name);
+          },
+        ),
 
         // 1. My Subscription Packages Button
         AccountActionTile(

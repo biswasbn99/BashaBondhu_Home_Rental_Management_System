@@ -15,6 +15,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 
+import 'package:bashabondhu_home_rental_management_system/features/ai_assistant/presentation/providers/ai_assistant_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/house_owner/presentation/providers/my_post_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/data/providers/subscription_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/wishlist/data/providers/wishlist_provider.dart';
@@ -51,6 +52,7 @@ class _BashabondhuAppState extends State<BashabondhuApp> {
         ChangeNotifierProvider(create: (_) => MyPostProvider()),
         ChangeNotifierProvider(create: (_) => WishlistProvider()),
         ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
+        ChangeNotifierProvider(create: (_) => AIAssistantProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, _, _) {
