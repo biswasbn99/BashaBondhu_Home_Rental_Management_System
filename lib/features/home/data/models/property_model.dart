@@ -42,8 +42,6 @@ class PropertyModel {
   final DateTime postDate;
   final bool isAvailable;
 
-  bool get isRentedOut => !isAvailable;
-
   PropertyModel({
     required this.id,
     this.ownerId = '',

@@ -224,32 +224,33 @@ class PropertyCard extends StatelessWidget {
                   ),
                 ),
 
-              // Wishlist Heart Icon
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Material(
-                  color: Colors.black.withValues(alpha: 0.45),
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: () {
-                      wishlistProvider.toggleFavorite(
-                        userProvider.user?.uid ?? '',
-                        property.id,
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Icon(
-                        isFav ? Icons.favorite : Icons.favorite_border,
-                        color: isFav ? Colors.redAccent : Colors.white,
-                        size: 22,
+              // Wishlist Heart Icon (Hidden for Guest users)
+              if (!isGuest)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Material(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () {
+                        wishlistProvider.toggleFavorite(
+                          userProvider.user?.uid ?? '',
+                          property.id,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          isFav ? Icons.favorite : Icons.favorite_border,
+                          color: isFav ? Colors.redAccent : Colors.white,
+                          size: 22,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
 

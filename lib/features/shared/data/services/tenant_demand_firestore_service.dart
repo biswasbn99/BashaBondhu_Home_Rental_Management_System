@@ -92,23 +92,17 @@ class TenantDemandFirestoreService {
     });
   }
 
-  /// Stream all tenant demands for House Owners (only active/unfulfilled by default)
-  Stream<List<TenantDemandModel>> streamAllDemands({bool onlyActive = true}) {
+  /// Stream all tenant demands for House Owners
+  Stream<List<TenantDemandModel>> streamAllDemands() {
     return _demandsCollection.snapshots().map((snapshot) {
       final List<TenantDemandModel> list = [];
       for (final doc in snapshot.docs) {
         try {
           final data = doc.data();
           if (data is Map<String, dynamic>) {
-            final d = TenantDemandModel.fromMap(data, doc.id);
-            if (!onlyActive || !d.isFulfilled) {
-              list.add(d);
-            }
+            list.add(TenantDemandModel.fromMap(data, doc.id));
           } else if (data is Map) {
-            final d = TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id);
-            if (!onlyActive || !d.isFulfilled) {
-              list.add(d);
-            }
+            list.add(TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id));
           }
         } catch (e) {
           debugPrint('Error parsing tenant demand doc ${doc.id}: $e');
@@ -118,20 +112,6 @@ class TenantDemandFirestoreService {
       list.sort((a, b) => b.postDate.compareTo(a.postDate));
       return list;
     });
-  }
-
-  /// Toggle demand fulfilled status (isFulfilled = true/false)
-  Future<void> toggleDemandFulfilledStatus(String demandId, bool isFulfilled) async {
-    try {
-      await _demandsCollection.doc(demandId).set({
-        'isFulfilled': isFulfilled,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      debugPrint('✅ Tenant demand fulfilled status updated: $demandId -> isFulfilled: $isFulfilled');
-    } catch (e) {
-      debugPrint('❌ Error toggling demand fulfilled status: $e');
-      rethrow;
-    }
   }
 
   /// Get all tenant demands (Future)

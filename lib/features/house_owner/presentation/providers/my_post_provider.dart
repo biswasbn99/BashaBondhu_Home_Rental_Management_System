@@ -62,27 +62,6 @@ class MyPostProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> toggleRentedStatus(PropertyModel post) async {
-    final newRentedStatus = !post.isRentedOut;
-    try {
-      // Optimistic local update
-      final index = _myPosts.indexWhere((p) => p.id == post.id);
-      if (index != -1) {
-        _myPosts[index] = post.copyWith(isAvailable: !newRentedStatus);
-        notifyListeners();
-      }
-      await _firestoreService.togglePropertyRentedStatus(post.id, newRentedStatus);
-    } catch (e) {
-      debugPrint('Error toggling rented status: $e');
-      final index = _myPosts.indexWhere((p) => p.id == post.id);
-      if (index != -1) {
-        _myPosts[index] = post;
-        notifyListeners();
-      }
-      rethrow;
-    }
-  }
-
   @override
   void dispose() {
     _subscription?.cancel();

@@ -231,43 +231,6 @@ class _MyDemandCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
-
-                // Status Badge (Fulfilled vs Looking)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: demand.isFulfilled
-                        ? Colors.green.withValues(alpha: 0.15)
-                        : Colors.blue.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: demand.isFulfilled ? Colors.green : Colors.blue,
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        demand.isFulfilled ? Icons.check_circle_rounded : Icons.search_rounded,
-                        size: 12,
-                        color: demand.isFulfilled ? Colors.green[700] : Colors.blue[700],
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        demand.isFulfilled
-                            ? (languageCode == 'bn' ? 'বাসা পাওয়া গেছে' : 'Fulfilled')
-                            : (languageCode == 'bn' ? 'বাসা খুঁজছি' : 'Looking'),
-                        style: TextStyle(
-                          color: demand.isFulfilled ? Colors.green[800] : Colors.blue[800],
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 const Spacer(),
 
                 // Date
@@ -376,42 +339,7 @@ class _MyDemandCard extends StatelessWidget {
 
           const Divider(height: 1),
 
-          // --- 1. TOGGLE FULFILLED BUTTON ---
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: demand.isFulfilled
-                      ? Colors.blue.withValues(alpha: isDark ? 0.18 : 0.08)
-                      : Colors.green.withValues(alpha: isDark ? 0.18 : 0.08),
-                  foregroundColor: demand.isFulfilled
-                      ? (isDark ? Colors.lightBlueAccent : Colors.blue[800])
-                      : (isDark ? Colors.greenAccent : Colors.green[800]),
-                  side: BorderSide(
-                    color: demand.isFulfilled ? Colors.blue : Colors.green,
-                    width: 1.2,
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                icon: Icon(
-                  demand.isFulfilled ? Icons.replay_rounded : Icons.check_circle_outline_rounded,
-                  size: 18,
-                ),
-                label: Text(
-                  demand.isFulfilled
-                      ? (languageCode == 'bn' ? 'পুনরায় খুঁজছি (Show Demand)' : 'Reopen Demand (Show Post)')
-                      : (languageCode == 'bn' ? 'বাসা পাওয়া গেছে (Hide Demand)' : 'Found Home (Hide Demand)'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
-                ),
-                onPressed: () => _confirmToggleFulfilled(context, languageCode),
-              ),
-            ),
-          ),
-
-          // --- 2. Action Buttons (View, Edit, Delete) ---
+          // 3 Action Buttons (View, Edit, Delete)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
@@ -468,81 +396,6 @@ class _MyDemandCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmToggleFulfilled(BuildContext context, String languageCode) {
-    final isBn = languageCode == 'bn';
-    final isCurrentlyFulfilled = demand.isFulfilled;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(
-              isCurrentlyFulfilled ? Icons.replay_rounded : Icons.check_circle_rounded,
-              color: isCurrentlyFulfilled ? Colors.blue : Colors.green,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                isCurrentlyFulfilled
-                    ? (isBn ? 'চাহিদাপত্রটি পুনরায় চালু করবেন?' : 'Reopen Demand?')
-                    : (isBn ? 'বাসা পাওয়া গেছে নিশ্চিত করবেন?' : 'Mark as Found Home?'),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          isCurrentlyFulfilled
-              ? (isBn
-                  ? 'এই চাহিদাপত্রটি পুনরায় সক্রিয় হবে এবং সকল বাড়িওয়ালা তাদের ডিম্যান্ড স্ক্রিনে এটি দেখতে পাবেন।'
-                  : 'This demand will be marked as active and visible again to all House Owners.')
-              : (isBn
-                  ? 'এই চাহিদাপত্রটি "বাসা পাওয়া গেছে" হিসেবে চিহ্নিত হবে এবং সকল বাড়িওয়ালার স্ক্রিন থেকে সম্পূর্ণ লুকিয়ে রাখা হবে।'
-                  : 'This demand will be marked as fulfilled and completely hidden from House Owners.'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(isBn ? 'বাতিল' : 'Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isCurrentlyFulfilled ? Colors.blue : Colors.green,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await TenantDemandFirestoreService().toggleDemandFulfilledStatus(
-                demand.id,
-                !isCurrentlyFulfilled,
-              );
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isCurrentlyFulfilled
-                          ? (isBn ? 'চাহিদাপত্রটি পুনরায় সক্রিয় করা হয়েছে!' : 'Demand is now active and visible to House Owners!')
-                          : (isBn ? 'চাহিদাপত্রটি হাইড করা হয়েছে (বাসা পাওয়া গেছে)।' : 'Demand marked as Fulfilled and hidden from House Owners.'),
-                    ),
-                    backgroundColor: isCurrentlyFulfilled ? Colors.blue : Colors.green,
-                  ),
-                );
-              }
-            },
-            child: Text(
-              isCurrentlyFulfilled
-                  ? (isBn ? 'হ্যাঁ, চালু করুন' : 'Yes, Reopen')
-                  : (isBn ? 'হ্যাঁ, বাসা পেয়েছি' : 'Yes, Found Home'),
             ),
           ),
         ],
