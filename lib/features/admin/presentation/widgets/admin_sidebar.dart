@@ -125,6 +125,13 @@ class AdminSidebar extends StatelessWidget {
                     isDark: isDark,
                   ),
                   _SidebarItem(
+                    icon: Icons.policy_rounded,
+                    label: isBn ? 'আইনি পলিসি ও শর্তাবলী' : 'Legal Policies',
+                    module: AdminModule.policies,
+                    isSelected: adminProvider.currentModule == AdminModule.policies,
+                    isDark: isDark,
+                  ),
+                  _SidebarItem(
                     icon: Icons.question_answer_rounded,
                     label: isBn ? 'প্রশ্নোত্তর (FAQ)' : 'FAQs',
                     module: AdminModule.faq,

@@ -16,6 +16,11 @@ import 'package:bashabondhu_home_rental_management_system/features/tenant/presen
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_dashboard_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_demand_show_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/ai_assistant/presentation/screens/ai_assistant_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/faq_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/privacy_policy_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/refund_policy_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/support_policy_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/terms_conditions_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/house_owner_subscription_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/subscription_history_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/tenant_subscription_screen.dart';
@@ -60,6 +65,11 @@ class AppRoutes {
       HouseOwnerSubscriptionScreen.name => const HouseOwnerSubscriptionScreen(),
       SubscriptionHistoryScreen.name => const SubscriptionHistoryScreen(),
       AIAssistantScreen.name => const AIAssistantScreen(),
+      PrivacyPolicyScreen.name => const PrivacyPolicyScreen(),
+      SupportPolicyScreen.name => const SupportPolicyScreen(),
+      TermsConditionsScreen.name => const TermsConditionsScreen(),
+      RefundPolicyScreen.name => const RefundPolicyScreen(),
+      FaqScreen.name => const FaqScreen(),
       AdminMainScreen.name => const AdminMainScreen(),
       _ => const Scaffold(body: Center(child: Text('Page not found'))),
     };

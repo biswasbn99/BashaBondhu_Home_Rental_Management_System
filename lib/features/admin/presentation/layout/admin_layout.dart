@@ -198,6 +198,8 @@ class AdminLayout extends StatelessWidget {
         return isBn ? 'ক্যাটাগরি' : 'Category Management';
       case AdminModule.reports:
         return isBn ? 'রিপোর্ট ও অভিযোগ' : 'Reports Management';
+      case AdminModule.policies:
+        return isBn ? 'আইনি পলিসি ও শর্তাবলী' : 'Legal Policies & Terms';
       case AdminModule.faq:
         return isBn ? 'প্রশ্নোত্তর (FAQ)' : 'FAQ Management';
       case AdminModule.analytics:

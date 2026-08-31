@@ -14,6 +14,11 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/decorated_section_header.dart';
 import 'package:bashabondhu_home_rental_management_system/features/ai_assistant/presentation/screens/ai_assistant_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/faq_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/privacy_policy_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/refund_policy_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/support_policy_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/terms_conditions_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/subscription_history_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/tenant_subscription_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
@@ -279,6 +284,61 @@ class TenantAccountScreen extends StatelessWidget {
               ? 'নতুন ভাড়ার চাহিদা সরাসরি পোস্ট করুন'
               : 'Post a new rental requirement for landlords to find you',
           onTap: () => navProvider.changeIndex(2),
+        ),
+
+        // --- 🛡️ Legal, Policy & Support Hub ---
+        const SizedBox(height: 24),
+        DecoratedSectionHeader(title: l10n.localeName == 'bn' ? 'তথ্য ও সহায়তা' : 'Support & Legal Policies'),
+        const SizedBox(height: 12),
+
+        // 9. Privacy Policy
+        AccountActionTile(
+          icon: Icons.privacy_tip_outlined,
+          title: l10n.localeName == 'bn' ? 'গোপনীয়তা নীতি' : 'Privacy Policy',
+          subtitle: l10n.localeName == 'bn'
+              ? 'আপনার ব্যক্তিগত তথ্যের নিরাপত্তা ও ব্যবহার সম্পর্কিত নীতিমালা'
+              : 'How BashaBondhu protects and respects your personal data',
+          onTap: () => Navigator.pushNamed(context, PrivacyPolicyScreen.name),
+        ),
+
+        // 10. Support Policy
+        AccountActionTile(
+          icon: Icons.support_agent_rounded,
+          title: l10n.localeName == 'bn' ? 'সাপোর্ট পলিসি' : 'Support Policy',
+          subtitle: l10n.localeName == 'bn'
+              ? 'গ্রাহক সেবা, সহায়তা চ্যানেল ও রেসপন্স টাইম গাইডলাইন'
+              : 'Customer assistance, helpline hours and resolution process',
+          onTap: () => Navigator.pushNamed(context, SupportPolicyScreen.name),
+        ),
+
+        // 11. Terms and Conditions
+        AccountActionTile(
+          icon: Icons.gavel_rounded,
+          title: l10n.localeName == 'bn' ? 'ব্যবহারের শর্তাবলী' : 'Terms & Conditions',
+          subtitle: l10n.localeName == 'bn'
+              ? 'প্ল্যাটফর্ম ব্যবহার, আইনি নিয়ম ও সাধারণ নির্দেশিকা'
+              : 'Rules, regulations and user agreements for BashaBondhu',
+          onTap: () => Navigator.pushNamed(context, TermsConditionsScreen.name),
+        ),
+
+        // 12. Refund Policy
+        AccountActionTile(
+          icon: Icons.replay_rounded,
+          title: l10n.localeName == 'bn' ? 'রিফান্ড পলিসি' : 'Refund Policy',
+          subtitle: l10n.localeName == 'bn'
+              ? 'পেমেন্ট রিফান্ড, সাবস্ক্রিপশন বাতিল ও বিরোধ নিষ্পত্তির নিয়ম'
+              : 'Subscription cancellations, refund eligibility and settlement rules',
+          onTap: () => Navigator.pushNamed(context, RefundPolicyScreen.name),
+        ),
+
+        // 13. FAQ
+        AccountActionTile(
+          icon: Icons.help_outline_rounded,
+          title: l10n.localeName == 'bn' ? 'সচরাচর জিজ্ঞাসা (FAQ)' : 'Frequently Asked Questions (FAQ)',
+          subtitle: l10n.localeName == 'bn'
+              ? 'বাসা খোঁজা, বুকিং ও অ্যাকাউন্ট সম্পর্কিত সাধারণ প্রশ্নোত্তর'
+              : 'Quick answers for finding homes, account security and features',
+          onTap: () => Navigator.pushNamed(context, FaqScreen.name),
         ),
         const SizedBox(height: 24),
 

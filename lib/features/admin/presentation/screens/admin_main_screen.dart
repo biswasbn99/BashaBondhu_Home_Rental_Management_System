@@ -5,6 +5,7 @@ import '../../data/providers/admin_provider.dart';
 import '../layout/admin_layout.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_login_screen.dart';
+import 'admin_policy_management_screen.dart';
 import 'admin_settings_screen.dart';
 import 'admin_subscription_management_screen.dart';
 import 'analytics_screen.dart';
@@ -48,6 +49,8 @@ class AdminMainScreen extends StatelessWidget {
         return const CategoryManagementView();
       case AdminModule.reports:
         return const ReportsManagementView();
+      case AdminModule.policies:
+        return const AdminPolicyManagementView();
       case AdminModule.faq:
         return const FaqManagementView();
       case AdminModule.analytics:

@@ -9,6 +9,7 @@ enum AdminModule {
   locations,
   categories,
   reports,
+  policies,
   faq,
   analytics,
   settings,
