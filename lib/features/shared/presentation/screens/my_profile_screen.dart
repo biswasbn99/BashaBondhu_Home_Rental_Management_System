@@ -12,6 +12,7 @@ import '../../../../app/extensions/utility_extension.dart';
 import '../../../../app/validators.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../widgets/app_bar.dart';
+import '../widgets/language_action_button.dart';
 import '../widgets/decorated_section_header.dart';
 
 class MyProfileScreen extends StatefulWidget {
@@ -331,6 +332,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       appBar: MainAppBar(
         title: Text(l10n.myProfile),
         automaticallyImplyLeading: true,
+        actions: const [
+          LanguageActionButton(),
+        ],
       ),
       body: SafeArea(
         child: Form(

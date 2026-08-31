@@ -6,6 +6,7 @@ import '../../../../app/extensions/utility_extension.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
+import '../../../shared/presentation/widgets/language_action_button.dart';
 import '../../data/models/subscription_model.dart';
 import '../../data/providers/subscription_provider.dart';
 import 'subscription_history_screen.dart';
@@ -57,6 +58,7 @@ class HouseOwnerSubscriptionScreen extends StatelessWidget {
               );
             },
           ),
+          const LanguageActionButton(),
         ],
       ),
       body: SingleChildScrollView(

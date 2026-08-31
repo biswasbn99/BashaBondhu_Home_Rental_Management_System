@@ -8,6 +8,7 @@ import '../../../auth/data/providers/user_provider.dart';
 import '../../../auth/presentation/widgets/auth_prompt_dialog.dart';
 import '../../../shared/presentation/providers/main_nav_holder_provider.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
+import '../../../shared/presentation/widgets/language_action_button.dart';
 import '../../../shared/presentation/widgets/belcony_dropdown_button.dart';
 import '../../../shared/presentation/widgets/decorated_section_header.dart';
 import '../../../shared/presentation/widgets/floor_number_dropdown_button.dart';
@@ -74,14 +75,14 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
       appBar: MainAppBar(
         automaticallyImplyLeading: true,
         titleSpacing: isGuest ? 12 : 20,
-        actions: isGuest
-            ? [
-                const Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: FreePostButton(),
-                ),
-              ]
-            : null,
+        actions: [
+          if (isGuest)
+            const Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: FreePostButton(),
+            ),
+          const LanguageActionButton(),
+        ],
       ),
       floatingActionButton: const AIFloatingButton(),
       body: SingleChildScrollView(

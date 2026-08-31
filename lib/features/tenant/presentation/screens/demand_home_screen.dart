@@ -7,6 +7,7 @@ import 'package:bashabondhu_home_rental_management_system/app/validators.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/widgets/auth_prompt_dialog.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/language_action_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/bathroom_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/belcony_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/budget_dropdown_button.dart';
@@ -71,14 +72,14 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
       appBar: MainAppBar(
         automaticallyImplyLeading: false,
         titleSpacing: isGuest ? 12 : 20,
-        actions: isGuest
-            ? [
-                const Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: FreePostButton(),
-                ),
-              ]
-            : null,
+        actions: [
+          if (isGuest)
+            const Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: FreePostButton(),
+            ),
+          const LanguageActionButton(),
+        ],
       ),
       body: SafeArea(
         child: Form(

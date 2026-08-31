@@ -7,6 +7,7 @@ import '../../../ai_assistant/presentation/widgets/ai_floating_button.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../../../home_rent_post/presentations/widgets/property_location_picker_card.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
+import '../../../shared/presentation/widgets/language_action_button.dart';
 import '../../../shared/presentation/widgets/bathroom_dropdown_button.dart';
 import '../../../shared/presentation/widgets/belcony_dropdown_button.dart';
 import '../../../shared/presentation/widgets/budget_dropdown_button.dart';
@@ -68,14 +69,14 @@ class _FindHomeView extends StatelessWidget {
       appBar: MainAppBar(
         automaticallyImplyLeading: false,
         titleSpacing: isGuest ? 12 : 20,
-        actions: isGuest
-            ? [
-                const Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: FreePostButton(),
-                ),
-              ]
-            : null,
+        actions: [
+          if (isGuest)
+            const Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: FreePostButton(),
+            ),
+          const LanguageActionButton(),
+        ],
       ),
       floatingActionButton: const AIFloatingButton(),
       body: SafeArea(

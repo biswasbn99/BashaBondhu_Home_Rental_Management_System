@@ -11,6 +11,7 @@ import '../../../shared/data/models/search_filter_model.dart';
 import '../../../shared/presentation/providers/main_nav_holder_provider.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
 import '../../../shared/presentation/widgets/app_network_image.dart';
+import '../../../shared/presentation/widgets/language_action_button.dart';
 import '../providers/my_post_provider.dart';
 import 'edit_rent_post_screen.dart';
 
@@ -51,6 +52,9 @@ class _MyPostScreenState extends State<MyPostScreen> {
             color: theme.colorScheme.primary,
           ),
         ),
+        actions: const [
+          LanguageActionButton(),
+        ],
       ),
       floatingActionButton: const AIFloatingButton(),
       body: myPostProvider.isLoading

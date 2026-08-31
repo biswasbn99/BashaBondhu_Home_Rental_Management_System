@@ -6,6 +6,7 @@ import '../../../../app/extensions/utility_extension.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
+import '../../../shared/presentation/widgets/language_action_button.dart';
 import '../../data/models/subscription_model.dart';
 import '../../data/providers/subscription_provider.dart';
 
@@ -60,21 +61,23 @@ class SubscriptionHistoryScreen extends StatelessWidget {
               const SizedBox(height: 8),
               _buildDialogRow(isBn ? 'প্রেরক নম্বর:' : 'Sender Phone:', tx.senderPhone),
               const SizedBox(height: 8),
-              _buildDialogRow('Transaction ID:', tx.transactionId, isHighlight: true),
+              _buildDialogRow(isBn ? 'পেমেন্ট মেথড:' : 'Payment Method:', tx.paymentMethod),
               const SizedBox(height: 8),
-              _buildDialogRow(isBn ? 'তারিখ ও সময়:' : 'Date & Time:', dateStr),
+              _buildDialogRow(isBn ? 'প্যাকেজ:' : 'Plan Name:', tx.planTitle),
               const SizedBox(height: 8),
-              _buildDialogRow(isBn ? 'প্যাকেজ:' : 'Package:', tx.planTitle),
+              _buildDialogRow(isBn ? 'পরিশোধিত অর্থ:' : 'Amount Paid:', '৳ ${tx.amountPaid.toInt()}'),
               const SizedBox(height: 8),
-              _buildDialogRow(isBn ? 'মেয়াদ শেষ:' : 'Expires At:', expiryStr),
+              _buildDialogRow(isBn ? 'লেনদেন আইডি:' : 'Trx ID:', tx.transactionId),
+              const SizedBox(height: 8),
+              _buildDialogRow(isBn ? 'পেমেন্টের সময়:' : 'Payment Date:', dateStr),
+              const SizedBox(height: 8),
+              _buildDialogRow(isBn ? 'মেয়াদ উত্তীর্ণ:' : 'Expires At:', expiryStr),
               const SizedBox(height: 8),
               _buildDialogRow(
-                isBn ? 'পরিশোধিত টাকা:' : 'Amount Paid:',
-                isBn ? '৳${tx.amountPaid.toInt().toString().toLocalizedDigits('bn')}.00' : '৳${tx.amountPaid.toInt()}.00',
-                isBold: true,
+                isBn ? 'পেমেন্ট স্ট্যাটাস:' : 'Status:',
+                tx.status.toUpperCase(),
+                valueColor: tx.status.toLowerCase() == 'active' || tx.status.toLowerCase() == 'completed' ? Colors.green : Colors.orange,
               ),
-              const SizedBox(height: 8),
-              _buildDialogRow(isBn ? 'স্ট্যাটাস:' : 'Status:', isBn ? 'PAID (সফল)' : 'PAID (Success)', isStatus: true),
 
               const SizedBox(height: 20),
               SizedBox(
@@ -83,7 +86,7 @@ class SubscriptionHistoryScreen extends StatelessWidget {
                   onPressed: () => Navigator.pop(ctx),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.themeColor,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: Text(isBn ? 'বন্ধ করুন' : 'Close'),
                 ),
@@ -95,22 +98,20 @@ class SubscriptionHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDialogRow(String label, String value, {bool isHighlight = false, bool isBold = false, bool isStatus = false}) {
+  Widget _buildDialogRow(String label, String value, {Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12.5, color: Colors.grey),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: isBold ? 14 : 12.5,
-            fontWeight: (isHighlight || isBold || isStatus) ? FontWeight.bold : FontWeight.w500,
-            color: isStatus
-                ? Colors.green
-                : (isHighlight ? const Color(0xFFE2136E) : null),
+        Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500)),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: valueColor,
+            ),
           ),
         ),
       ],
@@ -123,12 +124,18 @@ class SubscriptionHistoryScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final isBn = Localizations.localeOf(context).languageCode == 'bn';
-    final subProvider = context.read<SubscriptionProvider>();
-    final currentUser = user ?? context.watch<UserProvider>().user;
+    final userProvider = context.watch<UserProvider>();
+    final currentUser = user ?? userProvider.user;
+    final subProvider = context.watch<SubscriptionProvider>();
 
     if (currentUser == null) {
       return Scaffold(
-        appBar: MainAppBar(automaticallyImplyLeading: true),
+        appBar: MainAppBar(
+          automaticallyImplyLeading: true,
+          actions: const [
+            LanguageActionButton(),
+          ],
+        ),
         body: Center(child: Text(isBn ? 'অনুগ্রহ করে প্রথমে লগইন করুন' : 'Please log in first')),
       );
     }
@@ -144,6 +151,9 @@ class SubscriptionHistoryScreen extends StatelessWidget {
             color: theme.colorScheme.primary,
           ),
         ),
+        actions: const [
+          LanguageActionButton(),
+        ],
       ),
       body: StreamBuilder<List<SubscriptionTransactionModel>>(
         stream: subProvider.streamUserTransactions(currentUser.uid),

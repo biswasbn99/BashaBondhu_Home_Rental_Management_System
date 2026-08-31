@@ -11,6 +11,7 @@ import 'package:bashabondhu_home_rental_management_system/features/auth/data/pro
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/tenant_demand_firestore_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/language_action_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/post_icon.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/data/providers/subscription_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/house_owner_subscription_screen.dart';
@@ -35,14 +36,14 @@ class TenantDemandShowScreen extends StatelessWidget {
       appBar: MainAppBar(
         automaticallyImplyLeading: true,
         titleSpacing: (isGuest || isOwner) ? 12 : 20,
-        actions: isGuest
-            ? [
-                const Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: FreePostButton(),
-                ),
-              ]
-            : null,
+        actions: [
+          if (isGuest)
+            const Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: FreePostButton(),
+            ),
+          const LanguageActionButton(),
+        ],
       ),
       floatingActionButton: const AIFloatingButton(),
       body: StreamBuilder<List<TenantDemandModel>>(

@@ -7,6 +7,7 @@ import 'package:bashabondhu_home_rental_management_system/features/auth/data/pro
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/tenant_demand_firestore_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/language_action_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/data/models/tenant_demand_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/edit_demand_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/show_demand_details_screen.dart';
@@ -20,13 +21,17 @@ class MyDemandScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.localizations;
     final theme = Theme.of(context);
-    final userProvider = Provider.of<UserProvider>(context);
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
+    final userProvider = context.watch<UserProvider>();
     final user = userProvider.user;
 
-    if (userProvider.isGuest || user == null) {
+    if (user == null) {
       return Scaffold(
         appBar: MainAppBar(
           automaticallyImplyLeading: true,
+          actions: const [
+            LanguageActionButton(),
+          ],
           title: Text(
             l10n.myDemands,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -34,16 +39,16 @@ class MyDemandScreen extends StatelessWidget {
         ),
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(32),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.lock_outline_rounded, size: 64, color: Colors.orange),
+                const Icon(Icons.lock_outline_rounded, size: 64, color: Colors.grey),
                 const SizedBox(height: 16),
-                const Text(
-                  'আপনার পোস্ট করা চাহিদা দেখতে সাইন ইন করুন',
+                Text(
+                  isBn ? 'আপনার পোস্ট করা চাহিদা দেখতে সাইন ইন করুন' : 'Please sign in to view your posted demands',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
@@ -70,6 +75,9 @@ class MyDemandScreen extends StatelessWidget {
             color: theme.colorScheme.primary,
           ),
         ),
+        actions: const [
+          LanguageActionButton(),
+        ],
       ),
       body: StreamBuilder<List<TenantDemandModel>>(
         stream: firestoreService.streamTenantDemands(user.uid, tenantEmail: user.email),

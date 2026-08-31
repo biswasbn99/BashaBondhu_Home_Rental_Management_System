@@ -8,6 +8,7 @@ import '../../../auth/data/providers/user_provider.dart';
 import '../../../shared/data/services/property_firestore_service.dart';
 import '../../../shared/presentation/providers/main_nav_holder_provider.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
+import '../../../shared/presentation/widgets/language_action_button.dart';
 import '../../../shared/presentation/widgets/post_icon.dart';
 import '../../../wishlist/data/providers/wishlist_provider.dart';
 import '../../../ai_assistant/presentation/widgets/ai_floating_button.dart';
@@ -142,14 +143,14 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: MainAppBar(
         automaticallyImplyLeading: false,
         titleSpacing: isGuest ? 12 : 20,
-        actions: isGuest
-            ? [
-                const Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: FreePostButton(),
-                ),
-              ]
-            : null,
+        actions: [
+          if (isGuest)
+            const Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: FreePostButton(),
+            ),
+          const LanguageActionButton(),
+        ],
       ),
       floatingActionButton: const AIFloatingButton(),
       body: StreamBuilder<List<PropertyModel>>(
