@@ -7,7 +7,12 @@ import '../../data/models/policy_model.dart';
 import '../../data/services/policy_firestore_service.dart';
 
 class FaqContentView extends StatefulWidget {
-  const FaqContentView({super.key});
+  final String targetAudience; // 'tenant', 'house_owner', or 'all'
+
+  const FaqContentView({
+    super.key,
+    this.targetAudience = 'all',
+  });
 
   @override
   State<FaqContentView> createState() => _FaqContentViewState();
@@ -33,13 +38,15 @@ class _FaqContentViewState extends State<FaqContentView> {
     final localeProvider = context.watch<LocaleProvider>();
     final languageCode = localeProvider.currentLocale.languageCode;
     final isBn = languageCode == 'bn';
+    final isTenant = widget.targetAudience == 'tenant';
+    final isOwner = widget.targetAudience == 'house_owner';
 
     final categories = [
       {'id': 'all', 'labelBn': 'সবগুলো', 'labelEn': 'All FAQs'},
       {'id': 'general', 'labelBn': 'বাসাবন্ধু সম্পর্কে', 'labelEn': 'About Platform'},
-      {'id': 'finding_home', 'labelBn': 'বাসা খোঁজা', 'labelEn': 'Finding Homes'},
-      {'id': 'posting', 'labelBn': 'বিজ্ঞাপন পোস্ট', 'labelEn': 'Listing Posts'},
-      {'id': 'management', 'labelBn': 'ভাড়া ম্যানেজমেন্ট', 'labelEn': 'Management'},
+      if (!isOwner) {'id': 'finding_home', 'labelBn': 'বাসা খোঁজা ও চাহিদা', 'labelEn': 'Finding Homes'},
+      if (!isTenant) {'id': 'posting', 'labelBn': 'বিজ্ঞাপন পোস্ট', 'labelEn': 'Listing Posts'},
+      if (!isTenant) {'id': 'management', 'labelBn': 'ভাড়া ও সাবস্ক্রিপশন', 'labelEn': 'Management & Plans'},
       {'id': 'safety', 'labelBn': 'নিরাপত্তা ও সহায়তা', 'labelEn': 'Safety & Trust'},
     ];
 
@@ -48,7 +55,11 @@ class _FaqContentViewState extends State<FaqContentView> {
       appBar: AppBar(
         elevation: 0,
         title: Text(
-          isBn ? 'সচরাচর জিজ্ঞাসা (FAQ)' : 'Frequently Asked Questions',
+          isTenant
+              ? (isBn ? 'ভাড়াটিয়া প্রশ্নোত্তর (FAQ)' : 'Tenant FAQs')
+              : isOwner
+                  ? (isBn ? 'বাড়িওয়ালা প্রশ্নোত্তর (FAQ)' : 'Landlord FAQs')
+                  : (isBn ? 'সচরাচর জিজ্ঞাসা (FAQ)' : 'Frequently Asked Questions'),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
         ),
         actions: [
@@ -72,7 +83,10 @@ class _FaqContentViewState extends State<FaqContentView> {
         ],
       ),
       body: StreamBuilder<List<FaqModel>>(
-        stream: _policyService.streamFaqs(category: _selectedCategory),
+        stream: _policyService.streamFaqs(
+          category: _selectedCategory,
+          targetAudience: widget.targetAudience,
+        ),
         builder: (context, snapshot) {
           final allFaqs = snapshot.data ?? [];
 
@@ -123,18 +137,30 @@ class _FaqContentViewState extends State<FaqContentView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              isBn ? 'কীভাবে সাহায্য করতে পারি?' : 'How Can We Help You?',
+                              isTenant
+                                  ? (isBn ? 'ভাড়াটিয়াদের সাধারণ প্রশ্ন ও উত্তর' : 'Tenant Help & Queries')
+                                  : isOwner
+                                      ? (isBn ? 'বাড়িওয়ালাদের সাধারণ প্রশ্ন ও উত্তর' : 'Landlord Help & Queries')
+                                      : (isBn ? 'কীভাবে সাহায্য করতে পারি?' : 'How Can We Help You?'),
                               style: const TextStyle(
-                                fontSize: 17,
+                                fontSize: 16.5,
                                 fontWeight: FontWeight.w900,
                                 color: Colors.white,
                               ),
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              isBn
-                                  ? 'বাসা খোঁজা, বিজ্ঞাপন পোস্ট ও টেন্যান্ট ম্যানেজমেন্টের সাধারণ প্রশ্নের সমাধান।'
-                                  : 'Find quick answers regarding finding homes, posting ads, and rental management.',
+                              isTenant
+                                  ? (isBn
+                                      ? 'বাসা খোঁজা, বুকিং ও ভাড়ার চাহিদা সম্পর্কিত সকল সাধারণ সমাধান।'
+                                      : 'Find answers regarding finding homes, booking visits, and posting demands.')
+                                  : isOwner
+                                      ? (isBn
+                                          ? 'বিজ্ঞাপন পোস্ট, সাবস্ক্রিপশন প্ল্যান ও ভাড়াটিয়া পাওয়ার সমাধান।'
+                                          : 'Find answers on publishing listings, boosts, and finding verified tenants.')
+                                      : (isBn
+                                          ? 'বাসা খোঁজা, বিজ্ঞাপন পোস্ট ও ভাড়া ম্যানেজমেন্টের সাধারণ প্রশ্ন।'
+                                          : 'Find quick answers for both tenants and landlords.'),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 color: Colors.white.withValues(alpha: 0.9),
@@ -168,7 +194,7 @@ class _FaqContentViewState extends State<FaqContentView> {
                     decoration: InputDecoration(
                       icon: const Icon(Icons.search_rounded, size: 20, color: AppColors.themeColor),
                       hintText: isBn ? 'প্রশ্ন বা বিষয় লিখে খুঁজুন...' : 'Search questions or keywords...',
-                      hintStyle: TextStyle(fontSize: 12.5, color: Colors.grey[500]),
+                      hintStyle: TextStyle(fontSize: 12.5, color: isDark ? Colors.grey[500] : Colors.grey[400]),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -292,9 +318,17 @@ class _FaqContentViewState extends State<FaqContentView> {
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              isBn
-                                  ? 'আমাদের সাপোর্ট টিমের সাথে সরাসরি চ্যাট বা ইমেইলে যোগাযোগ করুন।'
-                                  : 'Reach out to our support team directly via email or chat assistance.',
+                              isTenant
+                                  ? (isBn
+                                      ? 'আমাদের টেন্যান্ট সাপোর্ট টিমের সাথে সরাসরি চ্যাট বা ইমেইলে যোগাযোগ করুন।'
+                                      : 'Reach out directly to tenant support: tenant-support@bashabondhu.com')
+                                  : isOwner
+                                      ? (isBn
+                                          ? 'আমাদের বাড়িওয়ালা সাপোর্ট টিমের সাথে সরাসরি চ্যাট বা ইমেইলে যোগাযোগ করুন।'
+                                          : 'Reach out directly to landlord support: owner-support@bashabondhu.com')
+                                      : (isBn
+                                          ? 'আমাদের সাপোর্ট টিমের সাথে সরাসরি চ্যাট বা ইমেইলে যোগাযোগ করুন।'
+                                          : 'Reach out to our support team directly via email or chat assistance.'),
                               style: TextStyle(fontSize: 11.5, color: isDark ? Colors.grey[300] : Colors.grey[700]),
                             ),
                           ],
@@ -344,45 +378,44 @@ class _FaqAccordionCard extends StatelessWidget {
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
             tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-          leading: Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: AppColors.themeColor.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.help_outline_rounded, color: AppColors.themeColor, size: 18),
-          ),
-          title: Text(
-            question,
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.grey[100] : const Color(0xFF142321),
-            ),
-          ),
-          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
+            leading: Container(
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF131E1C) : const Color(0xFFF6FAF9),
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.themeColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
               ),
-              child: Text(
-                answer,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  height: 1.5,
-                  color: isDark ? Colors.grey[300] : const Color(0xFF3B4E4B),
+              child: const Icon(Icons.help_outline_rounded, color: AppColors.themeColor, size: 18),
+            ),
+            title: Text(
+              question,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.grey[100] : const Color(0xFF142321),
+              ),
+            ),
+            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF131E1C) : const Color(0xFFF6FAF9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  answer,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.5,
+                    color: isDark ? Colors.grey[300] : const Color(0xFF3B4E4B),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
-}
-

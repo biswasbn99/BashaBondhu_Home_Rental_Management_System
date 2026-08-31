@@ -1,504 +1,677 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../models/policy_model.dart';
 
 class PolicyFirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  CollectionReference get _policiesCollection => _firestore.collection('app_policies');
-  CollectionReference get _faqsCollection => _firestore.collection('faqs');
+  CollectionReference<Map<String, dynamic>> get _policiesCol =>
+      _firestore.collection('app_policies');
 
-  // ===========================================================================
-  // 1. STREAM & GET POLICY WITH HIGH-QUALITY BILINGUAL DEFAULTS
-  // ===========================================================================
+  CollectionReference<Map<String, dynamic>> get _faqsCol =>
+      _firestore.collection('faqs');
 
-  Stream<AppPolicyModel> streamPolicy(String policyType) {
-    return _policiesCollection.doc(policyType).snapshots().map((doc) {
+  String getPolicyDocId(String policyType, String targetAudience) {
+    if (policyType.startsWith('tenant_') || policyType.startsWith('house_owner_')) {
+      return policyType;
+    }
+    return '${targetAudience}_$policyType';
+  }
+
+  // -------------------------------------------------------------
+  // 1. POLICIES (Tenant & House Owner)
+  // -------------------------------------------------------------
+
+  Stream<AppPolicyModel> streamPolicy(String policyType, {String targetAudience = 'tenant'}) {
+    final docId = getPolicyDocId(policyType, targetAudience);
+    return _policiesCol.doc(docId).snapshots().map((doc) {
       if (doc.exists && doc.data() != null) {
-        try {
-          final data = doc.data() as Map<String, dynamic>;
-          final model = AppPolicyModel.fromMap(data, doc.id);
-          if (model.sections.isNotEmpty) {
-            return model;
-          }
-        } catch (e) {
-          debugPrint('Error parsing policy $policyType: $e');
-        }
+        return AppPolicyModel.fromMap(doc.data()!, doc.id);
       }
-      return _getDefaultPolicy(policyType);
+      return _getDefaultPolicy(policyType, targetAudience);
     });
   }
 
-  Future<AppPolicyModel> getPolicy(String policyType) async {
-    try {
-      final doc = await _policiesCollection.doc(policyType).get();
-      if (doc.exists && doc.data() != null) {
-        final data = doc.data() as Map<String, dynamic>;
-        final model = AppPolicyModel.fromMap(data, doc.id);
-        if (model.sections.isNotEmpty) {
-          return model;
-        }
-      }
-    } catch (e) {
-      debugPrint('Error getting policy $policyType: $e');
+  Future<AppPolicyModel> getPolicy(String policyType, {String targetAudience = 'tenant'}) async {
+    final docId = getPolicyDocId(policyType, targetAudience);
+    final doc = await _policiesCol.doc(docId).get();
+    if (doc.exists && doc.data() != null) {
+      return AppPolicyModel.fromMap(doc.data()!, doc.id);
     }
-    return _getDefaultPolicy(policyType);
+    return _getDefaultPolicy(policyType, targetAudience);
   }
 
   Future<void> savePolicy(AppPolicyModel policy) async {
-    await _policiesCollection.doc(policy.id).set(policy.toMap(), SetOptions(merge: true));
+    await _policiesCol.doc(policy.id).set(policy.toMap(), SetOptions(merge: true));
   }
 
-  Future<void> savePolicySection(String policyType, PolicySectionModel section) async {
-    final current = await getPolicy(policyType);
-    final List<PolicySectionModel> updatedSections = List.from(current.sections);
+  Future<void> savePolicySection(
+    String policyType,
+    PolicySectionModel section, {
+    String targetAudience = 'tenant',
+  }) async {
+    final docId = getPolicyDocId(policyType, targetAudience);
+    final current = await getPolicy(policyType, targetAudience: targetAudience);
+    final sections = List<PolicySectionModel>.from(current.sections);
 
-    final existingIndex = updatedSections.indexWhere((s) => s.id == section.id);
-    if (existingIndex >= 0) {
-      updatedSections[existingIndex] = section;
+    final idx = sections.indexWhere((s) => s.id == section.id);
+    if (idx >= 0) {
+      sections[idx] = section;
     } else {
-      updatedSections.add(section);
+      sections.add(section);
     }
-    updatedSections.sort((a, b) => a.order.compareTo(b.order));
 
-    final updatedPolicy = current.copyWith(
+    final updated = current.copyWith(
+      id: docId,
+      targetAudience: targetAudience,
+      sections: sections,
       lastUpdated: DateTime.now(),
-      sections: updatedSections,
     );
-    await savePolicy(updatedPolicy);
+    await savePolicy(updated);
   }
 
-  Future<void> deletePolicySection(String policyType, String sectionId) async {
-    final current = await getPolicy(policyType);
-    final List<PolicySectionModel> updatedSections = current.sections.where((s) => s.id != sectionId).toList();
-    final updatedPolicy = current.copyWith(
+  Future<void> deletePolicySection(
+    String policyType,
+    String sectionId, {
+    String targetAudience = 'tenant',
+  }) async {
+    final docId = getPolicyDocId(policyType, targetAudience);
+    final current = await getPolicy(policyType, targetAudience: targetAudience);
+    final sections = current.sections.where((s) => s.id != sectionId).toList();
+
+    final updated = current.copyWith(
+      id: docId,
+      targetAudience: targetAudience,
+      sections: sections,
       lastUpdated: DateTime.now(),
-      sections: updatedSections,
     );
-    await savePolicy(updatedPolicy);
+    await savePolicy(updated);
   }
 
-  Future<void> resetPolicyToDefault(String policyType) async {
-    final defaultPolicy = _getDefaultPolicy(policyType);
+  Future<void> resetPolicyToDefault(String policyType, {String targetAudience = 'tenant'}) async {
+    final defaultPolicy = _getDefaultPolicy(policyType, targetAudience);
     await savePolicy(defaultPolicy);
   }
 
-  // ===========================================================================
-  // 2. FAQS STREAM & CRUD WITH BILINGUAL DEFAULTS
-  // ===========================================================================
+  // -------------------------------------------------------------
+  // 2. FAQS (Tenant, House Owner, All)
+  // -------------------------------------------------------------
 
-  Stream<List<FaqModel>> streamFaqs({String? category}) {
-    return _faqsCollection.snapshots().map((snapshot) {
+  Stream<List<FaqModel>> streamFaqs({String category = 'all', String targetAudience = 'all'}) {
+    return _faqsCol.snapshots().map((snapshot) {
       if (snapshot.docs.isEmpty) {
-        return _getDefaultFaqs(category: category);
+        return _filterFaqs(_getDefaultFaqs(), category, targetAudience);
       }
-      final List<FaqModel> list = [];
-      for (final doc in snapshot.docs) {
-        try {
-          final data = doc.data() as Map<String, dynamic>;
-          final item = FaqModel.fromMap(data, doc.id);
-          if (category == null || category == 'all' || item.category == category) {
-            list.add(item);
-          }
-        } catch (e) {
-          debugPrint('Error parsing FAQ ${doc.id}: $e');
-        }
-      }
-      list.sort((a, b) => a.order.compareTo(b.order));
-      return list.isNotEmpty ? list : _getDefaultFaqs(category: category);
+      final list = snapshot.docs.map((doc) => FaqModel.fromMap(doc.data(), doc.id)).toList();
+      return _filterFaqs(list, category, targetAudience);
     });
   }
 
-  Future<void> saveFaq(FaqModel faq) async {
-    if (faq.id.isEmpty) {
-      final docRef = _faqsCollection.doc();
-      final newFaq = faq.copyWith(id: docRef.id);
-      await docRef.set(newFaq.toMap());
-    } else {
-      await _faqsCollection.doc(faq.id).set(faq.toMap(), SetOptions(merge: true));
+  List<FaqModel> _filterFaqs(List<FaqModel> list, String category, String targetAudience) {
+    var filtered = list;
+    if (category != 'all') {
+      filtered = filtered.where((f) => f.category == category).toList();
     }
+    if (targetAudience != 'all') {
+      filtered = filtered.where((f) => f.targetAudience == 'all' || f.targetAudience == targetAudience).toList();
+    }
+    filtered.sort((a, b) => a.order.compareTo(b.order));
+    return filtered;
+  }
+
+  Future<void> saveFaq(FaqModel faq) async {
+    final docRef = faq.id.isEmpty ? _faqsCol.doc() : _faqsCol.doc(faq.id);
+    final toSave = faq.copyWith(id: docRef.id);
+    await docRef.set(toSave.toMap(), SetOptions(merge: true));
   }
 
   Future<void> deleteFaq(String faqId) async {
-    await _faqsCollection.doc(faqId).delete();
+    await _faqsCol.doc(faqId).delete();
   }
 
-  Future<void> seedDefaultFaqs() async {
-    final defaults = _getDefaultFaqs();
-    for (final faq in defaults) {
-      await _faqsCollection.doc(faq.id).set(faq.toMap(), SetOptions(merge: true));
+  // -------------------------------------------------------------
+  // 3. RICH DEFAULT DATASETS (Bilingual & Role-Tailored)
+  // -------------------------------------------------------------
+
+  AppPolicyModel _getDefaultPolicy(String rawType, String targetAudience) {
+    final type = rawType.replaceFirst('tenant_', '').replaceFirst('house_owner_', '');
+    final docId = '${targetAudience}_$type';
+
+    if (targetAudience == 'house_owner') {
+      switch (type) {
+        case 'privacy_policy':
+          return _getHouseOwnerDefaultPrivacyPolicy(docId);
+        case 'support_policy':
+          return _getHouseOwnerDefaultSupportPolicy(docId);
+        case 'terms_conditions':
+          return _getHouseOwnerDefaultTermsConditions(docId);
+        case 'refund_policy':
+          return _getHouseOwnerDefaultRefundPolicy(docId);
+        default:
+          return _getHouseOwnerDefaultPrivacyPolicy(docId);
+      }
+    } else {
+      // Default to Tenant
+      switch (type) {
+        case 'privacy_policy':
+          return _getTenantDefaultPrivacyPolicy(docId);
+        case 'support_policy':
+          return _getTenantDefaultSupportPolicy(docId);
+        case 'terms_conditions':
+          return _getTenantDefaultTermsConditions(docId);
+        case 'refund_policy':
+          return _getTenantDefaultRefundPolicy(docId);
+        default:
+          return _getTenantDefaultPrivacyPolicy(docId);
+      }
     }
   }
 
-  // ===========================================================================
-  // 3. PRE-POPULATED HIGH-QUALITY BILINGUAL DATASETS FOR BASHABONDHU
-  // ===========================================================================
+  // ==========================================
+  // A. TENANT DEFAULT POLICIES (ভাড়াটিয়া)
+  // ==========================================
 
-  AppPolicyModel _getDefaultPolicy(String type) {
-    switch (type) {
-      case 'privacy_policy':
-        return _defaultPrivacyPolicy();
-      case 'support_policy':
-        return _defaultSupportPolicy();
-      case 'terms_conditions':
-        return _defaultTermsConditions();
-      case 'refund_policy':
-        return _defaultRefundPolicy();
-      default:
-        return _defaultPrivacyPolicy();
-    }
-  }
-
-  AppPolicyModel _defaultPrivacyPolicy() {
+  AppPolicyModel _getTenantDefaultPrivacyPolicy(String docId) {
     return AppPolicyModel(
-      id: 'privacy_policy',
+      id: docId,
       type: 'privacy_policy',
-      titleEn: 'Privacy Policy',
-      titleBn: 'গোপনীয়তা নীতি',
-      subtitleEn: 'How BashaBondhu collects, protects, and respects your rental and personal data.',
-      subtitleBn: 'বাসাবন্ধু কীভাবে আপনার ব্যক্তিগত তথ্য ও ভাড়া সংক্রান্ত উপাত্ত সংগ্রহ ও সুরক্ষিত রাখে।',
-      lastUpdated: DateTime(2026, 8, 1),
+      targetAudience: 'tenant',
+      titleEn: 'Tenant Privacy Policy',
+      titleBn: 'ভাড়াটিয়া গোপনীয়তা নীতি',
+      subtitleEn: 'How BashaBondhu protects renter personal data, search history, and rental demand information.',
+      subtitleBn: 'বাসাবন্ধুতে ভাড়াটিয়াদের ব্যক্তিগত তথ্য, খোঁজার ইতিহাস ও ভাড়ার চাহিদা সুরক্ষার নিয়মাবলী।',
+      lastUpdated: DateTime(2026, 8, 31),
       sections: [
         const PolicySectionModel(
-          id: 'pp_1',
-          headingEn: '1. Who We Are',
-          headingBn: '১. আমাদের পরিচয় ও লক্ষ্য',
-          contentEn:
-              'Welcome to BashaBondhu, your premier and intelligent rental marketplace in Bangladesh. We respect your privacy and are committed to safeguarding your personal data, rental listings, and communications.',
-          contentBn:
-              'বাংলাদেশে বাসা খোঁজা ও ভাড়ার প্রক্রিয়াকে সহজ ও বিশ্বস্ত করতে বাসাবন্ধু (BashaBondhu) আপনার নির্ভরযোগ্য ডিজিটাল সঙ্গী। আমরা ব্যবহারকারীদের গোপনীয়তার সর্বোচ্চ সুরক্ষা নিশ্চিত করতে প্রতিশ্রুতিবদ্ধ।',
+          id: 't_sec_1',
           order: 1,
-          iconName: 'info_outline',
+          iconName: 'privacy_tip_outlined',
+          headingEn: '1. Personal Information Collected from Renters',
+          headingBn: '১. ভাড়াটিয়াদের সংগৃহীত ব্যক্তিগত তথ্য',
+          contentEn:
+              'When tenants register or use BashaBondhu, we collect essential information including full name, verified phone number, email address, profile photo, preferred rental location, budget range, and specific requirements provided in "Tenant Demand" posts.',
+          contentBn:
+              'বাসাবন্ধুতে রেজিস্ট্রেশন বা ব্যবহারের সময় আমরা ভাড়াটিয়াদের নাম, ভেরিফাইড মোবাইল নম্বর, ইমেইল, প্রোফাইল ছবি, পছন্দের এলাকা, ভাড়ার বাজেট এবং "ভাড়ার চাহিদা" পোস্টে দেওয়া তথ্য নিরাপদভাবে সংরক্ষণ করি।',
         ),
         const PolicySectionModel(
-          id: 'pp_2',
-          headingEn: '2. Personal Data We Collect & Why',
-          headingBn: '২. আমরা কী কী তথ্য সংগ্রহ করি ও কেন',
-          contentEn:
-              '• Account Information: Full name, mobile number, email, profile photo, and NID verification for authenticated rental safety.\n• Rental Demands & Listings: Property location, floor, room specs, rent budget, and amenities to match renters with house owners.\n• Communications & Chat: Secure in-app messages and AI Assistant conversational logs for tailored recommendations.',
-          contentBn:
-              '• অ্যাকাউন্ট তথ্য: নাম, মোবাইল নম্বর, ইমেইল, ছবি এবং এনআইডি ভেরিফিকেশন—নিরাপদ ভাড়া লেনদেন নিশ্চিত করার জন্য।\n• ভাড়ার চাহিদা ও লিস্টিং: এলাকা, ফ্লোর, রুমের বিবরণ, ভাড়ার বাজেট এবং অন্যান্য সুবিধা—যাতে মালিক ও ভাড়াটিয়ার সঠিক মেলবন্ধন তৈরি হয়।\n• চ্যাট ও এআই সহকারী: অ্যাপের মধ্যে নিরাপদ বার্তা ও এআই সহকারীর সাথে চ্যাট হিস্ট্রি—দ্রুত সমাধান ও প্রাসঙ্গিক সুপারিশ প্রদানের লক্ষ্যে।',
+          id: 't_sec_2',
           order: 2,
-          iconName: 'person_outline',
+          iconName: 'security_rounded',
+          headingEn: '2. Communication & Contact Privacy with Landlords',
+          headingBn: '২. বাড়িওয়ালাদের সাথে যোগাযোগ ও তথ্যের গোপনীয়তা',
+          contentEn:
+              'Your phone number and direct contact details are only disclosed to verified house owners when you initiate an inquiry, book a visit, or publish a public rental demand. We never sell your personal contact list to third-party telemarketers.',
+          contentBn:
+              'আপনার মোবাইল নম্বর ও যোগাযোগের তথ্য কেবল তখনই ভেরিফাইড বাড়িওয়ালাকে প্রদান করা হয় যখন আপনি সরাসরি বাসা দেখার অনুরোধ বা ভাড়ার চাহিদা পোস্ট করেন। আমরা কখনোই তৃতীয় কোনো বিপণন প্রতিষ্ঠানের কাছে তথ্য বিক্রি করি না।',
         ),
         const PolicySectionModel(
-          id: 'pp_3',
-          headingEn: '3. Cookies & Local Preferences',
-          headingBn: '৩. কুকিজ ও লোকাল স্টোরেজ',
-          contentEn:
-              'We use secure local storage and caching tokens to remember your login session, theme (Dark/Light), preferred language (Bangla/English), and saved search filters for a seamless experience.',
-          contentBn:
-              'আপনার লগইন সেশন, ডার্ক/লাইট থিম মোড, বাংলা/ইংরেজি ভাষা পছন্দ এবং সেভ করা সার্চ ফিল্টার মনে রাখার জন্য আমরা সুরক্ষিত লোকাল স্টোরেজ ব্যবহার করি।',
+          id: 't_sec_3',
           order: 3,
-          iconName: 'cookie_outlined',
+          iconName: 'lock_outline_rounded',
+          headingEn: '3. Data Security & Storage in Bangladesh',
+          headingBn: '৩. ডাটা নিরাপত্তা ও ক্লাউড স্টোরেজ',
+          contentEn:
+              'All search preferences, wishlist bookmarks, and demand histories are encrypted using industry-standard SSL/TLS protocols and Google Cloud infrastructure, preventing unauthorized data breaches.',
+          contentBn:
+              'ভাড়াটিয়াদের পছন্দতালিকা, উইশলিস্ট ও চাহিদার সমস্ত তথ্য আধুনিক SSL/TLS এনক্রিপশন ও গুগল ক্লাউড সার্ভারে নিরাপদে সংরক্ষিত থাকে।',
         ),
         const PolicySectionModel(
-          id: 'pp_4',
-          headingEn: '4. Third-Party Services & Payment Gateways',
-          headingBn: '৪. থার্ড পার্টি সার্ভিস ও পেমেন্ট সিকিউরিটি',
-          contentEn:
-              'For digital subscription activations, we integrate trusted payment partners (such as bKash, Nagad, SSLCOMMERZ). BashaBondhu never stores your confidential PINs or OTPs on our servers.',
-          contentBn:
-              'সাবস্ক্রিপশন ও প্রিমিয়াম সেবার পেমেন্টের জন্য আমরা সরকার অনুমোদিত গেটওয়ে (যেমন: বিকাশ, নগদ) ব্যবহার করি। বাসাবন্ধু কখনোই আপনার গোপন পিন বা ওটিপি সংরক্ষণ করে না।',
+          id: 't_sec_4',
           order: 4,
-          iconName: 'payment_outlined',
-        ),
-        const PolicySectionModel(
-          id: 'pp_5',
-          headingEn: '5. Data Retention & Account Deletion Rights',
-          headingBn: '৫. তথ্য সংরক্ষণের মেয়াদ ও অ্যাকাউন্ট মোছার অধিকার',
+          iconName: 'delete_forever_outlined',
+          headingEn: '4. Tenant Account Deletion & Right to Forget',
+          headingBn: '৪. অ্যাকাউন্ট মুছে ফেলা ও তথ্যের নিয়ন্ত্রণ',
           contentEn:
-              'You hold complete control over your data. You may update your profile or permanently delete your account anytime via Account Settings. Upon account deletion, active listings and personal records are permanently erased.',
+              'Tenants hold the right to edit their rental demands at any time or request complete account deletion via Profile Settings or by emailing privacy@bashabondhu.com. Upon request, personal identification records are erased within 30 days.',
           contentBn:
-              'আপনার তথ্যের উপর আপনার পূর্ণ নিয়ন্ত্রণ রয়েছে। আপনি যেকোনো সময় প্রোফাইল আপডেট বা অ্যাকাউন্ট সেটিংস থেকে সরাসরি অ্যাকাউন্ট ডিলিট করতে পারবেন। অ্যাকাউন্ট ডিলিট করলে সকল সক্রিয় বিজ্ঞাপন ও ব্যক্তিগত তথ্য মুছে ফেলা হবে।',
-          order: 5,
-          iconName: 'delete_outline',
-        ),
-        const PolicySectionModel(
-          id: 'pp_6',
-          headingEn: '6. Contact Privacy Team',
-          headingBn: '৬. গোপনীয়তা বিষয়ক যোগাযোগ',
-          contentEn:
-              'If you have any questions regarding your data privacy, contact our Data Protection Officer at: privacy@bashabondhu.com or call our hotline: 09612-BASHABONDHU.',
-          contentBn:
-              'আপনার তথ্য ও গোপনীয়তা সম্পর্কিত যেকোনো প্রশ্ন বা মতামতের জন্য আমাদের সাথে যোগাযোগ করুন: privacy@bashabondhu.com অথবা হটলাইন: ০৯৬১২-বাসাবন্ধু।',
-          order: 6,
-          iconName: 'mail_outline',
+              'ভাড়াটিয়ারা যেকোনো সময় প্রোফাইল থেকে তাদের ভাড়ার চাহিদা ডিলিট করতে পারেন অথবা সম্পূর্ণ অ্যাকাউন্ট মুছে ফেলার অনুরোধ করতে পারেন। অনুরোধের ৩০ দিনের মধ্যে সমস্ত ব্যক্তিগত রেকর্ড সিস্টেম থেকে স্থায়ীভাবে মুছে ফেলা হয়।',
         ),
       ],
     );
   }
 
-  AppPolicyModel _defaultSupportPolicy() {
+  AppPolicyModel _getTenantDefaultSupportPolicy(String docId) {
     return AppPolicyModel(
-      id: 'support_policy',
+      id: docId,
       type: 'support_policy',
-      titleEn: 'Support Policy',
-      titleBn: 'সাপোর্ট পলিসি',
-      subtitleEn: 'Our dedicated commitment to exceptional customer service and rapid issue resolution.',
-      subtitleBn: 'গ্রাহক সেবা প্রদান, হেল্পলাইন ও দ্রুত সমস্যা সমাধানের জন্য বাসাবন্ধুর নীতিমালা।',
-      lastUpdated: DateTime(2026, 8, 1),
+      targetAudience: 'tenant',
+      titleEn: 'Tenant Support Policy',
+      titleBn: 'ভাড়াটিয়া সাপোর্ট পলিসি',
+      subtitleEn: 'Dedicated customer assistance and issue resolution standards for property seekers.',
+      subtitleBn: 'বাসা সন্ধানকারী ভাড়াটিয়াদের জন্য কাস্টমার সেবা, হেল্পলাইন ও বিরোধ নিষ্পত্তি নীতিমালা।',
+      lastUpdated: DateTime(2026, 8, 31),
       sections: [
         const PolicySectionModel(
-          id: 'sp_1',
-          headingEn: '1. Our Support Commitment',
-          headingBn: '১. আমাদের সাপোর্ট প্রতিশ্রুতি',
-          contentEn:
-              'At BashaBondhu, our customer happiness team is dedicated to providing transparent, empathetic, and speedy technical assistance to both tenants and house owners.',
-          contentBn:
-              'বাসাবন্ধুতে আমরা প্রতিটি ভাড়াটিয়া ও বাড়িওয়ালার প্রশ্নের স্বচ্ছ, দ্রুত এবং আন্তরিক সমাধান দিতে সর্বদা সচেষ্ট। যেকোনো প্রয়োজনে আমাদের ডেডিকেটেড সাপোর্ট টিম পাশে রয়েছে।',
+          id: 't_sup_1',
           order: 1,
-          iconName: 'support_agent_outlined',
+          iconName: 'support_agent_rounded',
+          headingEn: '1. Renter Support Channels & Hotline Hours',
+          headingBn: '১. ভাড়াটিয়া সহায়তা চ্যানেল ও হেল্পলাইন সময়',
+          contentEn:
+              'Our dedicated tenant assistance desk operates Saturday through Thursday from 9:00 AM to 9:00 PM BST.\n• Customer Hotline: +880 1700-000000\n• Direct Email: tenant-support@bashabondhu.com\n• In-App BashaBondhu AI Assistant (24/7 Availability)',
+          contentBn:
+              'ভাড়াটিয়াদের জন্য আমাদের হেল্পডেস্ক শনিবার থেকে বৃহস্পতিবার সকাল ৯:০০ টা থেকে রাত ৯:০০ টা পর্যন্ত সক্রিয় থাকে।\n• গ্রাহক সেবা হেল্পলাইন: +৮৮০ ১৭০০-০০০০০০\n• ইমেইল সাপোর্ট: tenant-support@bashabondhu.com\n• ইন-অ্যাপ বাসাবন্ধু এআই অ্যাসিস্ট্যান্ট (২৪/৭ দিন-রাত সচল)',
         ),
         const PolicySectionModel(
-          id: 'sp_2',
-          headingEn: '2. Support Channels & Contact Info',
-          headingBn: '২. সাপোর্ট চ্যানেল ও যোগাযোগের মাধ্যম',
-          contentEn:
-              '• Official Email: support@bashabondhu.com\n• In-App AI Assistant: 24/7 instant guidance\n• WhatsApp Support Helpline: +880 1700-000000\n• Dedicated Ticket Desk: Accessible inside the Account Hub.',
-          contentBn:
-              '• অফিসিয়াল ইমেইল: support@bashabondhu.com\n• অ্যাপের এআই সহকারী: ২৪/৭ তাৎক্ষণিক গাইডলাইন\n• হোয়াটসঅ্যাপ সাপোর্ট হেল্পলাইন: +৮৮০ ১৭০০-০০০০০০\n• অ্যাকাউন্ট সাপোর্ট ডেস্ক: অ্যাকাউন্ট পেজ থেকে সরাসরি সাপোর্ট টিকিট ওপেন করুন।',
+          id: 't_sup_2',
           order: 2,
-          iconName: 'contact_phone_outlined',
+          iconName: 'schedule_rounded',
+          headingEn: '2. Response Times & Dispute Assistance',
+          headingBn: '২. রেসপন্স টাইম ও বাড়িওয়ালার সাথে বিরোধ সমাধান',
+          contentEn:
+              'We guarantee first response within 2 business hours for critical issues such as fake property reportings or harassment. For general inquiries, resolution is provided within 24 business hours.',
+          contentBn:
+              'ভুয়া বিজ্ঞাপন বা অনাকাঙ্ক্ষিত আচরণের রিপোর্টের ক্ষেত্রে আমরা ২ কর্মঘণ্টার মধ্যে রেসপন্স নিশ্চিত করি। সাধারণ যেকোনো প্রশ্নের উত্তর ২৪ কর্মঘণ্টার মধ্যে সমাধান করা হয়।',
         ),
         const PolicySectionModel(
-          id: 'sp_3',
-          headingEn: '3. Operating Hours & Response SLA',
-          headingBn: '৩. সাপোর্ট সময়সূচী ও রেসপন্স টাইম',
-          contentEn:
-              '• Saturday to Thursday: 9:00 AM – 9:00 PM (BST)\n• Friday: 2:00 PM – 8:00 PM (BST)\n• Email/Ticket Response Time: Within 2 to 6 business hours\n• Emergency Hotline: Always active for verified subscription accounts.',
-          contentBn:
-              '• শনিবার থেকে বৃহস্পতিবার: সকাল ৯:০০ টা – রাত ৯:০০ টা\n• শুক্রবার: দুপুর ২:০০ টা – রাত ৮:০০ টা\n• ইমেইল ও টিকিট রেসপন্স টাইম: ২ থেকে ৬ কর্মঘণ্টার মধ্যে\n• জরুরি সাপোর্ট: সাবস্ক্রিপশন ব্যবহারকারীদের জন্য অগ্রাধিকার ভিত্তিতে দ্রুত সমাধান।',
+          id: 't_sup_3',
           order: 3,
-          iconName: 'schedule_outlined',
-        ),
-        const PolicySectionModel(
-          id: 'sp_4',
-          headingEn: '4. Support Scope & Limitations',
-          headingBn: '৪. সাপোর্টের পরিধি ও সীমাবদ্ধতা',
+          iconName: 'report_problem_outlined',
+          headingEn: '3. Reporting Misleading Listings',
+          headingBn: '৩. ভুল বা বিভ্রান্তিকর বিজ্ঞাপনের অভিযোগ',
           contentEn:
-              'We provide full support for app features, login, listing approvals, subscription verification, and tenant match issues. We do not provide physical property inspections or handle physical rent cash collections.',
+              'If a tenant finds that a home rental ad differs drastically from reality (e.g. higher rent demanded, fake images), they can report the listing immediately via the "Report Problem" button for prompt investigation.',
           contentBn:
-              'আমরা অ্যাপ ব্যবহার, ওটিপি লগইন, বিজ্ঞাপন অনুমোদন, সাবস্ক্রিপশন এক্টিভেশন এবং ভাড়ার তথ্য খোঁজার যাবতীয় সহায়তা প্রদান করি। তবে সরাসরি ভাড়ার নগদ টাকা লেনদেন বা বাড়ি পরিদর্শনে আমাদের সম্পৃক্ততা নেই।',
-          order: 4,
-          iconName: 'rule_outlined',
+              'যদি কোনো বাড়িওয়ালা বিজ্ঞাপনের চেয়ে অতিরিক্ত ভাড়া দাবি করেন অথবা ভুল ছবি ব্যবহার করেন, তবে ভাড়াটিয়ারা তাৎক্ষণিকভাবে অ্যাপের "রিপোর্ট" অপশন ব্যবহার করে ব্যবস্থা নেওয়ার আবেদন করতে পারেন।',
         ),
       ],
     );
   }
 
-  AppPolicyModel _defaultTermsConditions() {
+  AppPolicyModel _getTenantDefaultTermsConditions(String docId) {
     return AppPolicyModel(
-      id: 'terms_conditions',
+      id: docId,
       type: 'terms_conditions',
-      titleEn: 'Terms and Conditions',
-      titleBn: 'ব্যবহারের শর্তাবলী',
-      subtitleEn: 'Rules, user responsibilities, and legal agreements governing the use of BashaBondhu.',
-      subtitleBn: 'বাসাবন্ধু প্ল্যাটফর্ম ব্যবহারের সাধারণ নিয়ম, আইনি বাধ্যবাধকতা ও আচরণবিধি।',
-      lastUpdated: DateTime(2026, 8, 1),
+      targetAudience: 'tenant',
+      titleEn: 'Tenant Terms & Conditions',
+      titleBn: 'ভাড়াটিয়া ব্যবহারের শর্তাবলী',
+      subtitleEn: 'Rules, conduct standards, and agreements governing renters on the BashaBondhu platform.',
+      subtitleBn: 'বাসাবন্ধু প্ল্যাটফর্মে বাসা সন্ধানকারী ভাড়াটিয়াদের করণীয়, নিয়মাবলী ও আইনি নীতিমালা।',
+      lastUpdated: DateTime(2026, 8, 31),
       sections: [
         const PolicySectionModel(
-          id: 'tc_1',
-          headingEn: '1. User Responsibilities & Authenticity',
-          headingBn: '১. ব্যবহারকারীর দায়িত্ব ও তথ্যের নির্ভুলতা',
-          contentEn:
-              'Users must provide truthful, accurate personal details and authentic property specifications. Misrepresenting property conditions, rent amounts, or contact credentials is strictly prohibited and subject to account suspension.',
-          contentBn:
-              'ব্যবহারকারীকে অবশ্যই নির্ভুল ব্যক্তিগত তথ্য ও সত্য প্রপার্টি বিবরণ প্রদান করতে হবে। ভুয়া বিজ্ঞাপন, ভুল ভাড়ার পরিমাণ বা বিভ্রান্তিকর যোগাযোগ তথ্য দিলে অ্যাকাউন্ট অবিলম্বে স্থগিত করা হবে।',
+          id: 't_tc_1',
           order: 1,
-          iconName: 'gavel_outlined',
+          iconName: 'gavel_rounded',
+          headingEn: '1. Authentic Profile & Honest Demands',
+          headingBn: '১. সঠিক প্রোফাইল তথ্য ও ভাড়ার চাহিদা প্রদান',
+          contentEn:
+              'Tenants must provide genuine contact numbers and honest details when creating demands or communicating with landlords. Submitting deceptive requirements or spamming property owners is strictly prohibited.',
+          contentBn:
+              'ভাড়াটিয়াদের অবশ্যই নিজস্ব সঠিক ফোন নম্বর ও তথ্যাদি ব্যবহার করতে হবে। মিথ্যা ভাড়ার চাহিদা পোস্ট করা বা বাড়িওয়ালাদের অযথা বিরক্ত করা সম্পূর্ণ নিষিদ্ধ।',
         ),
         const PolicySectionModel(
-          id: 'tc_2',
-          headingEn: '2. Property Listings & Advertisements',
-          headingBn: '২. বাসাভাড়া বিজ্ঞাপন ও লিস্টিং নীতিমালা',
-          contentEn:
-              'By publishing a To-Let listing, house owners confirm legal ownership or authorized agency rights. Listings must adhere to Bangladesh real estate fair housing standards and must not discriminate unlawfully.',
-          contentBn:
-              'বাসাভাড়ার বিজ্ঞাপন প্রকাশের মাধ্যমে বাড়িওয়ালা বা প্রতিনিধি নিশ্চিত করেন যে উক্ত প্রপার্টি লিস্টিং করার বৈধ অধিকার তার রয়েছে। বিজ্ঞাপনে অশালীন ছবি বা বিভ্রান্তিকর কনটেন্ট দেওয়া সম্পূর্ণ নিষিদ্ধ।',
+          id: 't_tc_2',
           order: 2,
           iconName: 'home_work_outlined',
+          headingEn: '2. Physical Home Inspection & Booking Diligence',
+          headingBn: '২. সরাসরি বাসা পরিদর্শন ও ভাড়া চুক্তি',
+          contentEn:
+              'Tenants are strongly encouraged to physically inspect the property, check water/gas/electricity facilities, and review the landlord\'s tenancy agreement before making any advance financial transactions.',
+          contentBn:
+              'ভাড়াটিয়াদের যে-কোনো অগ্রিম আর্থিক লেনদেনের পূর্বে সরাসরি বাসা পরিদর্শন, বিদ্যুৎ/গ্যাস/পানি সুবিধা যাচাই এবং বাড়িওয়ালার সাথে লিখিত চুক্তি নিশ্চিত করার পরামর্শ দেওয়া হচ্ছে।',
         ),
         const PolicySectionModel(
-          id: 'tc_3',
-          headingEn: '3. Fees, Payments & Subscriptions',
-          headingBn: '৩. ফি, পেমেন্ট ও সাবস্ক্রিপশন প্ল্যান',
-          contentEn:
-              'Basic browsing and demand posting are free. Advanced contact unlocks and boosted listings operate on upfront subscription packages. All digital transactions are governed by our Refund Policy.',
-          contentBn:
-              'সাধারণ বাসা খোঁজা ও ডিমান্ড পোস্ট সম্পূর্ণ ফ্রি। প্রিমিয়াম সাবস্ক্রিপশন প্যাকেজে আনলিমিটেড কন্টাক্ট নম্বর আনলক ও বুস্টিং সুবিধা রয়েছে। সকল পেমেন্ট আমাদের রিফান্ড পলিসির আওতাভুক্ত।',
+          id: 't_tc_3',
           order: 3,
-          iconName: 'account_balance_wallet_outlined',
-        ),
-        const PolicySectionModel(
-          id: 'tc_4',
-          headingEn: '4. Governing Law & Jurisdiction',
-          headingBn: '৪. প্রযোজ্য আইন ও বিচারিক অধিক্ষেত্র',
+          iconName: 'verified_user_outlined',
+          headingEn: '3. Platform Scope & Limitation of Liability',
+          headingBn: '৩. প্ল্যাটফর্মের ভূমিকা ও দায়বদ্ধতার সীমাবদ্ধতা',
           contentEn:
-              'These terms are formulated in accordance with the laws of the People’s Republic of Bangladesh. Any dispute arising from platform usage is subject to the exclusive jurisdiction of the courts of Dhaka, Bangladesh.',
+              'BashaBondhu connects tenants and property owners. We do not act as direct landlords or tenant guarantors. Any personal tenancy disputes, security deposit returns, or property damages must be settled between tenant and landlord in accordance with the Laws of Bangladesh.',
           contentBn:
-              'এই শর্তাবলী গণপ্রজাতন্ত্রী বাংলাদেশের প্রযোজ্য আইন অনুযায়ী পরিচালিত। প্ল্যাটফর্ম ব্যবহারের ক্ষেত্রে যেকোনো বিরোধ নিষ্পত্তির জন্য ঢাকা, বাংলাদেশ আদালতের অধিক্ষেত্র প্রযোজ্য হবে।',
-          order: 4,
-          iconName: 'account_balance_outlined',
+              'বাসাবন্ধু একটি ডিজিটাল কানেক্টিং প্ল্যাটফর্ম। বাড়িওয়ালা ও ভাড়াটিয়ার মধ্যকার চুক্তিভঙ্গ, জামানতের টাকা ফেরত বা বাসার অভ্যন্তরীণ ক্ষতির জন্য বাসাবন্ধু আর্থিক দায় বহন করে না; যা বাংলাদেশের প্রচলিত আইন অনুযায়ী উভয় পক্ষ মীমাংসা করবেন।',
         ),
       ],
     );
   }
 
-  AppPolicyModel _defaultRefundPolicy() {
+  AppPolicyModel _getTenantDefaultRefundPolicy(String docId) {
     return AppPolicyModel(
-      id: 'refund_policy',
+      id: docId,
       type: 'refund_policy',
-      titleEn: 'Refund Policy',
-      titleBn: 'রিফান্ড পলিসি',
-      subtitleEn: 'Clear, transparent rules regarding payment refunds, service cancellations, and dispute settlements.',
-      subtitleBn: 'সাবস্ক্রিপশন ফি, লেনদেন বাতিল ও রিফান্ড সংক্রান্ত স্পষ্ট ও স্বচ্ছ নীতিমালা।',
-      lastUpdated: DateTime(2026, 8, 1),
+      targetAudience: 'tenant',
+      titleEn: 'Tenant Refund Policy',
+      titleBn: 'ভাড়াটিয়া রিফান্ড পলিসি',
+      subtitleEn: 'Refund eligibility, subscription cancellation, and dispute settlement for tenants.',
+      subtitleBn: 'ভাড়াটিয়াদের সাবস্ক্রিপশন ফি রিফান্ড, বাতিলকরণ ও অর্থ ফেরতের নিয়মাবলী।',
+      lastUpdated: DateTime(2026, 8, 31),
       sections: [
         const PolicySectionModel(
-          id: 'rf_1',
-          headingEn: '1. Subscription Service Cancellation',
-          headingBn: '১. সাবস্ক্রিপশন বাতিল ও রিফান্ড যোগ্যতা',
-          contentEn:
-              'If you purchase a digital subscription and experience a verified technical failure that prevents contact unlocking or post boosting within 24 hours of purchase, you are eligible for a full refund or service credit.',
-          contentBn:
-              'সাবস্ক্রিপশন ক্রয়ের পর যদি কোনো কারিগরি ত্রুটির কারণে ২৪ ঘণ্টার মধ্যে প্যাকেজের সুবিধা (যেমন: নম্বর আনলক বা বুস্টিং) পাওয়া না যায়, তবে সম্পূর্ণ অর্থ রিফান্ড বা সমমূল্যের সার্ভিস ক্রেডিট প্রদান করা হবে।',
+          id: 't_rf_1',
           order: 1,
-          iconName: 'replay_outlined',
+          iconName: 'replay_rounded',
+          headingEn: '1. Tenant Subscription & Service Fee Refunds',
+          headingBn: '১. ভাড়াটিয়া সাবস্ক্রিপশন ও প্রিমিয়াম ফি রিফান্ড',
+          contentEn:
+              'If a tenant accidentally purchases a duplicate subscription package or experiences a technical billing failure, they are eligible for a 100% refund within 48 hours of payment.',
+          contentBn:
+              'যদি কোনো ভাড়াটিয়া ভুলবশত ডুপ্লিকেট সাবস্ক্রিপশন ক্রয় করেন অথবা কারিগরি সমস্যার কারণে অতিরিক্ত টাকা কেটে নেওয়া হয়, তবে ৪৮ ঘণ্টার মধ্যে আবেদন করলে ১০০% টাকা রিফান্ড করা হবে।',
         ),
         const PolicySectionModel(
-          id: 'rf_2',
-          headingEn: '2. Refund Processing Timeline',
-          headingBn: '২. রিফান্ড প্রসেসিং সময়সীমা',
-          contentEn:
-              'Approved refunds are processed back to your original payment method (bKash/Nagad wallet or bank card) within 5 to 10 business days after verification.',
-          contentBn:
-              'রিফান্ড অনুমোদনের পর ৫ থেকে ১০ কর্মদিবসের মধ্যে আপনার মূল পেমেন্ট মাধ্যমে (বিকাশ/নগদ অ্যাকাউন্ট বা ব্যাংক কার্ড) টাকা ফেরত পাঠানো হবে।',
+          id: 't_rf_2',
           order: 2,
-          iconName: 'timer_outlined',
+          iconName: 'account_balance_wallet_outlined',
+          headingEn: '2. Refund Processing Time (5-10 Working Days)',
+          headingBn: '২. রিফান্ড প্রসেসিং সময় (৫-১০ কর্মদিবস)',
+          contentEn:
+              'Approved refunds are credited directly to the original payment channel (bKash, Nagad, Rocket, or Bank Card) within 5 to 10 working days.',
+          contentBn:
+              'অনুমোদিত রিফান্ডের অর্থ যে পেমেন্ট মাধ্যম (বিকাশ, নগদ, রকেট বা ব্যাংক কার্ড) দিয়ে পরিশোধ করা হয়েছিল, আগামী ৫ থেকে ১০ কর্মদিবসের মধ্যে সরাসরি সেখানে ফেরত দেওয়া হবে।',
         ),
         const PolicySectionModel(
-          id: 'rf_3',
-          headingEn: '3. Non-Refundable Situations',
-          headingBn: '৩. যেসব ক্ষেত্রে রিফান্ড প্রযোজ্য নয়',
-          contentEn:
-              '• Subscriptions where package quota or contact unlocks have already been utilized.\n• Accounts banned for policy violations or fraudulent listings.\n• Direct private cash transactions conducted between landlord and tenant outside BashaBondhu.',
-          contentBn:
-              '• প্যাকেজের সুবিধা বা কন্টাক্ট নম্বর ইতিমধ্যে ব্যবহার করে ফেললে।\n• প্রতারণামূলক তথ্য বা নীতিমালা লঙ্ঘনের কারণে অ্যাকাউন্ট বন্ধ হলে।\n• বাসাবন্ধু প্ল্যাটফর্মের বাইরে সরাসরি বাড়িওয়ালা ও ভাড়াটিয়ার মধ্যে হওয়া ব্যক্তিগত নগদ লেনদেনের ক্ষেত্রে।',
+          id: 't_rf_3',
           order: 3,
-          iconName: 'highlight_off_outlined',
-        ),
-        const PolicySectionModel(
-          id: 'rf_4',
-          headingEn: '4. How to Request a Refund',
-          headingBn: '৪. রিফান্ডের আবেদন করার নিয়ম',
+          iconName: 'block_rounded',
+          headingEn: '3. Rental Security Deposits (Non-Platform Handled)',
+          headingBn: '৩. বাসার অগ্রিম জামানত সংক্রান্ত অর্থ',
           contentEn:
-              'To file a refund request, email billing@bashabondhu.com with your registered phone number, transaction TrxID, and a brief description of the issue. Our finance team will review and update you promptly.',
+              'Please note that advance house deposits paid directly to house owners are strictly governed by the rental agreement between renter and landlord. BashaBondhu does not directly hold or refund home rental advance deposits.',
           contentBn:
-              'রিফান্ডের জন্য আপনার নিবন্ধিত ফোন নম্বর, পেমেন্ট ট্রানজেকশন আইডি (TrxID) এবং কারণ উল্লেখ করে billing@bashabondhu.com এ ইমেইল করুন অথবা অ্যাপের সাপোর্ট ডেস্কে যোগাযোগ করুন।',
-          order: 4,
-          iconName: 'mark_email_read_outlined',
+              'বাড়িওয়ালাকে সরাসরি প্রদানকৃত বাসার জামানত বা অগ্রিম ভাড়া বাসাবন্ধুর অ্যাকাউন্টে জমা হয় না, তাই জামানত ফেরতের বিষয়টি বাড়িওয়ালার সাথে স্বাক্ষরিত চুক্তি অনুযায়ী প্রযোজ্য হবে।',
         ),
       ],
     );
   }
 
-  List<FaqModel> _getDefaultFaqs({String? category}) {
-    final all = [
+  // ==========================================
+  // B. HOUSE OWNER DEFAULT POLICIES (বাড়িওয়ালা)
+  // ==========================================
+
+  AppPolicyModel _getHouseOwnerDefaultPrivacyPolicy(String docId) {
+    return AppPolicyModel(
+      id: docId,
+      type: 'privacy_policy',
+      targetAudience: 'house_owner',
+      titleEn: 'House Owner Privacy Policy',
+      titleBn: 'বাড়িওয়ালা গোপনীয়তা নীতি',
+      subtitleEn: 'How BashaBondhu safeguards landlord identities, property ownership documents, and listing data.',
+      subtitleBn: 'বাসাবন্ধুতে বাড়িওয়ালাদের পরিচয়, হোল্ডিং ও মালিকানা সংক্রান্ত তথ্য এবং বিজ্ঞাপনের সুরক্ষা নীতি।',
+      lastUpdated: DateTime(2026, 8, 31),
+      sections: [
+        const PolicySectionModel(
+          id: 'h_sec_1',
+          order: 1,
+          iconName: 'privacy_tip_outlined',
+          headingEn: '1. Information Collected from Property Owners',
+          headingBn: '১. বাড়িওয়ালাদের সংগৃহীত তথ্যাবলী',
+          contentEn:
+              'When property owners publish listings, we collect owner name, contact number, NID/Passport verification data, exact building address, photos, rental price, holding specifications, and utility availability details.',
+          contentBn:
+              'বিজ্ঞাপন পোস্ট করার সময় আমরা বাড়িওয়ালার নাম, যোগাযোগের ফোন নম্বর, জাতীয় পরিচয়পত্র ভেরিফিকেশন ডাটা, বাড়ির সঠিক ঠিকানা, ছবি, ভাড়ার পরিমাণ ও ইউটিলিটি তথ্যাদি সংগ্রহ করি।',
+        ),
+        const PolicySectionModel(
+          id: 'h_sec_2',
+          order: 2,
+          iconName: 'domain_verification_rounded',
+          headingEn: '2. Confidentiality of Sensitive Property Records',
+          headingBn: '২. মালিকানা ও গোপনীয় দলিলের সুরক্ষা',
+          contentEn:
+              'Property verification documents submitted for "Verified Landlord" badges are kept strictly confidential and stored in encrypted enterprise storage. Only authorized audit officers can access these records.',
+          contentBn:
+              'ভেরিফায়েড ব্যাজের জন্য বাড়িওয়ালা কর্তৃক জমাকৃত মালিকানা ও ট্যাক্স সংক্রান্ত দলিলাদি অত্যন্ত সুরক্ষিত সার্ভারে এনক্রিপ্ট অবস্থায় সংরক্ষিত থাকে এবং কোনো বহিরাগত ব্যক্তির সাথে শেয়ার করা হয় না।',
+        ),
+        const PolicySectionModel(
+          id: 'h_sec_3',
+          order: 3,
+          iconName: 'visibility_outlined',
+          headingEn: '3. Public Listing Visibility & Contact Display',
+          headingBn: '৩. বিজ্ঞাপনের দৃশ্যমানতা ও ফোন নম্বর প্রদর্শন',
+          contentEn:
+              'Property owners have full control to display or mask their direct phone numbers and choose whether interested tenants must contact via in-app request or direct call.',
+          contentBn:
+              'বাড়িওয়ালারা তাদের সুবিধানুযায়ী সরাসরি ফোন নম্বর প্রদর্শনের স্বাধীনতা উপভোগ করেন অথবা ইন-অ্যাপ বার্তার মাধ্যমে ভাড়াটিয়ার তথ্য যাচাই করে যোগাযোগ করতে পারেন।',
+        ),
+      ],
+    );
+  }
+
+  AppPolicyModel _getHouseOwnerDefaultSupportPolicy(String docId) {
+    return AppPolicyModel(
+      id: docId,
+      type: 'support_policy',
+      targetAudience: 'house_owner',
+      titleEn: 'House Owner Support Policy',
+      titleBn: 'বাড়িওয়ালা সাপোর্ট পলিসি',
+      subtitleEn: 'Dedicated priority support, listing approvals, and technical assistance for landlords.',
+      subtitleBn: 'বাড়িওয়ালাদের জন্য প্রায়োরিটি লিস্টিং অ্যাপ্রুভাল, বিজ্ঞাপন বুস্ট সহায়তা ও হেল্পলাইন গাইডলাইন।',
+      lastUpdated: DateTime(2026, 8, 31),
+      sections: [
+        const PolicySectionModel(
+          id: 'h_sup_1',
+          order: 1,
+          iconName: 'support_agent_rounded',
+          headingEn: '1. Landlord Priority Helpline & Contacts',
+          headingBn: '১. বাড়িওয়ালা প্রায়োরিটি হেল্পলাইন ও চ্যানেল',
+          contentEn:
+              'Property owners receive priority listing assistance 6 days a week (Sat-Thu, 9 AM - 9 PM BST).\n• Landlord Hotline: +880 1800-000000\n• Dedicated Email: owner-support@bashabondhu.com\n• Listing Audit Escalations: audit@bashabondhu.com',
+          contentBn:
+              'বাড়িওয়ালাদের জন্য আমাদের বিশেষায়িত হেল্পডেস্ক সপ্তাহে ৬ দিন (শনি-বৃহস্পতি, সকাল ৯:০০ - রাত ৯:০০) চালু থাকে।\n• বাড়িওয়ালা হেল্পলাইন: +৮৮০ ১৮০০-০০০০০০\n• ইমেইল: owner-support@bashabondhu.com\n• অডিট ও ভেরিফিকেশন: audit@bashabondhu.com',
+        ),
+        const PolicySectionModel(
+          id: 'h_sup_2',
+          order: 2,
+          iconName: 'speed_rounded',
+          headingEn: '2. Fast-Track Listing Approval SLA',
+          headingBn: '২. দ্রুত বিজ্ঞাপন অনুমোদন ও ভেরিফিকেশন',
+          contentEn:
+              'New property listings are verified and approved within 1 to 4 business hours. Landlord subscription activations and featured boosts are processed instantly.',
+          contentBn:
+              'নতুন বাসা ভাড়ার বিজ্ঞাপন ১ থেকে ৪ কর্মঘণ্টার মধ্যে যাচাই করে লাইভ করা হয়। প্রিমিয়াম সাবস্ক্রিপশন ও ফিচার্ড বুস্টিং পেমেন্টের সাথে সাথে কার্যকর হয়।',
+        ),
+        const PolicySectionModel(
+          id: 'h_sup_3',
+          order: 3,
+          iconName: 'handshake_outlined',
+          headingEn: '3. Problematic Tenant Reporting & Assistance',
+          headingBn: '৩. সমস্যাযুক্ত ভাড়াটিয়া রিপোর্ট ও সহায়তা',
+          contentEn:
+              'If a tenant submits fake demands or violates property decorum, landlords can report the profile for immediate review and platform restriction.',
+          contentBn:
+              'যদি কোনো ভাড়াটিয়া ভুয়া ভাড়ার তথ্য দিয়ে বাড়িওয়ালাকে প্রতারিত করার চেষ্টা করেন, বাড়িওয়ালারা সরাসরি রিপোর্ট করতে পারেন এবং প্রয়োজনীয় ব্যবস্থা নেওয়া হবে।',
+        ),
+      ],
+    );
+  }
+
+  AppPolicyModel _getHouseOwnerDefaultTermsConditions(String docId) {
+    return AppPolicyModel(
+      id: docId,
+      type: 'terms_conditions',
+      targetAudience: 'house_owner',
+      titleEn: 'House Owner Terms & Conditions',
+      titleBn: 'বাড়িওয়ালা ব্যবহারের শর্তাবলী',
+      subtitleEn: 'Listing standards, legal commitments, and rules for property owners on BashaBondhu.',
+      subtitleBn: 'বাসাবন্ধুতে বাসা ভাড়ার বিজ্ঞাপন প্রকাশ, বাড়িওয়ালার দায়িত্ব ও আইনি নীতিমালা।',
+      lastUpdated: DateTime(2026, 8, 31),
+      sections: [
+        const PolicySectionModel(
+          id: 'h_tc_1',
+          order: 1,
+          iconName: 'gavel_rounded',
+          headingEn: '1. Genuine Listings & Real Photographs',
+          headingBn: '১. সঠিক বিজ্ঞাপন ও প্রকৃত ছবি ব্যবহার',
+          contentEn:
+              'Property owners must provide authentic photos, accurate monthly rental amounts, advance deposit requirements, and real floor specifications. Uploading fabricated images or duplicate spam listings is forbidden.',
+          contentBn:
+              'বাড়িওয়ালাকে অবশ্যই বাসার প্রকৃত ছবি, সঠিক মাসিক ভাড়া, জামানতের পরিমাণ ও ফ্ল্যাটের স্পেসিফিকেশন উল্লেখ করতে হবে। ইন্টারনেট থেকে সংগৃহীত নকল ছবি বা একাধিক ডুপ্লিকেট বিজ্ঞাপন দেওয়া নিষিদ্ধ।',
+        ),
+        const PolicySectionModel(
+          id: 'h_tc_2',
+          order: 2,
+          iconName: 'check_circle_outline_rounded',
+          headingEn: '2. Immediate Status Updates upon Renting Out',
+          headingBn: '২. বাসা ভাড়া হলে স্ট্যাটাস পরিবর্তন',
+          contentEn:
+              'When a property is successfully rented out, the owner is required to update the status to "Rented Out" (ভাড়া হয়ে গেছে) promptly to avoid unnecessary tenant inquiries.',
+          contentBn:
+              'বাসা ভাড়া হয়ে যাওয়ার সাথে সাথে বাড়িওয়ালাকে অ্যাপের মাধ্যমে বিজ্ঞাপনটি "Rented Out" (ভাড়া হয়ে গেছে) স্ট্যাটাসে পরিবর্তন করতে হবে যাতে ভাড়াটিয়ারা বিভ্রান্ত না হন।',
+        ),
+        const PolicySectionModel(
+          id: 'h_tc_3',
+          order: 3,
+          iconName: 'shield_outlined',
+          headingEn: '3. Compliance with Rental Laws of Bangladesh',
+          headingBn: '৩. বাংলাদেশের বাড়িভাড়া নিয়ন্ত্রণ আইন মেনে চলা',
+          contentEn:
+              'Landlords agree to abide by the Premises Rent Control Act of Bangladesh. BashaBondhu serves as an advertising platform and does not partake in tenancy contracts or legal eviction processes.',
+          contentBn:
+              'বাড়িওয়ালারা বাংলাদেশের প্রচলিত বাড়িভাড়া নিয়ন্ত্রণ আইন ও নীতিমালা মেনে চলার অঙ্গীকার করেন। বাসাভাড়ার চুক্তিপত্র ও উচ্ছেদ সংক্রান্ত বিষয়ে বাসাবন্ধু কোনো সরাসরি পক্ষ নয়।',
+        ),
+      ],
+    );
+  }
+
+  AppPolicyModel _getHouseOwnerDefaultRefundPolicy(String docId) {
+    return AppPolicyModel(
+      id: docId,
+      type: 'refund_policy',
+      targetAudience: 'house_owner',
+      titleEn: 'House Owner Refund Policy',
+      titleBn: 'বাড়িওয়ালা রিফান্ড পলিসি',
+      subtitleEn: 'Subscription packages, featured ad boosts, and refund eligibility for landlords.',
+      subtitleBn: 'বাড়িওয়ালাদের লিস্টিং প্যাকেজ, প্রিমিয়াম বুস্টিং ও রিফান্ড সংক্রান্ত নিয়মাবলী।',
+      lastUpdated: DateTime(2026, 8, 31),
+      sections: [
+        const PolicySectionModel(
+          id: 'h_rf_1',
+          order: 1,
+          iconName: 'replay_rounded',
+          headingEn: '1. Landlord Subscription Packages Refund',
+          headingBn: '১. বাড়িওয়ালা লিস্টিং প্যাকেজ রিফান্ড',
+          contentEn:
+              'If a landlord purchases a subscription pack but cannot publish listings due to platform system technical bugs, a 100% refund is issued upon request within 7 days.',
+          contentBn:
+              'যদি কোনো বাড়িওয়ালা সাবস্ক্রিপশন প্যাকেজ কিনে কারিগরি সমস্যার কারণে বিজ্ঞাপন পোস্ট করতে না পারেন, তবে ৭ দিনের মধ্যে আবেদন করলে সম্পূর্ণ টাকা রিফান্ড করা হবে।',
+        ),
+        const PolicySectionModel(
+          id: 'h_rf_2',
+          order: 2,
+          iconName: 'campaign_outlined',
+          headingEn: '2. Featured Ad Boost Non-Refundable Period',
+          headingBn: '২. ফিচার্ড বিজ্ঞাপন বুস্টিং পলিসি',
+          contentEn:
+              'Once a "Featured" or "Urgent" promotion badge has been activated and displayed publicly to users for more than 24 hours, the promotional boost fee is non-refundable.',
+          contentBn:
+              'যদি কোনো বিজ্ঞাপন "ফিচার্ড" বা "জরুরি" বুস্ট হিসেবে সক্রিয় হয়ে ২৪ ঘণ্টার বেশি সময় প্রদর্শিত হয়, তবে উক্ত বুস্টিং চার্জ রিফান্ডযোগ্য হবে না।',
+        ),
+        const PolicySectionModel(
+          id: 'h_rf_3',
+          order: 3,
+          iconName: 'credit_card_rounded',
+          headingEn: '3. Settlement Method',
+          headingBn: '৩. অর্থ পরিশোধের মাধ্যম',
+          contentEn:
+              'All approved landlord refunds are disbursed within 5-10 business days directly to the original MFS (bKash/Nagad) or Bank Account.',
+          contentBn:
+              'অনুমোদিত সকল রিফান্ড আগামী ৫ থেকে ১০ কর্মদিবসের মধ্যে সরাসরি মূল পেমেন্ট মাধ্যমে (বিকাশ/নগদ/ব্যাংক) ফেরত পাঠানো হবে।',
+        ),
+      ],
+    );
+  }
+
+  // ==========================================
+  // C. DEFAULT FAQS WITH TARGET AUDIENCE
+  // ==========================================
+
+  List<FaqModel> _getDefaultFaqs() {
+    return [
+      // 1. General (All)
       const FaqModel(
         id: 'faq_1',
         category: 'general',
-        questionEn: 'What is BashaBondhu?',
-        questionBn: 'বাসাবন্ধু (BashaBondhu) কী?',
-        answerEn:
-            'BashaBondhu is an AI-powered rental management and property discovery platform in Bangladesh. It empowers tenants to find family flats, bachelor rooms, sublets, and hostels, while enabling house owners to publish ads and manage rental records effortlessly.',
-        answerBn:
-            'বাসাবন্ধু হলো বাংলাদেশের একটি আধুনিক ও এআই-পাওয়ার্ড বাসাভাড়া ও প্রপার্টি প্ল্যাটফর্ম। এর মাধ্যমে ভাড়াটিয়ারা সহজে পরিবারিক ফ্ল্যাট, ব্যাচেলর রুম, সাবলেট ও হোস্টেল খুঁজতে পারেন এবং বাড়িওয়ালারা সরাসরি বিজ্ঞাপন দিয়ে দ্রুত ভাড়াটিয়া খুঁজে পান।',
+        targetAudience: 'all',
         order: 1,
+        questionEn: 'What is BashaBondhu and how does it work?',
+        questionBn: 'বাসাবন্ধু কী এবং এটি কীভাবে কাজ করে?',
+        answerEn:
+            'BashaBondhu is Bangladesh\'s leading smart home rental management platform connecting tenants with verified house owners seamlessly without middlemen.',
+        answerBn:
+            'বাসাবন্ধু একটি আধুনিক ডিজিটাল বাড়িভাড়া প্ল্যাটফর্ম, যা কোনো ধরনের মধ্যস্থতাকারী (দালাল) ছাড়াই সরাসরি ভাড়াটিয়া ও বাড়িওয়ালার মধ্যে সংযোগ স্থাপন করে।',
       ),
+
+      // 2. Finding Home (Tenant)
       const FaqModel(
         id: 'faq_2',
-        category: 'general',
-        questionEn: 'Who can use BashaBondhu?',
-        questionBn: 'বাসাবন্ধু কাদের জন্য তৈরি?',
-        answerEn:
-            'Anyone looking for rental accommodations (families, students, job holders), property owners listing flats, and building managers managing multi-unit tenant records across Bangladesh.',
-        answerBn:
-            'যারা বাংলাদেশে বাসা, ফ্ল্যাট, সিট বা সাবলেট ভাড়া খুঁজছেন; যারা নিজের বাড়ি বা রুম ভাড়া দিতে চান; এবং যাদের একাধিক ভাড়াটিয়া পরিচালনা করতে আধুনিক টেন্যান্ট ম্যানেজমেন্ট দরকার—সবার জন্য বাসাবন্ধু।',
+        category: 'finding_home',
+        targetAudience: 'tenant',
         order: 2,
+        questionEn: 'How can I search and filter rental homes?',
+        questionBn: 'আমি কীভাবে বাসা খুঁজতে এবং ফিল্টার করতে পারি?',
+        answerEn:
+            'Go to the "Find a Home" tab and use location, rent price range, house type (Family, Bachelor, Sublet), and bed/bath filters or tap on the Interactive Map.',
+        answerBn:
+            '"বাসা খুঁজুন" ট্যাবে গিয়ে আপনার এলাকা, ভাড়ার বাজেট, ক্যাটাগরি (ফ্যামিলি, ব্যাচেলর, সাবলেট) সিলেক্ট করুন অথবা ইন্টারঅ্যাক্টিভ ম্যাপ থেকে সরাসরি বাসা বাছাই করুন।',
       ),
+
+      // 3. Demand (Tenant)
       const FaqModel(
         id: 'faq_3',
         category: 'finding_home',
-        questionEn: 'How do I search for house rent on BashaBondhu?',
-        questionBn: 'বাসাবন্ধুতে পছন্দের বাসা কীভাবে খুঁজব?',
-        answerEn:
-            'Open the "Find a Home" tab, select your preferred division, district, thana/area, budget range, and room count. You can also use the interactive BashaBondhu AI Assistant for step-by-step conversational search.',
-        answerBn:
-            'অ্যাপের "Find Home" অপশনে গিয়ে আপনার পছন্দের বিভাগ, জেলা, থানা/এলাকা, বাজেট এবং রুম সিলেক্ট করে ফিল্টার করুন। এছাড়া আমাদের এআই সহকারীর সাথে চ্যাট করেও মুহূর্তেই মনের মতো বাসা খুঁজে পাবেন।',
+        targetAudience: 'tenant',
         order: 3,
+        questionEn: 'What is "Tenant Demand" and how do I post one?',
+        questionBn: '"ভাড়ার চাহিদা (Demand)" কী এবং কীভাবে পোস্ট করব?',
+        answerEn:
+            'If you cannot find a suitable house, tap "Demand" to post your desired area, budget, and family size. Landlords who have matching properties will contact you directly!',
+        answerBn:
+            'পছন্দসই বাসা না পেলে "Demand" অপশনে গিয়ে আপনার এলাকা ও বাজেট উল্লেখ করে চাহিদা পোস্ট করুন। বাড়িওয়ালারা আপনার পোস্ট দেখে সরাসরি আপনার সাথে যোগাযোগ করবেন।',
       ),
+
+      // 4. Posting (House Owner)
       const FaqModel(
         id: 'faq_4',
-        category: 'finding_home',
-        questionEn: 'Is there any middleman / media fee to contact house owners?',
-        questionBn: 'বাড়িওয়ালার সাথে যোগাযোগে কোনো মিডিয়া বা দালাল ফি দিতে হয় কি?',
-        answerEn:
-            'No! BashaBondhu connects you directly with verified house owners without any middleman or commission fees.',
-        answerBn:
-            'না! বাসাবন্ধুতে কোনো প্রকার দালাল বা মধ্যস্বত্বভোগী ছাড়া সরাসরি আসল বাড়িওয়ালার সাথে যোগাযোগ করা যায়।',
+        category: 'posting',
+        targetAudience: 'house_owner',
         order: 4,
+        questionEn: 'How do I publish a property listing as a Landlord?',
+        questionBn: 'বাড়িওয়ালা হিসেবে আমি কীভাবে বাসা ভাড়ার বিজ্ঞাপন দেব?',
+        answerEn:
+            'Tap the "+" or "Post Ad" button on your Landlord dashboard. Enter property address, upload clear photos, set rent price and amenities, then tap Publish.',
+        answerBn:
+            'বাড়িওয়ালা ড্যাশবোর্ডে গিয়ে "+" বাটনে ট্যাপ করুন। এরপর বাসার ঠিকানা, পরিষ্কার ছবি, ভাড়ার পরিমাণ ও সুবিধাসমূহ সিলেক্ট করে সাবমিট করুন।',
       ),
+
+      // 5. Viewing Demands (House Owner)
       const FaqModel(
         id: 'faq_5',
         category: 'posting',
-        questionEn: 'How do I post a rental advertisement as a House Owner?',
-        questionBn: 'বাড়িওয়ালা হিসেবে কীভাবে বাসাভাড়ার বিজ্ঞাপন দেব?',
-        answerEn:
-            'Log into your House Owner account, tap "Post Now" (or ask the AI Assistant), fill in the property details, upload photos, and publish your ad instantly for free.',
-        answerBn:
-            'বাড়িওয়ালা অ্যাকাউন্টে লগইন করে "Post Now" বাটনে চাপ দিন (অথবা এআই সহকারীর সাহায্য নিন), বাসার বিবরণ ও ছবি যুক্ত করে সম্পূর্ণ ফ্রিতে আপনার বিজ্ঞাপন লাইভ করুন।',
+        targetAudience: 'house_owner',
         order: 5,
+        questionEn: 'How can I see what tenants are currently looking for?',
+        questionBn: 'ভাড়াটিয়াদের চাহিদাগুলো বাড়িওয়ালা কীভাবে দেখতে পারবেন?',
+        answerEn:
+            'From your House Owner Account, open "All Tenant Demands". You can browse verified renter requests and directly call interested tenants.',
+        answerBn:
+            'বাড়িওয়ালা অ্যাকাউন্ট থেকে "All Tenant Demands" অপশনে গেলে বিভিন্ন এলাকার ভাড়াটিয়াদের সক্রিয় চাহিদা দেখতে পাবেন এবং সরাসরি কল করতে পারবেন।',
       ),
+
+      // 6. Subscriptions (House Owner)
       const FaqModel(
         id: 'faq_6',
-        category: 'posting',
-        questionEn: 'Can I edit or deactivate my property post?',
-        questionBn: 'পোস্ট করা বিজ্ঞাপন কি এডিট বা ডিঅ্যাক্টিভেট করা যাবে?',
-        answerEn:
-            'Yes! Go to "My Post" in your account to update rent amounts, photos, or toggle availability off when your flat is rented out.',
-        answerBn:
-            'হ্যাঁ! আপনার অ্যাকাউন্টের "My Post" অপশন থেকে যেকোনো সময় ভাড়ার তথ্য ও ছবি এডিট করতে পারবেন অথবা বাসা ভাড়া হয়ে গেলে বিজ্ঞাপন বন্ধ করে রাখতে পারবেন।',
+        category: 'management',
+        targetAudience: 'house_owner',
         order: 6,
+        questionEn: 'What are the benefits of Landlord Subscription Plans?',
+        questionBn: 'বাড়িওয়ালা সাবস্ক্রিপশন প্ল্যানের সুবিধা কী কী?',
+        answerEn:
+            'Subscription plans allow landlords to post multiple listings, get "Featured" top placement badges, and receive priority tenant leads.',
+        answerBn:
+            'সাবস্ক্রিপশন প্ল্যানে একাধিক বিজ্ঞাপন প্রকাশ, বিজ্ঞাপনে "Featured" ব্যাজ এবং দ্রুত ভাড়াটিয়া পাওয়ার প্রায়োরিটি সুবিধা পাওয়া যায়।',
       ),
+
+      // 7. Safety (All)
       const FaqModel(
         id: 'faq_7',
-        category: 'management',
-        questionEn: 'What is Tenant Demand posting?',
-        questionBn: 'ভাড়াটিয়াদের ডিমান্ড পোস্ট (Tenant Demand) কীভাবে কাজ করে?',
-        answerEn:
-            'Tenants can post their exact rental requirements (area, budget, bedrooms, move-in month). Landlords can view matching demands and contact tenants proactively.',
-        answerBn:
-            'ভাড়াটিয়ারা তাদের নির্দিষ্ট এলাকা, বাজেট, বেডরুম ও পছন্দের মাসের চাহিদা পোস্ট করতে পারেন। বাড়িওয়ালারা এই চাহিদা দেখে সরাসরি উপযুক্ত ভাড়াটিয়াদের সাথে যোগাযোগ করতে পারেন।',
-        order: 7,
-      ),
-      const FaqModel(
-        id: 'faq_8',
         category: 'safety',
-        questionEn: 'How does BashaBondhu ensure safety against fraudulent listings?',
-        questionBn: 'ভুয়া বা প্রতারণামূলক বিজ্ঞাপন ঠেকাতে বাসাবন্ধুর কী নিরাপত্তা ব্যবস্থা রয়েছে?',
+        targetAudience: 'all',
+        order: 7,
+        questionEn: 'How does BashaBondhu verify property listings and users?',
+        questionBn: 'বাসাবন্ধু কীভাবে বিজ্ঞাপন ও ব্যবহারকারীদের যাচাই করে?',
         answerEn:
-            'We enforce NID verification badges, phone OTP validations, location audits, and community reporting. We strongly advise visiting properties in person before making advance payments.',
+            'We verify users via mobile OTP and conduct manual audits on high-value listings to prevent fake or misleading advertisements.',
         answerBn:
-            'আমরা এনআইডি ভেরিফিকেশন, ওটিপি মোবাইল ভ্যালিডেশন এবং সার্বক্ষণিক মনিটরিং নিশ্চিত করি। যেকোনো অগ্রিম লেনদেনের পূর্বে সশরীরে বাসা পরিদর্শন করার জন্য আমরা সবসময় পরামর্শ দিয়ে থাকি।',
-        order: 8,
+            'আমরা মোবাইল ওটিপি (OTP) ভেরিফিকেশন এবং বিজ্ঞাপনের ম্যানুয়াল অডিটের মাধ্যমে ভুয়া ও প্রতারণামূলক বিজ্ঞাপন প্রতিরোধ করি।',
       ),
     ];
-
-    if (category == null || category == 'all') {
-      return all;
-    }
-    return all.where((f) => f.category == category).toList();
   }
 }
-

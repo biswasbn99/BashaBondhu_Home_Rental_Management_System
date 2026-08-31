@@ -3,15 +3,19 @@ import '../widgets/policy_content_scaffold.dart';
 
 class RefundPolicyScreen extends StatelessWidget {
   static const String name = '/refund-policy';
+  final String targetAudience; // 'tenant' or 'house_owner'
 
-  const RefundPolicyScreen({super.key});
+  const RefundPolicyScreen({
+    super.key,
+    this.targetAudience = 'tenant',
+  });
 
   @override
   Widget build(BuildContext context) {
-    return const PolicyContentScaffold(
+    return PolicyContentScaffold(
       policyType: 'refund_policy',
+      targetAudience: targetAudience,
       defaultIcon: Icons.replay_rounded,
     );
   }
 }
-

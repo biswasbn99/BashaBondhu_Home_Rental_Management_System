@@ -65,11 +65,21 @@ class AppRoutes {
       HouseOwnerSubscriptionScreen.name => const HouseOwnerSubscriptionScreen(),
       SubscriptionHistoryScreen.name => const SubscriptionHistoryScreen(),
       AIAssistantScreen.name => const AIAssistantScreen(),
-      PrivacyPolicyScreen.name => const PrivacyPolicyScreen(),
-      SupportPolicyScreen.name => const SupportPolicyScreen(),
-      TermsConditionsScreen.name => const TermsConditionsScreen(),
-      RefundPolicyScreen.name => const RefundPolicyScreen(),
-      FaqScreen.name => const FaqScreen(),
+      PrivacyPolicyScreen.name => PrivacyPolicyScreen(
+          targetAudience: args?['targetAudience'] as String? ?? (settings.arguments is String ? settings.arguments as String : 'tenant'),
+        ),
+      SupportPolicyScreen.name => SupportPolicyScreen(
+          targetAudience: args?['targetAudience'] as String? ?? (settings.arguments is String ? settings.arguments as String : 'tenant'),
+        ),
+      TermsConditionsScreen.name => TermsConditionsScreen(
+          targetAudience: args?['targetAudience'] as String? ?? (settings.arguments is String ? settings.arguments as String : 'tenant'),
+        ),
+      RefundPolicyScreen.name => RefundPolicyScreen(
+          targetAudience: args?['targetAudience'] as String? ?? (settings.arguments is String ? settings.arguments as String : 'tenant'),
+        ),
+      FaqScreen.name => FaqScreen(
+          targetAudience: args?['targetAudience'] as String? ?? (settings.arguments is String ? settings.arguments as String : 'all'),
+        ),
       AdminMainScreen.name => const AdminMainScreen(),
       _ => const Scaffold(body: Center(child: Text('Page not found'))),
     };

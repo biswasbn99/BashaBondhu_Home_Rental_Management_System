@@ -8,12 +8,14 @@ import '../../data/services/policy_firestore_service.dart';
 
 class PolicyContentScaffold extends StatefulWidget {
   final String policyType; // 'privacy_policy', 'support_policy', 'terms_conditions', 'refund_policy'
+  final String targetAudience; // 'tenant' or 'house_owner'
   final IconData defaultIcon;
 
   const PolicyContentScaffold({
     super.key,
     required this.policyType,
-    required this.defaultIcon,
+    this.targetAudience = 'tenant',
+    this.defaultIcon = Icons.article_outlined,
   });
 
   @override
@@ -33,43 +35,41 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
 
   IconData _resolveIcon(String? iconName) {
     if (iconName == null) return widget.defaultIcon;
-    switch (iconName.toLowerCase()) {
-      case 'info_outline':
-        return Icons.info_outline_rounded;
-      case 'person_outline':
-        return Icons.person_outline_rounded;
-      case 'cookie_outlined':
-        return Icons.cookie_outlined;
-      case 'payment_outlined':
-        return Icons.payment_rounded;
-      case 'delete_outline':
-        return Icons.delete_outline_rounded;
-      case 'mail_outline':
-        return Icons.mail_outline_rounded;
-      case 'support_agent_outlined':
+    switch (iconName) {
+      case 'privacy_tip_outlined':
+        return Icons.privacy_tip_outlined;
+      case 'support_agent_rounded':
         return Icons.support_agent_rounded;
-      case 'contact_phone_outlined':
-        return Icons.contact_phone_outlined;
-      case 'schedule_outlined':
-        return Icons.schedule_rounded;
-      case 'rule_outlined':
-        return Icons.rule_rounded;
-      case 'gavel_outlined':
+      case 'gavel_rounded':
         return Icons.gavel_rounded;
+      case 'replay_rounded':
+        return Icons.replay_rounded;
+      case 'security_rounded':
+        return Icons.security_rounded;
+      case 'lock_outline_rounded':
+        return Icons.lock_outline_rounded;
+      case 'delete_forever_outlined':
+        return Icons.delete_forever_outlined;
       case 'home_work_outlined':
         return Icons.home_work_outlined;
+      case 'verified_user_outlined':
+        return Icons.verified_user_outlined;
       case 'account_balance_wallet_outlined':
         return Icons.account_balance_wallet_outlined;
-      case 'account_balance_outlined':
-        return Icons.account_balance_rounded;
-      case 'replay_outlined':
-        return Icons.replay_rounded;
-      case 'timer_outlined':
-        return Icons.timer_outlined;
-      case 'highlight_off_outlined':
-        return Icons.highlight_off_rounded;
-      case 'mark_email_read_outlined':
-        return Icons.mark_email_read_outlined;
+      case 'domain_verification_rounded':
+        return Icons.domain_verification_rounded;
+      case 'visibility_outlined':
+        return Icons.visibility_outlined;
+      case 'speed_rounded':
+        return Icons.speed_rounded;
+      case 'handshake_outlined':
+        return Icons.handshake_outlined;
+      case 'check_circle_outline_rounded':
+        return Icons.check_circle_outline_rounded;
+      case 'shield_outlined':
+        return Icons.shield_outlined;
+      case 'campaign_outlined':
+        return Icons.campaign_outlined;
       default:
         return widget.defaultIcon;
     }
@@ -82,61 +82,84 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
     final localeProvider = context.watch<LocaleProvider>();
     final languageCode = localeProvider.currentLocale.languageCode;
     final isBn = languageCode == 'bn';
+    final isTenant = widget.targetAudience == 'tenant';
 
-    return StreamBuilder<AppPolicyModel>(
-      stream: _policyService.streamPolicy(widget.policyType),
-      builder: (context, snapshot) {
-        final policy = snapshot.data;
-        final title = policy?.getTitle(languageCode) ?? '';
-        final subtitle = policy?.getSubtitle(languageCode) ?? '';
-        final sections = policy?.sections ?? [];
-
-        final filteredSections = sections.where((sec) {
-          if (_searchQuery.isEmpty) return true;
-          final q = _searchQuery.toLowerCase();
-          final h = sec.getHeading(languageCode).toLowerCase();
-          final c = sec.getContent(languageCode).toLowerCase();
-          return h.contains(q) || c.contains(q);
-        }).toList();
-
-        return Scaffold(
-          backgroundColor: isDark ? const Color(0xFF101918) : const Color(0xFFF7FBF9),
-          appBar: AppBar(
-            elevation: 0,
-            title: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF101918) : const Color(0xFFF7FBF9),
+      appBar: AppBar(
+        elevation: 0,
+        title: Text(
+          isTenant
+              ? (isBn ? 'ভাড়াটিয়া পলিসি ও শর্তাবলী' : 'Tenant Legal & Policy')
+              : (isBn ? 'বাড়িওয়ালা পলিসি ও শর্তাবলী' : 'Landlord Legal & Policy'),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+        ),
+        actions: [
+          // Language Switch Button
+          TextButton.icon(
+            onPressed: () {
+              final newLang = isBn ? 'en' : 'bn';
+              localeProvider.changeLocale(Locale(newLang));
+            },
+            icon: const Icon(Icons.translate_rounded, size: 16),
+            label: Text(
+              isBn ? 'English' : 'বাংলা',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
-            actions: [
-              // Language Switch Button
-              TextButton.icon(
-                onPressed: () {
-                  final newLang = isBn ? 'en' : 'bn';
-                  localeProvider.changeLocale(Locale(newLang));
-                },
-                icon: const Icon(Icons.translate_rounded, size: 16),
-                label: Text(
-                  isBn ? 'English' : 'বাংলা',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.themeColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                ),
-              ),
-              const SizedBox(width: 6),
-            ],
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.themeColor,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+            ),
           ),
-          body: snapshot.connectionState == ConnectionState.waiting && policy == null
-              ? const Center(child: CircularProgressIndicator(color: AppColors.themeColor))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          const SizedBox(width: 6),
+        ],
+      ),
+      body: StreamBuilder<AppPolicyModel>(
+        stream: _policyService.streamPolicy(
+          widget.policyType,
+          targetAudience: widget.targetAudience,
+        ),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.themeColor),
+            );
+          }
+
+          final policy = snapshot.data;
+          if (policy == null) {
+            return Center(
+              child: Text(
+                isBn ? 'পলিসি লোড করা যায়নি' : 'Unable to load policy.',
+                style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+              ),
+            );
+          }
+
+          final title = policy.getTitle(languageCode);
+          final subtitle = policy.getSubtitle(languageCode);
+          final allSections = policy.sections;
+
+          // Filter sections based on search query
+          final filteredSections = allSections.where((sec) {
+            if (_searchQuery.isEmpty) return true;
+            final q = _searchQuery.toLowerCase();
+            final h = sec.getHeading(languageCode).toLowerCase();
+            final c = sec.getContent(languageCode).toLowerCase();
+            return h.contains(q) || c.contains(q);
+          }).toList();
+
+          return CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // --- Hero Header Card ---
+                      // --- Header Hero Banner ---
                       Container(
-                        padding: const EdgeInsets.all(18),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [Color(0xFF00A896), AppColors.themeColor],
@@ -163,7 +186,7 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
                                     color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: Icon(widget.defaultIcon, color: Colors.white, size: 26),
+                                  child: Icon(widget.defaultIcon, color: Colors.white, size: 28),
                                 ),
                                 const SizedBox(width: 14),
                                 Expanded(
@@ -181,10 +204,10 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
                                       ),
                                       const SizedBox(height: 3),
                                       Text(
-                                        'BashaBondhu Rental Management',
+                                        'BashaBondhu • ${isTenant ? (isBn ? "ভাড়াটিয়া পোর্টাল" : "Tenant Portal") : (isBn ? "বাড়িওয়ালা পোর্টাল" : "Landlord Portal")}',
                                         style: TextStyle(
                                           fontSize: 11.5,
-                                          color: Colors.white.withValues(alpha: 0.85),
+                                          color: Colors.white.withValues(alpha: 0.9),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -205,12 +228,42 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
                               ),
                             ],
                             const SizedBox(height: 12),
-                            Row(
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.18),
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        isTenant ? Icons.person_pin_circle_rounded : Icons.apartment_rounded,
+                                        color: Colors.white,
+                                        size: 13,
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        isTenant
+                                            ? (isBn ? 'ভাড়াটিয়া নির্দেশিকা' : 'Tenant Guidelines')
+                                            : (isBn ? 'বাড়িওয়ালা নির্দেশিকা' : 'Landlord Guidelines'),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Row(
@@ -262,8 +315,11 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
                           },
                           decoration: InputDecoration(
                             icon: const Icon(Icons.search_rounded, size: 20, color: AppColors.themeColor),
-                            hintText: isBn ? 'শর্ত বা নীতি খুঁজুন...' : 'Search policy clauses...',
-                            hintStyle: TextStyle(fontSize: 12.5, color: Colors.grey[500]),
+                            hintText: isBn ? 'ধারা বা বিষয় লিখে খুঁজুন...' : 'Search clauses or keywords...',
+                            hintStyle: TextStyle(
+                              fontSize: 12.5,
+                              color: isDark ? Colors.grey[500] : Colors.grey[400],
+                            ),
                             border: InputBorder.none,
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -281,12 +337,16 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
 
-                      // --- Section Cards List ---
+                      // --- Sections List ---
                       if (filteredSections.isEmpty) ...[
                         Container(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1B2826) : Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                           alignment: Alignment.center,
                           child: Column(
                             children: [
@@ -348,12 +408,16 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    isBn
-                                        ? 'আমাদের হেল্পডেস্কে সরাসরি ইমেইল করুন: support@bashabondhu.com অথবা হটলাইনে যোগাযোগ করুন।'
-                                        : 'Reach our dedicated helpdesk directly at: support@bashabondhu.com or connect via hotline.',
+                                    isTenant
+                                        ? (isBn
+                                            ? 'বাসা খোঁজা বা ভাড়ার চাহিদা সংক্রান্ত যেকোনো সমস্যায় আমাদের টেন্যান্ট হেল্পডেস্কে ইমেইল করুন: tenant-support@bashabondhu.com'
+                                            : 'For queries regarding home search or demands, contact our tenant desk: tenant-support@bashabondhu.com')
+                                        : (isBn
+                                            ? 'বিজ্ঞাপন পোস্ট বা লিস্টিং সংক্রান্ত যেকোনো সমস্যায় আমাদের বাড়িওয়ালা হেল্পডেস্কে ইমেইল করুন: owner-support@bashabondhu.com'
+                                            : 'For listing verification or management assistance, contact our landlord desk: owner-support@bashabondhu.com'),
                                     style: TextStyle(
                                       fontSize: 11.5,
-                                      color: isDark ? Colors.grey[300] : Colors.grey[700],
+                                      color: isDark ? Colors.grey[300] : const Color(0xFF334A47),
                                       height: 1.4,
                                     ),
                                   ),
@@ -366,8 +430,11 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
                     ],
                   ),
                 ),
-        );
-      },
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -450,22 +517,23 @@ class _PolicySectionCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: lines.map((line) {
         final trimmed = line.trim();
-        if (trimmed.isEmpty) return const SizedBox(height: 4);
+        if (trimmed.isEmpty) return const SizedBox(height: 6);
 
-        if (trimmed.startsWith('•')) {
+        if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+          final bulletText = trimmed.replaceFirst(RegExp(r'^[•\-]\s*'), '');
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2.5),
+            padding: const EdgeInsets.only(left: 6, bottom: 4),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('• ', style: TextStyle(color: AppColors.themeColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                const Text('• ', style: TextStyle(color: AppColors.themeColor, fontWeight: FontWeight.bold)),
                 Expanded(
                   child: Text(
-                    trimmed.substring(1).trim(),
+                    bulletText,
                     style: TextStyle(
                       fontSize: 12.5,
                       height: 1.45,
-                      color: isDark ? Colors.grey[300] : const Color(0xFF3B4E4B),
+                      color: isDark ? const Color(0xFFC7D5D3) : const Color(0xFF3B4E4B),
                     ),
                   ),
                 ),
@@ -475,13 +543,13 @@ class _PolicySectionCard extends StatelessWidget {
         }
 
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
+          padding: const EdgeInsets.only(bottom: 6),
           child: Text(
             trimmed,
             style: TextStyle(
               fontSize: 12.5,
-              height: 1.45,
-              color: isDark ? Colors.grey[300] : const Color(0xFF3B4E4B),
+              height: 1.5,
+              color: isDark ? const Color(0xFFC7D5D3) : const Color(0xFF3B4E4B),
             ),
           ),
         );
@@ -489,4 +557,3 @@ class _PolicySectionCard extends StatelessWidget {
     );
   }
 }
-

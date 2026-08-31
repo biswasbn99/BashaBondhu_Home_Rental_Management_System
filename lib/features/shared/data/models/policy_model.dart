@@ -73,8 +73,9 @@ class PolicySectionModel {
 
 /// Full legal policy document (Privacy Policy, Support Policy, Terms & Conditions, Refund Policy)
 class AppPolicyModel {
-  final String id; // 'privacy_policy', 'support_policy', 'terms_conditions', 'refund_policy'
-  final String type;
+  final String id; // e.g. 'tenant_privacy_policy', 'house_owner_privacy_policy'
+  final String type; // 'privacy_policy', 'support_policy', 'terms_conditions', 'refund_policy'
+  final String targetAudience; // 'tenant', 'house_owner', 'all'
   final String titleEn;
   final String titleBn;
   final String subtitleEn;
@@ -85,6 +86,7 @@ class AppPolicyModel {
   const AppPolicyModel({
     required this.id,
     required this.type,
+    this.targetAudience = 'tenant',
     required this.titleEn,
     required this.titleBn,
     required this.subtitleEn,
@@ -103,6 +105,7 @@ class AppPolicyModel {
     return {
       'id': id,
       'type': type,
+      'targetAudience': targetAudience,
       'titleEn': titleEn,
       'titleBn': titleBn,
       'subtitleEn': subtitleEn,
@@ -137,6 +140,7 @@ class AppPolicyModel {
     return AppPolicyModel(
       id: docId,
       type: map['type']?.toString() ?? docId,
+      targetAudience: map['targetAudience']?.toString() ?? (docId.startsWith('house_owner_') ? 'house_owner' : 'tenant'),
       titleEn: map['titleEn']?.toString() ?? '',
       titleBn: map['titleBn']?.toString() ?? '',
       subtitleEn: map['subtitleEn']?.toString() ?? '',
@@ -149,6 +153,7 @@ class AppPolicyModel {
   AppPolicyModel copyWith({
     String? id,
     String? type,
+    String? targetAudience,
     String? titleEn,
     String? titleBn,
     String? subtitleEn,
@@ -159,6 +164,7 @@ class AppPolicyModel {
     return AppPolicyModel(
       id: id ?? this.id,
       type: type ?? this.type,
+      targetAudience: targetAudience ?? this.targetAudience,
       titleEn: titleEn ?? this.titleEn,
       titleBn: titleBn ?? this.titleBn,
       subtitleEn: subtitleEn ?? this.subtitleEn,
@@ -173,6 +179,7 @@ class AppPolicyModel {
 class FaqModel {
   final String id;
   final String category; // 'general', 'finding_home', 'posting', 'management', 'safety'
+  final String targetAudience; // 'tenant', 'house_owner', 'all'
   final String questionEn;
   final String questionBn;
   final String answerEn;
@@ -182,6 +189,7 @@ class FaqModel {
   const FaqModel({
     required this.id,
     required this.category,
+    this.targetAudience = 'all',
     required this.questionEn,
     required this.questionBn,
     required this.answerEn,
@@ -199,6 +207,7 @@ class FaqModel {
     return {
       'id': id,
       'category': category,
+      'targetAudience': targetAudience,
       'questionEn': questionEn,
       'questionBn': questionBn,
       'answerEn': answerEn,
@@ -212,6 +221,7 @@ class FaqModel {
     return FaqModel(
       id: docId ?? map['id']?.toString() ?? '',
       category: map['category']?.toString() ?? 'general',
+      targetAudience: map['targetAudience']?.toString() ?? 'all',
       questionEn: map['questionEn']?.toString() ?? map['question']?.toString() ?? '',
       questionBn: map['questionBn']?.toString() ?? map['question_bn']?.toString() ?? '',
       answerEn: map['answerEn']?.toString() ?? map['answer']?.toString() ?? '',
@@ -223,6 +233,7 @@ class FaqModel {
   FaqModel copyWith({
     String? id,
     String? category,
+    String? targetAudience,
     String? questionEn,
     String? questionBn,
     String? answerEn,
@@ -232,6 +243,7 @@ class FaqModel {
     return FaqModel(
       id: id ?? this.id,
       category: category ?? this.category,
+      targetAudience: targetAudience ?? this.targetAudience,
       questionEn: questionEn ?? this.questionEn,
       questionBn: questionBn ?? this.questionBn,
       answerEn: answerEn ?? this.answerEn,
@@ -240,4 +252,3 @@ class FaqModel {
     );
   }
 }
-

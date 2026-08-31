@@ -17,6 +17,8 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
   final PolicyFirestoreService _policyService = PolicyFirestoreService();
   late TabController _tabController;
 
+  String _selectedAudience = 'tenant'; // 'tenant' or 'house_owner'
+
   final List<Map<String, dynamic>> _policyTabs = [
     {'type': 'privacy_policy', 'labelEn': 'Privacy Policy', 'labelBn': 'গোপনীয়তা নীতি', 'icon': Icons.privacy_tip_outlined},
     {'type': 'support_policy', 'labelEn': 'Support Policy', 'labelBn': 'সাপোর্ট পলিসি', 'icon': Icons.support_agent_rounded},
@@ -53,6 +55,10 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
+        final audienceLabel = _selectedAudience == 'tenant'
+            ? (isBn ? 'ভাড়াটিয়া' : 'Tenant')
+            : (isBn ? 'বাড়িওয়ালা' : 'House Owner');
+
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
@@ -69,11 +75,23 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                existingSection == null
-                    ? (isBn ? 'নতুন ধারা / সেকশন যোগ করুন' : 'Add New Section')
-                    : (isBn ? 'ধারা / সেকশন সম্পাদনা' : 'Edit Section'),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      existingSection == null
+                          ? (isBn ? 'নতুন ধারা যোগ করুন' : 'Add New Section')
+                          : (isBn ? 'ধারা সম্পাদনা' : 'Edit Section'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Text(
+                      '[$audienceLabel - ${_policyTabs[_tabController.index][isBn ? 'labelBn' : 'labelEn']}]',
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.themeColor, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -174,7 +192,11 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
                     iconName: existingSection?.iconName ?? 'info_outline',
                   );
 
-                  await _policyService.savePolicySection(policyType, newSection);
+                  await _policyService.savePolicySection(
+                    policyType,
+                    newSection,
+                    targetAudience: _selectedAudience,
+                  );
                   if (ctx.mounted) Navigator.pop(ctx);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -212,7 +234,11 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
             TextButton(onPressed: () => Navigator.pop(ctx), child: Text(isBn ? 'বাতিল' : 'Cancel')),
             FilledButton(
               onPressed: () async {
-                await _policyService.deletePolicySection(policyType, sectionId);
+                await _policyService.deletePolicySection(
+                  policyType,
+                  sectionId,
+                  targetAudience: _selectedAudience,
+                );
                 if (ctx.mounted) Navigator.pop(ctx);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -236,19 +262,26 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
     showDialog(
       context: context,
       builder: (ctx) {
+        final audienceName = _selectedAudience == 'tenant'
+            ? (isBn ? 'ভাড়াটিয়া' : 'Tenant')
+            : (isBn ? 'বাড়িওয়ালা' : 'House Owner');
+
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          title: Text(isBn ? 'ডিফল্ট টেমপ্লেটে রিসেট' : 'Reset to Default Template?'),
+          title: Text(isBn ? '$audienceName পলিসি ডিফল্ট টেমপ্লেটে রিসেট' : 'Reset $audienceName Policy?'),
           content: Text(
             isBn
-                ? 'এটি সমস্ত কাস্টম পরিবর্তন মুছে প্রমিত দ্বৈতভাষিক (বাংলা ও ইংরেজি) মূল বাসাবন্ধু পলিসি ফিরিয়ে আনবে।'
-                : 'This will reset all sections to the standard verified bilingual BashaBondhu template.',
+                ? 'এটি সমস্ত কাস্টম পরিবর্তন মুছে প্রমিত দ্বৈতভাষিক (বাংলা ও ইংরেজি) $audienceName পলিসি ফিরিয়ে আনবে।'
+                : 'This will reset all sections to the standard verified bilingual BashaBondhu $audienceName template.',
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: Text(isBn ? 'বাতিল' : 'Cancel')),
             FilledButton(
               onPressed: () async {
-                await _policyService.resetPolicyToDefault(policyType);
+                await _policyService.resetPolicyToDefault(
+                  policyType,
+                  targetAudience: _selectedAudience,
+                );
                 if (ctx.mounted) Navigator.pop(ctx);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -300,8 +333,8 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
                   const SizedBox(height: 4),
                   Text(
                     isBn
-                        ? 'গোপনীয়তা নীতি, সাপোর্ট পলিসি, শর্তাবলী ও রিফান্ড পলিসি পরিচালনা করুন (বাংলা ও ইংরেজি)'
-                        : 'Manage Privacy Policy, Support Policy, Terms & Conditions, and Refund Policy dynamically',
+                        ? 'ভাড়াটিয়া (Tenant) ও বাড়িওয়ালা (House Owner) উভয়ের জন্য আলাদাভাবে পলিসি পরিচালনা করুন'
+                        : 'Configure separate, customized policies and terms for Tenants and House Owners independently',
                     style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
                   ),
                 ],
@@ -309,6 +342,114 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
             ],
           ),
           const SizedBox(height: 20),
+
+          // --- 👥 ROLE TARGET SEGMENTED SWITCHER ---
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1B2826) : const Color(0xFFE5EDE8),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Tenant Button
+                InkWell(
+                  onTap: () {
+                    if (_selectedAudience != 'tenant') {
+                      setState(() {
+                        _selectedAudience = 'tenant';
+                      });
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _selectedAudience == 'tenant' ? AppColors.themeColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: _selectedAudience == 'tenant'
+                          ? [
+                              BoxShadow(
+                                color: AppColors.themeColor.withValues(alpha: 0.3),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.person_pin_circle_rounded,
+                          size: 18,
+                          color: _selectedAudience == 'tenant' ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isBn ? 'ভাড়াটিয়া পলিসি (Tenant)' : 'Tenant Policies',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: _selectedAudience == 'tenant' ? Colors.white : (isDark ? Colors.grey[300] : Colors.grey[800]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // House Owner Button
+                InkWell(
+                  onTap: () {
+                    if (_selectedAudience != 'house_owner') {
+                      setState(() {
+                        _selectedAudience = 'house_owner';
+                      });
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _selectedAudience == 'house_owner' ? AppColors.themeColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: _selectedAudience == 'house_owner'
+                          ? [
+                              BoxShadow(
+                                color: AppColors.themeColor.withValues(alpha: 0.3),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.apartment_rounded,
+                          size: 18,
+                          color: _selectedAudience == 'house_owner' ? Colors.white : (isDark ? Colors.grey[400] : Colors.grey[700]),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isBn ? 'বাড়িওয়ালা পলিসি (Landlord)' : 'House Owner Policies',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: _selectedAudience == 'house_owner' ? Colors.white : (isDark ? Colors.grey[300] : Colors.grey[800]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
 
           // Policy Type Tabs
           Container(
@@ -345,9 +486,15 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
               final currentTab = _policyTabs[activeIndex];
               final policyType = currentTab['type'] as String;
               final policyTitle = isBn ? currentTab['labelBn'] as String : currentTab['labelEn'] as String;
+              final audienceName = _selectedAudience == 'tenant'
+                  ? (isBn ? 'ভাড়াটিয়া' : 'Tenant')
+                  : (isBn ? 'বাড়িওয়ালা' : 'House Owner');
 
               return StreamBuilder<AppPolicyModel>(
-                stream: _policyService.streamPolicy(policyType),
+                stream: _policyService.streamPolicy(
+                  policyType,
+                  targetAudience: _selectedAudience,
+                ),
                 builder: (context, snapshot) {
                   final policy = snapshot.data;
                   final sections = policy?.sections ?? [];
@@ -367,7 +514,7 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '$policyTitle (${sections.length} ${isBn ? "টি ধারা" : "Sections"})',
+                              '[$audienceName] $policyTitle (${sections.length} ${isBn ? "টি ধারা" : "Sections"})',
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                             ),
                             Row(

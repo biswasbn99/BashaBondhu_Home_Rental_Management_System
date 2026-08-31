@@ -320,7 +320,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
               subtitle: l10n.localeName == 'bn'
                   ? 'আপনার ব্যক্তিগত তথ্যের নিরাপত্তা ও ব্যবহার সম্পর্কিত নীতিমালা'
                   : 'How BashaBondhu protects and respects your personal data',
-              onTap: () => Navigator.pushNamed(context, PrivacyPolicyScreen.name),
+              onTap: () => Navigator.pushNamed(context, PrivacyPolicyScreen.name, arguments: 'house_owner'),
             ),
 
             // 9. Support Policy
@@ -330,7 +330,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
               subtitle: l10n.localeName == 'bn'
                   ? 'গ্রাহক সেবা, সহায়তা চ্যানেল ও রেসপন্স টাইম গাইডলাইন'
                   : 'Customer assistance, helpline hours and resolution process',
-              onTap: () => Navigator.pushNamed(context, SupportPolicyScreen.name),
+              onTap: () => Navigator.pushNamed(context, SupportPolicyScreen.name, arguments: 'house_owner'),
             ),
 
             // 10. Terms and Conditions
@@ -340,7 +340,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
               subtitle: l10n.localeName == 'bn'
                   ? 'প্ল্যাটফর্ম ব্যবহার, আইনি নিয়ম ও সাধারণ নির্দেশিকা'
                   : 'Rules, regulations and user agreements for BashaBondhu',
-              onTap: () => Navigator.pushNamed(context, TermsConditionsScreen.name),
+              onTap: () => Navigator.pushNamed(context, TermsConditionsScreen.name, arguments: 'house_owner'),
             ),
 
             // 11. Refund Policy
@@ -350,7 +350,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
               subtitle: l10n.localeName == 'bn'
                   ? 'পেমেন্ট রিফান্ড, সাবস্ক্রিপশন বাতিল ও বিরোধ নিষ্পত্তির নিয়ম'
                   : 'Subscription cancellations, refund eligibility and settlement rules',
-              onTap: () => Navigator.pushNamed(context, RefundPolicyScreen.name),
+              onTap: () => Navigator.pushNamed(context, RefundPolicyScreen.name, arguments: 'house_owner'),
             ),
 
             // 12. FAQ
@@ -360,7 +360,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
               subtitle: l10n.localeName == 'bn'
                   ? 'বাসা খোঁজা, বুকিং ও অ্যাকাউন্ট সম্পর্কিত সাধারণ প্রশ্নোত্তর'
                   : 'Quick answers for finding homes, account security and features',
-              onTap: () => Navigator.pushNamed(context, FaqScreen.name),
+              onTap: () => Navigator.pushNamed(context, FaqScreen.name, arguments: 'house_owner'),
             ),
             const SizedBox(height: 24),
 
