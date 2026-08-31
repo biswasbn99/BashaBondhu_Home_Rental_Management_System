@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../app/app_colors.dart';
 import '../../../../app/providers/theme_provider.dart';
 import '../../../auth/presentation/widgets/app_logo.dart';
+import '../../../auth/presentation/widgets/forgot_password_dialog.dart';
 import '../../../shared/presentation/widgets/basha_bondhu_title.dart';
 import '../../data/providers/admin_provider.dart';
 
@@ -222,7 +223,32 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 6),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            ForgotPasswordDialog.show(
+                              context,
+                              initialEmail: _emailController.text.trim(),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Forgot Password?',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.themeColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(

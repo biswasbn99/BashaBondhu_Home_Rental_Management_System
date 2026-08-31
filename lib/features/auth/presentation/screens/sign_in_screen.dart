@@ -6,6 +6,7 @@ import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../../app/validators.dart';
 import '../widgets/app_logo.dart';
+import '../widgets/forgot_password_dialog.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/services/auth_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_up_screen.dart';
@@ -176,7 +177,34 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     validator: Validators.validatePassword,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        ForgotPasswordDialog.show(
+                          context,
+                          initialEmail: _emailTEController.text.trim(),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        Localizations.localeOf(context).languageCode == 'bn'
+                            ? 'পাসওয়ার্ড ভুলে গেছেন?'
+                            : 'Forgot Password?',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.themeColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(

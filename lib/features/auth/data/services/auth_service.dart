@@ -93,6 +93,25 @@ class AuthService {
     }
   }
 
+  // Send Password Reset Email (100% Free via Firebase Auth)
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+      debugPrint('✅ Password reset email sent to: $email');
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Password reset auth error: ${e.code} - ${e.message}');
+      if (e.code == 'user-not-found') {
+        throw Exception('এই ইমেইল দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি।');
+      } else if (e.code == 'invalid-email') {
+        throw Exception('অনুগ্রহ করে একটি সঠিক ইমেইল ঠিকানা দিন।');
+      }
+      rethrow;
+    } catch (e) {
+      debugPrint('Password reset general error: $e');
+      rethrow;
+    }
+  }
+
   // Sign Out
   Future<void> signOut() async {
     await _auth.signOut();
