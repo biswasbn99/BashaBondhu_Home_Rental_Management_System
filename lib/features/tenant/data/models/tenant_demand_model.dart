@@ -40,6 +40,7 @@ class TenantDemandModel {
   final String shortAddress;
   final String detailedDescription;
   final DateTime postDate;
+  final bool isFulfilled;
 
   TenantDemandModel({
     required this.id,
@@ -74,6 +75,7 @@ class TenantDemandModel {
     this.shortAddress = '',
     this.detailedDescription = '',
     required this.postDate,
+    this.isFulfilled = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -109,6 +111,7 @@ class TenantDemandModel {
       'shortAddress': shortAddress,
       'detailedDescription': detailedDescription,
       'postDate': Timestamp.fromDate(postDate),
+      'isFulfilled': isFulfilled,
     };
   }
 
@@ -182,7 +185,7 @@ class TenantDemandModel {
       id: docId,
       tenantId: map['tenantId']?.toString() ?? '',
       tenantEmail: map['tenantEmail']?.toString() ?? '',
-      month: map['month']?.toString() ?? '',
+      month: map['month']?.toString() ?? 'January',
       houseType: parseHouseType(map['houseType']),
       roomOrSeat: map['roomOrSeat']?.toString() ?? '',
       division: parseDivision(map['division']),
@@ -211,6 +214,7 @@ class TenantDemandModel {
       shortAddress: map['shortAddress']?.toString() ?? '',
       detailedDescription: map['detailedDescription']?.toString() ?? '',
       postDate: parseDate(map['postDate']),
+      isFulfilled: parseBool(map['isFulfilled']) ?? false,
     );
   }
 
@@ -247,6 +251,7 @@ class TenantDemandModel {
     String? shortAddress,
     String? detailedDescription,
     DateTime? postDate,
+    bool? isFulfilled,
   }) {
     return TenantDemandModel(
       id: id ?? this.id,
@@ -281,7 +286,7 @@ class TenantDemandModel {
       shortAddress: shortAddress ?? this.shortAddress,
       detailedDescription: detailedDescription ?? this.detailedDescription,
       postDate: postDate ?? this.postDate,
+      isFulfilled: isFulfilled ?? this.isFulfilled,
     );
   }
 }
-
