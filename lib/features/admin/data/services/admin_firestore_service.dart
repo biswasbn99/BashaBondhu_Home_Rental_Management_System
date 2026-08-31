@@ -228,6 +228,7 @@ class AdminFirestoreService {
         'answerEn': 'Create a House Owner account, click Post Rental, fill in property details and photos, and submit.',
         'answerBn': 'বাড়িওয়ালা অ্যাকাউন্ট তৈরি করুন, বাসাভাড়া পোস্ট এ ক্লিক করে প্রয়োজনীয় তথ্য ও ছবি দিন।',
         'category': 'General',
+        'targetAudience': 'house_owner',
       },
       {
         'questionEn': 'How do I verify my account with NID?',
@@ -235,6 +236,7 @@ class AdminFirestoreService {
         'answerEn': 'Go to My Profile in Account screen, upload clear photos of your NID front and back, and click Save.',
         'answerBn': 'অ্যাকাউন্ট স্ক্রিন থেকে মাই প্রোফাইলে গিয়ে আপনার এনআইডির সামনের ও পেছনের স্পষ্ট ছবি আপলোড করে সেভ করুন।',
         'category': 'Verification',
+        'targetAudience': 'all',
       },
       {
         'questionEn': 'Is posting rental demands free for tenants?',
@@ -242,6 +244,7 @@ class AdminFirestoreService {
         'answerEn': 'Yes, tenants can post rental demands completely free of cost.',
         'answerBn': 'হ্যাঁ, ভাড়াটিয়ারা সম্পূর্ণ ফ্রিতে তাদের পছন্দের এলাকা ও বাজেটে চাহিদা পোস্ট করতে পারেন।',
         'category': 'Tenant',
+        'targetAudience': 'tenant',
       },
     ];
     for (final faq in defaultFaqs) {

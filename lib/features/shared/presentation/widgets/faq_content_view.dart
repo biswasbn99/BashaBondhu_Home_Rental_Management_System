@@ -58,7 +58,7 @@ class _FaqContentViewState extends State<FaqContentView> {
           isTenant
               ? (isBn ? 'ভাড়াটিয়া প্রশ্নোত্তর (FAQ)' : 'Tenant FAQs')
               : isOwner
-                  ? (isBn ? 'বাড়িওয়ালা প্রশ্নোত্তর (FAQ)' : 'Landlord FAQs')
+                  ? (isBn ? 'বাড়িওয়ালা প্রশ্নোত্তর (FAQ)' : 'House Owner FAQs')
                   : (isBn ? 'সচরাচর জিজ্ঞাসা (FAQ)' : 'Frequently Asked Questions'),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
         ),
@@ -140,7 +140,7 @@ class _FaqContentViewState extends State<FaqContentView> {
                               isTenant
                                   ? (isBn ? 'ভাড়াটিয়াদের সাধারণ প্রশ্ন ও উত্তর' : 'Tenant Help & Queries')
                                   : isOwner
-                                      ? (isBn ? 'বাড়িওয়ালাদের সাধারণ প্রশ্ন ও উত্তর' : 'Landlord Help & Queries')
+                                      ? (isBn ? 'বাড়িওয়ালাদের সাধারণ প্রশ্ন ও উত্তর' : 'House Owner Help & Queries')
                                       : (isBn ? 'কীভাবে সাহায্য করতে পারি?' : 'How Can We Help You?'),
                               style: const TextStyle(
                                 fontSize: 16.5,
@@ -325,7 +325,7 @@ class _FaqContentViewState extends State<FaqContentView> {
                                   : isOwner
                                       ? (isBn
                                           ? 'আমাদের বাড়িওয়ালা সাপোর্ট টিমের সাথে সরাসরি চ্যাট বা ইমেইলে যোগাযোগ করুন।'
-                                          : 'Reach out directly to landlord support: owner-support@bashabondhu.com')
+                                          : 'Reach out directly to house owner support: owner-support@bashabondhu.com')
                                       : (isBn
                                           ? 'আমাদের সাপোর্ট টিমের সাথে সরাসরি চ্যাট বা ইমেইলে যোগাযোগ করুন।'
                                           : 'Reach out to our support team directly via email or chat assistance.'),

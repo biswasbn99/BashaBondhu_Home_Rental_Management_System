@@ -623,10 +623,10 @@ class PolicyFirestoreService {
         category: 'posting',
         targetAudience: 'house_owner',
         order: 4,
-        questionEn: 'How do I publish a property listing as a Landlord?',
+        questionEn: 'How do I publish a property listing as a House Owner?',
         questionBn: 'বাড়িওয়ালা হিসেবে আমি কীভাবে বাসা ভাড়ার বিজ্ঞাপন দেব?',
         answerEn:
-            'Tap the "+" or "Post Ad" button on your Landlord dashboard. Enter property address, upload clear photos, set rent price and amenities, then tap Publish.',
+            'Tap the "+" or "Post Ad" button on your House Owner dashboard. Enter property address, upload clear photos, set rent price and amenities, then tap Publish.',
         answerBn:
             'বাড়িওয়ালা ড্যাশবোর্ডে গিয়ে "+" বাটনে ট্যাপ করুন। এরপর বাসার ঠিকানা, পরিষ্কার ছবি, ভাড়ার পরিমাণ ও সুবিধাসমূহ সিলেক্ট করে সাবমিট করুন।',
       ),
@@ -651,10 +651,10 @@ class PolicyFirestoreService {
         category: 'management',
         targetAudience: 'house_owner',
         order: 6,
-        questionEn: 'What are the benefits of Landlord Subscription Plans?',
+        questionEn: 'What are the benefits of House Owner Subscription Plans?',
         questionBn: 'বাড়িওয়ালা সাবস্ক্রিপশন প্ল্যানের সুবিধা কী কী?',
         answerEn:
-            'Subscription plans allow landlords to post multiple listings, get "Featured" top placement badges, and receive priority tenant leads.',
+            'Subscription plans allow house owners to post multiple listings, get "Featured" top placement badges, and receive priority tenant leads.',
         answerBn:
             'সাবস্ক্রিপশন প্ল্যানে একাধিক বিজ্ঞাপন প্রকাশ, বিজ্ঞাপনে "Featured" ব্যাজ এবং দ্রুত ভাড়াটিয়া পাওয়ার প্রায়োরিটি সুবিধা পাওয়া যায়।',
       ),

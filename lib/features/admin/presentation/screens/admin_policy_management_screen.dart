@@ -435,7 +435,7 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          isBn ? 'বাড়িওয়ালা পলিসি (Landlord)' : 'House Owner Policies',
+                          isBn ? 'বাড়িওয়ালা পলিসি (House Owner)' : 'House Owner Policies',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 13,

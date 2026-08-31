@@ -96,7 +96,7 @@ class _FaqManagementViewState extends State<FaqManagementView> {
                     _buildAudienceChip(
                       id: 'tenant',
                       labelBn: 'ভাড়াটিয়া FAQ (Tenant)',
-                      labelEn: 'Tenant FAQs',
+                      labelEn: 'Tenant FAQs (${allFaqs.where((f) => (f['targetAudience'] ?? 'all') == 'tenant' || (f['targetAudience'] ?? 'all') == 'all').length})',
                       icon: Icons.person_pin_circle_rounded,
                       isBn: isBn,
                       isDark: isDark,
@@ -104,8 +104,8 @@ class _FaqManagementViewState extends State<FaqManagementView> {
                     const SizedBox(width: 8),
                     _buildAudienceChip(
                       id: 'house_owner',
-                      labelBn: 'বাড়িওয়ালা FAQ (Landlord)',
-                      labelEn: 'Landlord FAQs',
+                      labelBn: 'বাড়িওয়ালা FAQ (House Owner)',
+                      labelEn: 'House Owner FAQs (${allFaqs.where((f) => (f['targetAudience'] ?? 'all') == 'house_owner' || (f['targetAudience'] ?? 'all') == 'all').length})',
                       icon: Icons.apartment_rounded,
                       isBn: isBn,
                       isDark: isDark,
@@ -343,7 +343,7 @@ class _FaqManagementViewState extends State<FaqManagementView> {
                       items: [
                         DropdownMenuItem(
                           value: 'all',
-                          child: Text(isBn ? '🌐 সকল ব্যবহারকারী (All Users)' : '🌐 All Users'),
+                          child: Text(isBn ? '🌐 সকল ব্যবহারকারী (Both Tenant & House Owner)' : '🌐 All Users (Both Roles)'),
                         ),
                         DropdownMenuItem(
                           value: 'tenant',
@@ -361,6 +361,25 @@ class _FaqManagementViewState extends State<FaqManagementView> {
                           });
                         }
                       },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, left: 4),
+                      child: Text(
+                        selectedAudience == 'all'
+                            ? (isBn ? '💡 এই FAQ ভাড়াটিয়া ও বাড়িওয়ালা উভয়ের অ্যাকাউন্ট থেকেই দেখা যাবে।' : '💡 This FAQ will be visible to both Tenant and House Owner.')
+                            : selectedAudience == 'tenant'
+                                ? (isBn ? '💡 এই FAQ কেবলমাত্র ভাড়াটিয়া (Tenant) অ্যাকাউন্ট থেকে দেখা যাবে।' : '💡 This FAQ will be visible ONLY in Tenant accounts.')
+                                : (isBn ? '💡 এই FAQ কেবলমাত্র বাড়িওয়ালা (House Owner) অ্যাকাউন্ট থেকে দেখা যাবে।' : '💡 This FAQ will be visible ONLY in House Owner accounts.'),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: selectedAudience == 'tenant'
+                              ? Colors.blue
+                              : selectedAudience == 'house_owner'
+                                  ? Colors.orange[800]
+                                  : AppColors.themeColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
 

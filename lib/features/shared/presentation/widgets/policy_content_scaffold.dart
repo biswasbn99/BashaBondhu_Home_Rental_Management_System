@@ -91,7 +91,7 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
         title: Text(
           isTenant
               ? (isBn ? 'ভাড়াটিয়া পলিসি ও শর্তাবলী' : 'Tenant Legal & Policy')
-              : (isBn ? 'বাড়িওয়ালা পলিসি ও শর্তাবলী' : 'Landlord Legal & Policy'),
+              : (isBn ? 'বাড়িওয়ালা পলিসি ও শর্তাবলী' : 'House Owner Legal & Policy'),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
         ),
         actions: [
@@ -204,7 +204,7 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
                                       ),
                                       const SizedBox(height: 3),
                                       Text(
-                                        'BashaBondhu • ${isTenant ? (isBn ? "ভাড়াটিয়া পোর্টাল" : "Tenant Portal") : (isBn ? "বাড়িওয়ালা পোর্টাল" : "Landlord Portal")}',
+                                        'BashaBondhu • ${isTenant ? (isBn ? "ভাড়াটিয়া পোর্টাল" : "Tenant Portal") : (isBn ? "বাড়িওয়ালা পোর্টাল" : "House Owner Portal")}',
                                         style: TextStyle(
                                           fontSize: 11.5,
                                           color: Colors.white.withValues(alpha: 0.9),
@@ -250,7 +250,7 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
                                       Text(
                                         isTenant
                                             ? (isBn ? 'ভাড়াটিয়া নির্দেশিকা' : 'Tenant Guidelines')
-                                            : (isBn ? 'বাড়িওয়ালা নির্দেশিকা' : 'Landlord Guidelines'),
+                                            : (isBn ? 'বাড়িওয়ালা নির্দেশিকা' : 'House Owner Guidelines'),
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 11,
@@ -414,7 +414,7 @@ class _PolicyContentScaffoldState extends State<PolicyContentScaffold> {
                                             : 'For queries regarding home search or demands, contact our tenant desk: tenant-support@bashabondhu.com')
                                         : (isBn
                                             ? 'বিজ্ঞাপন পোস্ট বা লিস্টিং সংক্রান্ত যেকোনো সমস্যায় আমাদের বাড়িওয়ালা হেল্পডেস্কে ইমেইল করুন: owner-support@bashabondhu.com'
-                                            : 'For listing verification or management assistance, contact our landlord desk: owner-support@bashabondhu.com'),
+                                            : 'For listing verification or management assistance, contact our house owner desk: owner-support@bashabondhu.com'),
                                     style: TextStyle(
                                       fontSize: 11.5,
                                       color: isDark ? Colors.grey[300] : const Color(0xFF334A47),
