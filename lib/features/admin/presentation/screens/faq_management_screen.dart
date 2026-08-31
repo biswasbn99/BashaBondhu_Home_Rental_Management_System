@@ -101,11 +101,14 @@ class _FaqManagementViewState extends State<FaqManagementView> {
 
                     return Container(
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E2625) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
                       ),
-                      child: ExpansionTile(
+                      child: Material(
+                        color: isDark ? const Color(0xFF1E2625) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        clipBehavior: Clip.antiAlias,
+                        child: ExpansionTile(
                         leading: CircleAvatar(
                           radius: 16,
                           backgroundColor: AppColors.themeColor.withValues(alpha: 0.12),
@@ -164,8 +167,9 @@ class _FaqManagementViewState extends State<FaqManagementView> {
                           ),
                         ],
                       ),
-                    );
-                  },
+                    ),
+                  );
+                },
                 ),
             ],
           ),

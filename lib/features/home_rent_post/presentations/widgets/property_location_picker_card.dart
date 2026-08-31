@@ -946,7 +946,6 @@ class _FullMapPickerDialogState extends State<_FullMapPickerDialog> {
                     margin: const EdgeInsets.only(top: 6),
                     constraints: const BoxConstraints(maxHeight: 220),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E2827) : Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
@@ -956,7 +955,11 @@ class _FullMapPickerDialogState extends State<_FullMapPickerDialog> {
                         ),
                       ],
                     ),
-                    child: ListView.separated(
+                    child: Material(
+                      color: isDark ? const Color(0xFF1E2827) : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      clipBehavior: Clip.antiAlias,
+                      child: ListView.separated(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       shrinkWrap: true,
                       itemCount: _searchResults.length,
@@ -986,6 +989,7 @@ class _FullMapPickerDialogState extends State<_FullMapPickerDialog> {
                       },
                     ),
                   ),
+                ),
               ],
             ),
           ),

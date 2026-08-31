@@ -11,3 +11,4 @@ class FaqScreen extends StatelessWidget {
     return const FaqContentView();
   }
 }
+

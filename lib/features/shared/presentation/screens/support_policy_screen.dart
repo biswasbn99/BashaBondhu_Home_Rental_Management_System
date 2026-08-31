@@ -14,3 +14,4 @@ class SupportPolicyScreen extends StatelessWidget {
     );
   }
 }
+

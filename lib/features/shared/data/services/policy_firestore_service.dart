@@ -501,3 +501,4 @@ class PolicyFirestoreService {
     return all.where((f) => f.category == category).toList();
   }
 }
+
