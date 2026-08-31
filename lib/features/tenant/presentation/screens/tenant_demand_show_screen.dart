@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/app/utils/privacy_helper.dart';
+import 'package:bashabondhu_home_rental_management_system/features/ai_assistant/presentation/widgets/ai_floating_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/models/user_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_in_screen.dart';
@@ -43,6 +44,7 @@ class TenantDemandShowScreen extends StatelessWidget {
               ]
             : null,
       ),
+      floatingActionButton: const AIFloatingButton(),
       body: StreamBuilder<List<TenantDemandModel>>(
         stream: firestoreService.streamAllDemands(),
         builder: (context, snapshot) {

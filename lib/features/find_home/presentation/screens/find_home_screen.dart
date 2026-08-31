@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
+import '../../../ai_assistant/presentation/widgets/ai_floating_button.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../../../home_rent_post/presentations/widgets/property_location_picker_card.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
@@ -76,6 +77,7 @@ class _FindHomeView extends StatelessWidget {
               ]
             : null,
       ),
+      floatingActionButton: const AIFloatingButton(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),

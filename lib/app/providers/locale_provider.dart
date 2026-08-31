@@ -12,6 +12,7 @@ class LocaleProvider extends ChangeNotifier {
   
 
   Locale get currentLocale => _currentLocale;
+  Locale get locale => _currentLocale;
 
   void changeLocale(Locale locale){
     _currentLocale = locale;

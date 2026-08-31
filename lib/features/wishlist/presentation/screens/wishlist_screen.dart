@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
+import '../../../ai_assistant/presentation/widgets/ai_floating_button.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../../../auth/presentation/screens/sign_up_screen.dart';
 import '../../../auth/presentation/widgets/auth_prompt_dialog.dart';
@@ -64,6 +65,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
               ]
             : null,
       ),
+      floatingActionButton: const AIFloatingButton(),
       body: isGuest
           ? _buildGuestState(context, l10n)
           : savedPosts.isEmpty

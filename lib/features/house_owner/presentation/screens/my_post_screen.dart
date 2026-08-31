@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
+import '../../../ai_assistant/presentation/widgets/ai_floating_button.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../../../home/data/models/property_model.dart';
 import '../../../home/presentation/screens/property_details_screen.dart';
@@ -51,6 +52,7 @@ class _MyPostScreenState extends State<MyPostScreen> {
           ),
         ),
       ),
+      floatingActionButton: const AIFloatingButton(),
       body: myPostProvider.isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.themeColor),

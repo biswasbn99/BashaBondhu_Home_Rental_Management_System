@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../app/app_colors.dart';
 import '../../../../features/auth/data/providers/user_provider.dart';
-import '../../../../features/auth/presentation/widgets/auth_prompt_dialog.dart';
 import '../screens/ai_assistant_screen.dart';
 
 class AIFloatingButton extends StatelessWidget {
@@ -14,6 +13,11 @@ class AIFloatingButton extends StatelessWidget {
     final isBn = languageCode == 'bn';
     final userProvider = context.watch<UserProvider>();
     final isGuest = userProvider.isGuest || userProvider.user == null;
+
+    // Strict requirement: completely hidden for guest users
+    if (isGuest) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -31,17 +35,7 @@ class AIFloatingButton extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(30),
           onTap: () {
-            if (isGuest) {
-              AuthPromptDialog.show(
-                context,
-                requiredRole: 'Tenant',
-                customMessage: isBn
-                    ? 'বাসাবন্ধু এআই সহকারী ব্যবহার করতে অনুগ্রহ করে আপনার ভাড়াটিয়া বা বাড়িওয়ালা একাউন্টে লগইন করুন।'
-                    : 'Please log in to your Tenant or House Owner account to use BashaBondhu AI Assistant.',
-              );
-            } else {
-              Navigator.pushNamed(context, AIAssistantScreen.name);
-            }
+            Navigator.pushNamed(context, AIAssistantScreen.name);
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -60,11 +54,12 @@ class AIFloatingButton extends StatelessWidget {
                 const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
                 const SizedBox(width: 6),
                 Text(
-                  isBn ? 'বাসাবন্ধু এআই' : 'BashaBondhu AI',
+                  isBn ? 'এআই সহকারী' : 'AI Assistant',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: 12.5,
+                    letterSpacing: 0.2,
                   ),
                 ),
               ],

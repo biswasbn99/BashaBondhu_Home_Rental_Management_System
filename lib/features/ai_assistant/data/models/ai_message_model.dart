@@ -3,122 +3,173 @@ import '../../../../features/tenant/data/models/tenant_demand_model.dart';
 
 enum AIMessageSender { user, ai, system }
 
-/// Draft for conversational Tenant Demand creation
+enum AIActionCardType {
+  none,
+  demandDraft,
+  propertyDraft,
+  subscriptionHistory,
+  subscriptionPackages,
+  myProfile,
+  adminStats,
+}
+
+/// Draft for conversational Tenant Demand creation (17 steps)
 class DemandDraftModel {
+  final String? month;
+  final String? houseType;
   final String? division;
   final String? district;
   final String? area;
   final String? subArea;
   final String? budgetRange;
-  final String? roomOrSeat;
-  final String? houseType;
   final String? tenantType;
-  final String? preferredDate;
+  final String? roomOrSeat;
+  final int? bathrooms;
+  final int? balconies;
+  final int? floorNumber;
+  final bool? hasLift;
+  final bool? hasParking;
+  final bool? hasGivenNotice;
+  final String? userName;
+  final String? userMobile;
+  final String? userWhatsApp;
 
   const DemandDraftModel({
+    this.month,
+    this.houseType,
     this.division,
     this.district,
     this.area,
     this.subArea,
     this.budgetRange,
-    this.roomOrSeat,
-    this.houseType,
     this.tenantType,
-    this.preferredDate,
+    this.roomOrSeat,
+    this.bathrooms,
+    this.balconies,
+    this.floorNumber,
+    this.hasLift,
+    this.hasParking,
+    this.hasGivenNotice,
+    this.userName,
+    this.userMobile,
+    this.userWhatsApp,
   });
 
   bool get isComplete =>
       area != null &&
       budgetRange != null &&
-      roomOrSeat != null;
+      roomOrSeat != null &&
+      userMobile != null &&
+      userMobile!.isNotEmpty;
 
   DemandDraftModel copyWith({
+    String? month,
+    String? houseType,
     String? division,
     String? district,
     String? area,
     String? subArea,
     String? budgetRange,
-    String? roomOrSeat,
-    String? houseType,
     String? tenantType,
-    String? preferredDate,
+    String? roomOrSeat,
+    int? bathrooms,
+    int? balconies,
+    int? floorNumber,
+    bool? hasLift,
+    bool? hasParking,
+    bool? hasGivenNotice,
+    String? userName,
+    String? userMobile,
+    String? userWhatsApp,
   }) {
     return DemandDraftModel(
+      month: month ?? this.month,
+      houseType: houseType ?? this.houseType,
       division: division ?? this.division,
       district: district ?? this.district,
       area: area ?? this.area,
       subArea: subArea ?? this.subArea,
       budgetRange: budgetRange ?? this.budgetRange,
-      roomOrSeat: roomOrSeat ?? this.roomOrSeat,
-      houseType: houseType ?? this.houseType,
       tenantType: tenantType ?? this.tenantType,
-      preferredDate: preferredDate ?? this.preferredDate,
+      roomOrSeat: roomOrSeat ?? this.roomOrSeat,
+      bathrooms: bathrooms ?? this.bathrooms,
+      balconies: balconies ?? this.balconies,
+      floorNumber: floorNumber ?? this.floorNumber,
+      hasLift: hasLift ?? this.hasLift,
+      hasParking: hasParking ?? this.hasParking,
+      hasGivenNotice: hasGivenNotice ?? this.hasGivenNotice,
+      userName: userName ?? this.userName,
+      userMobile: userMobile ?? this.userMobile,
+      userWhatsApp: userWhatsApp ?? this.userWhatsApp,
     );
   }
 }
 
-/// Draft for conversational House Owner Property post creation
-class PropertyDraftModel {
-  final String? title;
+/// Draft for conversational Search / Filter state
+class SearchDraftModel {
+  final String? month;
+  final String? houseType;
   final String? division;
   final String? district;
   final String? area;
   final String? subArea;
-  final String? amount;
-  final String? roomOrSeat;
-  final String? houseType;
+  final String? budgetRange;
   final String? tenantType;
-  final String? floorNumber;
-  final List<String> amenities;
-  final String? description;
+  final String? roomOrSeat;
+  final int? bathrooms;
+  final int? balconies;
+  final int? floorNumber;
+  final bool? hasLift;
+  final bool? hasParking;
 
-  const PropertyDraftModel({
-    this.title,
+  const SearchDraftModel({
+    this.month,
+    this.houseType,
     this.division,
     this.district,
     this.area,
     this.subArea,
-    this.amount,
-    this.roomOrSeat,
-    this.houseType,
+    this.budgetRange,
     this.tenantType,
+    this.roomOrSeat,
+    this.bathrooms,
+    this.balconies,
     this.floorNumber,
-    this.amenities = const [],
-    this.description,
+    this.hasLift,
+    this.hasParking,
   });
 
-  bool get isComplete =>
-      area != null &&
-      amount != null &&
-      roomOrSeat != null;
-
-  PropertyDraftModel copyWith({
-    String? title,
+  SearchDraftModel copyWith({
+    String? month,
+    String? houseType,
     String? division,
     String? district,
     String? area,
     String? subArea,
-    String? amount,
-    String? roomOrSeat,
-    String? houseType,
+    String? budgetRange,
     String? tenantType,
-    String? floorNumber,
-    List<String>? amenities,
-    String? description,
+    String? roomOrSeat,
+    int? bathrooms,
+    int? balconies,
+    int? floorNumber,
+    bool? hasLift,
+    bool? hasParking,
   }) {
-    return PropertyDraftModel(
-      title: title ?? this.title,
+    return SearchDraftModel(
+      month: month ?? this.month,
+      houseType: houseType ?? this.houseType,
       division: division ?? this.division,
       district: district ?? this.district,
       area: area ?? this.area,
       subArea: subArea ?? this.subArea,
-      amount: amount ?? this.amount,
-      roomOrSeat: roomOrSeat ?? this.roomOrSeat,
-      houseType: houseType ?? this.houseType,
+      budgetRange: budgetRange ?? this.budgetRange,
       tenantType: tenantType ?? this.tenantType,
+      roomOrSeat: roomOrSeat ?? this.roomOrSeat,
+      bathrooms: bathrooms ?? this.bathrooms,
+      balconies: balconies ?? this.balconies,
       floorNumber: floorNumber ?? this.floorNumber,
-      amenities: amenities ?? this.amenities,
-      description: description ?? this.description,
+      hasLift: hasLift ?? this.hasLift,
+      hasParking: hasParking ?? this.hasParking,
     );
   }
 }
@@ -159,19 +210,21 @@ class AdminStatsModel {
   });
 }
 
-/// Complete AI chat message model
+/// Complete AI chat message model with interactive chips and action cards
 class AIMessageModel {
   final String id;
   final String text;
   final AIMessageSender sender;
   final DateTime timestamp;
+  final List<String>? interactiveChips; // 1-tap selectable options inside bubble
+  final AIActionCardType actionCardType;
   final List<PropertyModel>? properties;
   final List<MatchingDemandItem>? matchingDemands;
   final List<TenantDemandModel>? rawDemands;
   final DemandDraftModel? demandDraft;
-  final PropertyDraftModel? propertyDraft;
+  final SearchDraftModel? searchDraft;
   final AdminStatsModel? adminStats;
-  final List<String>? quickActions;
+  final List<String>? quickActions; // bottom bar quick prompts
   final bool isGenerating;
   final bool isPlayingVoice;
 
@@ -180,11 +233,13 @@ class AIMessageModel {
     required this.text,
     required this.sender,
     DateTime? timestamp,
+    this.interactiveChips,
+    this.actionCardType = AIActionCardType.none,
     this.properties,
     this.matchingDemands,
     this.rawDemands,
     this.demandDraft,
-    this.propertyDraft,
+    this.searchDraft,
     this.adminStats,
     this.quickActions,
     this.isGenerating = false,
@@ -196,11 +251,13 @@ class AIMessageModel {
     String? text,
     AIMessageSender? sender,
     DateTime? timestamp,
+    List<String>? interactiveChips,
+    AIActionCardType? actionCardType,
     List<PropertyModel>? properties,
     List<MatchingDemandItem>? matchingDemands,
     List<TenantDemandModel>? rawDemands,
     DemandDraftModel? demandDraft,
-    PropertyDraftModel? propertyDraft,
+    SearchDraftModel? searchDraft,
     AdminStatsModel? adminStats,
     List<String>? quickActions,
     bool? isGenerating,
@@ -211,11 +268,13 @@ class AIMessageModel {
       text: text ?? this.text,
       sender: sender ?? this.sender,
       timestamp: timestamp ?? this.timestamp,
+      interactiveChips: interactiveChips ?? this.interactiveChips,
+      actionCardType: actionCardType ?? this.actionCardType,
       properties: properties ?? this.properties,
       matchingDemands: matchingDemands ?? this.matchingDemands,
       rawDemands: rawDemands ?? this.rawDemands,
       demandDraft: demandDraft ?? this.demandDraft,
-      propertyDraft: propertyDraft ?? this.propertyDraft,
+      searchDraft: searchDraft ?? this.searchDraft,
       adminStats: adminStats ?? this.adminStats,
       quickActions: quickActions ?? this.quickActions,
       isGenerating: isGenerating ?? this.isGenerating,

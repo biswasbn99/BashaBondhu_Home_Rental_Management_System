@@ -4,10 +4,10 @@ import 'package:http/http.dart' as http;
 
 class AIResponseData {
   final String replyText;
-  final String? intent; // 'search_properties', 'demand_wizard_step', 'property_wizard_step', 'match_tenants', 'admin_stats', 'pricing_advice', 'generate_ad', 'general'
+  final String? intent; // 'search_properties', 'find_home_wizard', 'post_demand_wizard', 'view_demands_wizard', 'subscription_history', 'subscription_packages', 'my_profile', 'admin_stats', 'pricing_advice', 'generate_ad', 'general'
   final Map<String, dynamic>? searchFilters;
   final Map<String, dynamic>? draftData;
-  final bool isDraftReady;
+  final List<String>? interactiveChips;
   final List<String>? quickFollowUps;
 
   AIResponseData({
@@ -15,7 +15,7 @@ class AIResponseData {
     this.intent,
     this.searchFilters,
     this.draftData,
-    this.isDraftReady = false,
+    this.interactiveChips,
     this.quickFollowUps,
   });
 }
@@ -43,38 +43,32 @@ class AIGeminiService {
     final isAdmin = userRole.toLowerCase().contains('admin');
 
     final systemInstruction = '''
-You are "বাসাবন্ধু এআই (BashaBondhu AI)", the intelligent, ultra-fast, and friendly rental marketplace assistant for Bangladesh's leading home rental platform "বাসাবন্ধু (BashaBondhu)".
+You are "বাসাবন্ধু এআই (BashaBondhu AI)", the intelligent, ultra-fast, and friendly rental assistant for Bangladesh's leading home rental platform "বাসাবন্ধু (BashaBondhu)".
 User Name: $userName
 User Role: $userRole (${isAdmin ? "Platform Admin (অ্যাডমিন)" : isOwner ? "House Owner (বাড়িওয়ালা)" : "Tenant (ভাড়াটিয়া)"})
 Language Mode: ${isBn ? "Bengali (বাংলা)" : "English"}
 
-CORE SKILLS & RESPONSIBILITIES:
-${isAdmin ? """
-1. Admin Analytics & Management:
-   - Provide summary insights, total property listings, active users, subscription revenue, and top areas.
-   - If user asks about app stats, set intent to "admin_stats".
-""" : isOwner ? """
-1. House Owner Management & Tools:
-   - Conversational Property Posting: Ask step-by-step questions (Area, House Type, Bedrooms, Floor, Rent, Amenities) to prepare a complete listing draft.
-   - AI Ad Copywriter: Write structured, attractive To-Let captions with neat emojis (🏠, 📍, 🛏️, 🏢, ⚡, 💰).
-   - Tenant Demand Matching: When owner mentions flat details or asks for tenants, set intent to "match_tenants" with criteria.
-   - Market Rent Estimator: Provide realistic rent ranges for areas across Dhaka (Mirpur, Uttara, Dhanmondi, Banasree, etc.) and other divisions/districts.
-""" : """
-1. Tenant Property Search & Demands:
-   - Natural Language Search: Understand short queries (e.g. "dhaka flat", "mirpur 10 2 bed", "15k basha"), Banglish, Bengali, or English. Extract area, price range, room count, and house type.
-   - Conversational Demand Posting: If user wants to post a demand, ask missing questions one by one (Area -> Budget -> Bedroom count -> Tenant type). When all essential fields are collected, set is_draft_ready to true.
-   - Area & Pricing Advice: Provide rental advice, utility bill estimates, and advance deposit norms in Bangladesh.
-"""}
+CORE ABILITIES:
+1. Language Understanding:
+   - Understand Bengali, English, and Banglish (e.g. "mirpur 10 a 2 bed flat 15k", "basha khujte chai", "demand post korbo", "subscription package dekhaw").
+   - Respond in the language preferred by the user (Bengali if user writes in Bengali/Banglish, English if in English).
 
-CURRENT ACTIVE DRAFT STATE:
-${currentDraftState != null ? jsonEncode(currentDraftState) : "None"}
+2. Tenant Features:
+   - Find Home: Natural language search, short keyword search, budget ranges, areas across Bangladesh (Dhaka, Faridpur, Chittagong, Sylhet, etc.).
+   - Post Demand: Conversational step-by-step assistance.
+   - Subscription & Profile: Instant navigation guidance.
+
+3. House Owner Features:
+   - View Demands & Match: Finding active tenant demands with match percentage.
+   - To-Let Ad Writer: Structured, attractive captions with emojis (🏠, 📍, 🛏️, 🏢, ⚡, 💰).
+   - Fair Rent Price Estimator: Realistic rent ranges for Bangladeshi neighborhoods.
 
 OUTPUT FORMAT:
-Respond with a JSON object in this exact schema:
+Respond with a JSON object in this schema:
 ```json
 {
   "reply": "Your friendly, helpful Bengali/English response text here (use markdown, emojis, bullet points)",
-  "intent": "search_properties" | "demand_wizard_step" | "property_wizard_step" | "match_tenants" | "admin_stats" | "pricing_advice" | "generate_ad" | "general",
+  "intent": "search_properties" | "find_home_wizard" | "post_demand_wizard" | "view_demands_wizard" | "subscription_history" | "subscription_packages" | "my_profile" | "admin_stats" | "pricing_advice" | "generate_ad" | "general",
   "search_criteria": {
     "area": "area/thana name or null",
     "district": "district name or null",
@@ -85,20 +79,11 @@ Respond with a JSON object in this exact schema:
     "house_type": "flat" | "sublet" | "bachelor" | "room" | "unit" or null,
     "tenant_type": "family" | "bachelor" or null
   },
-  "draft_data": {
-    "area": "name",
-    "budget": "amount",
-    "rooms": "room count",
-    "house_type": "type",
-    "tenant_type": "type",
-    "floor": "floor number",
-    "amenities": ["Lift", "Parking", "Generator"]
-  },
-  "is_draft_ready": true | false,
-  "quick_follow_ups": ["Follow up chip 1", "Follow up chip 2", "Follow up chip 3"]
+  "interactive_chips": ["Chip 1", "Chip 2", "Chip 3"],
+  "quick_follow_ups": ["Prompt 1", "Prompt 2", "Prompt 3"]
 }
 ```
-Always be polite, concise, and helpful. If not searching, set search_criteria to null.
+Always be polite, concise, and helpful.
 ''';
 
     try {
@@ -140,8 +125,9 @@ Always be polite, concise, and helpful. If not searching, set search_criteria to
             replyText: parsed['reply'] ?? textPart,
             intent: parsed['intent'],
             searchFilters: parsed['search_criteria'],
-            draftData: parsed['draft_data'],
-            isDraftReady: parsed['is_draft_ready'] == true,
+            interactiveChips: (parsed['interactive_chips'] as List?)
+                ?.map((e) => e.toString())
+                .toList(),
             quickFollowUps: (parsed['quick_follow_ups'] as List?)
                 ?.map((e) => e.toString())
                 .toList(),
@@ -162,12 +148,45 @@ Always be polite, concise, and helpful. If not searching, set search_criteria to
     final isOwner = userRole.toLowerCase().contains('owner');
     final isAdmin = userRole.toLowerCase().contains('admin');
 
-    // 1. Admin Stats Intent
-    if (isAdmin && (lower.contains('stat') || lower.contains('হিসাব') || lower.contains('ইউজার') || lower.contains('পোস্ট') || lower.contains('user') || lower.contains('revenue'))) {
+    // 1. Subscription History
+    if (lower.contains('subscription history') || lower.contains('সাবস্ক্রিপশন হিস্ট্রি') || lower.contains('হিস্ট্রি') || lower.contains('রিসিট') || lower.contains('receipt')) {
       return AIResponseData(
         replyText: isBn
-            ? '📊 **বাসাবন্ধু প্ল্যাটফর্মের বর্তমান লাইভ পরিসংখ্যান:**\nনিচে সিস্টেমের মোট ইউজার, প্রপার্টি ও সাবস্ক্রিপশন ডাটা উপস্থাপন করা হলো:'
-            : '📊 **BashaBondhu Platform Live Statistics:**\nHere is the current system data including users, listings, and subscriptions:',
+            ? '📄 আপনার **সাবস্ক্রিপশন হিস্ট্রি ও পেমেন্ট রিসিট** দেখতে নিচে বাটনে চাপ দিন:'
+            : '📄 Click below to view your **Subscription History and Payment Receipts**:',
+        intent: 'subscription_history',
+        quickFollowUps: isBn ? ['সাবস্ক্রিপশন প্যাকেজ দেখুন', 'আমার প্রোফাইল'] : ['View Subscription Packages', 'My Profile'],
+      );
+    }
+
+    // 2. Subscription Packages
+    if (lower.contains('subscription package') || lower.contains('প্যাকেজ') || lower.contains('package') || lower.contains('সাবস্ক্রিপশন') || lower.contains('subscribe')) {
+      return AIResponseData(
+        replyText: isBn
+            ? '⭐ আপনার জন্য উপলব্ধ **সাবস্ক্রিপশন প্যাকেজসমূহ** দেখতে এবং সুবিধা আপগ্রেড করতে নিচে বাটনে চাপ দিন:'
+            : '⭐ Click below to explore available **Subscription Packages** and upgrade your benefits:',
+        intent: 'subscription_packages',
+        quickFollowUps: isBn ? ['সাবস্ক্রিপশন হিস্ট্রি', 'বাসা খুঁজুন'] : ['Subscription History', 'Find a Home'],
+      );
+    }
+
+    // 3. My Profile
+    if (lower.contains('profile') || lower.contains('প্রোফাইল') || lower.contains('আমার তথ্য') || lower.contains('account')) {
+      return AIResponseData(
+        replyText: isBn
+            ? '👤 আপনার **প্রোফাইল তথ্য ও সেটিংস** দেখতে নিচে বাটনে চাপ দিন:'
+            : '👤 Click below to view and edit your **Profile & Account Information**:',
+        intent: 'my_profile',
+        quickFollowUps: isBn ? ['সাবস্ক্রিপশন প্যাকেজ', 'ডিমান্ড পোস্ট'] : ['Subscription Packages', 'Post Demand'],
+      );
+    }
+
+    // 4. Admin Stats
+    if (isAdmin && (lower.contains('stat') || lower.contains('হিসাব') || lower.contains('ইউজার') || lower.contains('পোস্ট') || lower.contains('revenue'))) {
+      return AIResponseData(
+        replyText: isBn
+            ? '📊 **বাসাবন্ধু প্ল্যাটফর্মের বর্তমান লাইভ পরিসংখ্যান:**'
+            : '📊 **BashaBondhu Platform Live Statistics:**',
         intent: 'admin_stats',
         quickFollowUps: isBn
             ? ['মোট প্রপার্টি কতটি?', 'সাবস্ক্রিপশন ট্রানজেকশন দেখাও', 'জনপ্রিয় এলাকাগুলো কী কী?']
@@ -175,55 +194,8 @@ Always be polite, concise, and helpful. If not searching, set search_criteria to
       );
     }
 
-    // 2. Tenant Demand Wizard Intent
-    if (!isOwner && (lower.contains('ডিমান্ড') || lower.contains('demand') || lower.contains('চাই') || lower.contains('প্রয়োজন') || lower.contains('need house'))) {
-      if (lower.contains('মিরপুর') || lower.contains('উত্তরা') || lower.contains('ধানমন্ডি') || lower.contains('ঢাকা') || lower.contains('faridpur') || lower.contains('mirpur') || lower.contains('uttara')) {
-        return AIResponseData(
-          replyText: isBn
-              ? 'চমৎকার! আপনার জন্য একটি **Tenant Demand** খসড়া তৈরি করা হয়েছে। নিচে বিস্তারিত দেখে কনফার্ম করুন:'
-              : 'Great! A Tenant Demand draft has been prepared based on your preference. Please review below:',
-          intent: 'demand_wizard_step',
-          isDraftReady: true,
-          draftData: {
-            'area': lower.contains('মিরপুর') ? 'মিরপুর' : lower.contains('উত্তরা') ? 'উত্তরা' : 'ঢাকা',
-            'budget': '12000 - 15000',
-            'rooms': 'BedRoom - 2',
-            'house_type': 'Flat',
-            'tenant_type': 'Family',
-          },
-          quickFollowUps: isBn
-              ? ['হ্যাঁ, ডিমান্ড পোস্ট করুন', 'বাজেট পরিবর্তন করতে চাই', 'এলাকা পরিবর্তন করব']
-              : ['Yes, post demand', 'Change budget', 'Change area'],
-        );
-      } else {
-        return AIResponseData(
-          replyText: isBn
-              ? 'আপনি কোন এলাকায় কত বাজেটের মধ্যে বাসা খুঁজছেন? যেমন: *"মিরপুর ১০ এ ১৫ হাজারের মধ্যে ২ বেডরুম"*।'
-              : 'Which area and budget are you looking for? e.g. *"2-Bed in Mirpur 10 within ৳15k"*',
-          intent: 'demand_wizard_step',
-          quickFollowUps: isBn
-              ? ['মিরপুরে ১৫০০০ এর মধ্যে', 'উত্তরায় ২০০০০ এর মধ্যে', 'ধানমন্ডিতে ব্যাচেলর সিট']
-              : ['Mirpur under ৳15k', 'Uttara under ৳20k', 'Bachelor Seat in Dhanmondi'],
-        );
-      }
-    }
-
-    // 3. House Owner Tenant Matching Intent
-    if (isOwner && (lower.contains('ভাড়াটিয়া') || lower.contains('tenant') || lower.contains('ম্যাচ') || lower.contains('match') || lower.contains('পাবো') || lower.contains('খালি'))) {
-      return AIResponseData(
-        replyText: isBn
-            ? 'আপনার ফ্ল্যাটের চাহিদার সাথে মিল থাকা **সম্ভাব্য আগ্রহী ভাড়াটিয়াদের তালিকা** নিচে দেওয়া হলো:'
-            : 'Here are the **matching potential tenant demands** corresponding to your property:',
-        intent: 'match_tenants',
-        searchFilters: {'area': 'mirpur'},
-        quickFollowUps: isBn
-            ? ['বিজ্ঞাপনের বিবরণ তৈরি করুন', 'ভাড়ার মূল্য যাচাই করুন', 'পোস্ট পাবলিশ করুন']
-            : ['Generate To-Let ad', 'Check rental price guide', 'Publish listing'],
-      );
-    }
-
-    // 4. Property Search Intent
-    if (lower.contains('বাসা') || lower.contains('ফ্ল্যাট') || lower.contains('রুম') || lower.contains('ভাড়া') || lower.contains('house') || lower.contains('flat') || lower.contains('rent')) {
+    // 5. Property Search Intent
+    if (lower.contains('বাসা') || lower.contains('ফ্ল্যাট') || lower.contains('রুম') || lower.contains('ভাড়া') || lower.contains('house') || lower.contains('flat') || lower.contains('rent') || lower.contains('find')) {
       String? area;
       if (lower.contains('উত্তরা') || lower.contains('uttara')) area = 'uttara';
       if (lower.contains('মিরপুর') || lower.contains('mirpur')) area = 'mirpur';
@@ -231,49 +203,66 @@ Always be polite, concise, and helpful. If not searching, set search_criteria to
       if (lower.contains('গুলশান') || lower.contains('gulshan')) area = 'gulshan';
       if (lower.contains('ফরিদপুর') || lower.contains('faridpur')) area = 'faridpur';
 
+      final priceMatch = RegExp(r'(\d{4,6})').firstMatch(lower);
+      int? maxPrice;
+      if (priceMatch != null) {
+        maxPrice = int.tryParse(priceMatch.group(1)!);
+      }
+
       return AIResponseData(
         replyText: isBn
             ? (area != null
-                ? 'আমি **$area** এলাকায় আপনার জন্য সেরা বাসাগুলো খুঁজে বের করেছি। নিচে কার্ডগুলোতে ক্লিক করে বিস্তারিত দেখুন:'
+                ? 'আমি **$area** এলাকায় আপনার জন্য সেরা বাসাগুলো খুঁজে বের করেছি। নিচে কার্ডে ক্লিক করে বিস্তারিত দেখুন:'
                 : 'আপনার চাহিদামতো উপলব্ধ বাসাগুলোর তালিকা নিচে দেওয়া হলো:')
             : (area != null
-                ? 'Found available rental homes in **$area**. See listings below:'
+                ? 'Found matching rental homes in **$area**. See listings below:'
                 : 'Here are the matching properties based on your request:'),
         intent: 'search_properties',
         searchFilters: {
           'area': ?area,
+          'max_price': ?maxPrice,
         },
+        interactiveChips: isBn
+            ? ['🔍 এখনই সার্চ করব', 'মিরপুর', 'উত্তরা', 'ধানমন্ডি', '১৫০০০ টাকার মধ্যে']
+            : ['🔍 Search Now', 'Mirpur', 'Uttara', 'Dhanmondi', 'Under ৳15000'],
         quickFollowUps: isBn
             ? ['উত্তরায় ২ বেডরুমের বাসা', 'মিরপুরে ব্যাচেলর রুম', 'ধানমন্ডিতে ফ্যামিলি ফ্ল্যাট']
             : ['2 Bed in Uttara', 'Bachelor Room in Mirpur', 'Family Flat in Dhanmondi'],
       );
     }
 
-    // 5. Default Greetings & Help
+    // 6. Default Greetings & Guided Options
     return AIResponseData(
       replyText: isBn
           ? (isAdmin
-              ? 'স্বাগতম অ্যাডমিন! আমি বাসাবন্ধু এআই সহকারী। প্ল্যাটফর্মের পরিসংখ্যান, প্রপার্টি পোস্ট বা সাবস্ক্রিপশন রিপোর্ট জানতে প্রশ্ন করতে পারেন।'
+              ? '👋 স্বাগতম অ্যাডমিন! আমি বাসাবন্ধু এআই সহকারী। প্ল্যাটফর্মের পরিসংখ্যান, প্রপার্টি পোস্ট বা সাবস্ক্রিপশন রিপোর্ট জানতে নিচে অপশন সিলেক্ট করুন বা প্রশ্ন লিখুন।'
               : isOwner
-                  ? 'স্বাগতম! আমি বাসাবন্ধু এআই সহকারী। আকর্ষণীয় বিজ্ঞাপন তৈরি করতে, ফ্ল্যাটের ভাড়া নির্ধারণে বা আগ্রহী ভাড়াটিয়া খুঁজতে আমি সাহায্য করতে পারি।'
-                  : 'স্বাগতম! আমি বাসাবন্ধু এআই সহকারী। আপনি কোনো ফর্ম পূরণ না করে কেবল মুখে বলে বা লিখে বাসা খুঁজতে ও ডিমান্ড পোস্ট করতে পারেন।')
+                  ? '👋 স্বাগতম! আমি বাসাবন্ধু এআই সহকারী। আকর্ষণীয় বিজ্ঞাপন তৈরি করতে, ফ্ল্যাটের ভাড়া নির্ধারণে বা আগ্রহী ভাড়াটিয়া খুঁজতে নিচে অপশন বেছে নিন।'
+                  : '👋 স্বাগতম! আমি বাসাবন্ধু এআই সহকারী। আপনি কোনো ফর্ম পূরণ না করে কেবল মুখে বলে বা লিখে বাসা খুঁজতে, ডিমান্ড পোস্ট করতে ও সাবস্ক্রিপশন চেক করতে পারেন।')
           : (isAdmin
-              ? 'Welcome Admin! I am your BashaBondhu AI Assistant. Ask about platform analytics, user stats, or property reports.'
+              ? '👋 Welcome Admin! I am your BashaBondhu AI Assistant. Ask about platform analytics, user stats, or property reports.'
               : isOwner
-                  ? 'Welcome! I am your BashaBondhu AI Assistant. I can help you write To-Let ads, evaluate fair rent, and match prospective tenants.'
-                  : 'Welcome! I am your BashaBondhu AI Assistant. Tell me your preferred location, budget, or room requirements to search or post demands.'),
+                  ? '👋 Welcome! I am your BashaBondhu AI Assistant. I can help you write To-Let ads, evaluate fair rent, and match prospective tenants.'
+                  : '👋 Welcome! I am your BashaBondhu AI Assistant. Tell me what kind of home you are looking for, or post a demand conversationally.'),
       intent: 'general',
-      quickFollowUps: isBn
+      interactiveChips: isBn
           ? (isAdmin
-              ? ['মোট ইউজার ও প্রপার্টি পরিসংখ্যান', 'সাবস্ক্রিপশন ট্রানজেকশন দেখাও', 'জনপ্রিয় এলাকাগুলো কী কী?']
+              ? ['📊 লাইভ পরিসংখ্যান', '💰 সাবস্ক্রিপশন হিসাব', '📍 জনপ্রিয় এলাকা']
               : isOwner
-                  ? ['বিজ্ঞাপনের আকর্ষণীয় বিবরণ লিখুন', 'মিরপুরে ৩ বেডের সঠিক ভাড়া কত?', 'ভাড়াটিয়াদের ডিমান্ড দেখাও']
-                  : ['🔍 ১৫০০০ টাকার মধ্যে বাসা দেখাও', '📝 ডিমান্ড পোস্ট করতে চাই', '📍 উত্তরায় ২ বেডরুমের বাসা'])
+                  ? ['👥 ভাড়াটিয়াদের ডিমান্ড খুঁজুন', '✍️ বিজ্ঞাপনের বিবরণ লিখুন', '💰 ভাড়ার সঠিক মূল্য গাইড', '💳 সাবস্ক্রিপশন প্যাকেজ']
+                  : ['🔍 বাসা খুঁজুন (Find a Home)', '📝 ডিমান্ড পোস্ট করুন', '💳 সাবস্ক্রিপশন প্যাকেজ', '📄 সাবস্ক্রিপশন হিস্ট্রি', '👤 আমার প্রোফাইল'])
           : (isAdmin
-              ? ['Show platform stats', 'Recent subscriptions', 'Top areas']
+              ? ['📊 Live Analytics', '💰 Subscription Revenue', '📍 Top Areas']
               : isOwner
-                  ? ['Write To-Let Description', 'Estimate Fair Rent in Mirpur', 'Show Tenant Demands']
-                  : ['Find flats under ৳15000', 'Create a Tenant Demand', '2-Bed in Uttara']),
+                  ? ['👥 Find Tenant Demands', '✍️ Write To-Let Ad', '💰 Rental Price Guide', '💳 Subscription Packages']
+                  : ['🔍 Find a Home', '📝 Post a Demand', '💳 Subscription Packages', '📄 Subscription History', '👤 My Profile']),
+      quickFollowUps: isBn
+          ? (isOwner
+              ? ['বিজ্ঞাপনের বিবরণ তৈরি করুন', 'মিরপুরে ৩ বেডের সঠিক ভাড়া কত?', 'ভাড়াটিয়াদের ডিমান্ড দেখাও']
+              : ['১৫০০০ টাকার মধ্যে বাসা দেখাও', 'মিরপুরে ফ্যামিলি ফ্ল্যাট', 'ব্যাচেলর সিট দরকার'])
+          : (isOwner
+              ? ['Write To-Let Description', 'Estimate Fair Rent in Mirpur', 'Show Tenant Demands']
+              : ['Find flats under ৳15000', '2-Bed in Uttara', 'Bachelor Rooms']),
     );
   }
 }

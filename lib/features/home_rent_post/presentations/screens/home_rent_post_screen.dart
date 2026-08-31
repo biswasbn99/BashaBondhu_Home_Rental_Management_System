@@ -21,6 +21,7 @@ import '../../../shared/data/models/search_filter_model.dart';
 import '../../../shared/presentation/widgets/post_icon.dart';
 import '../../../shared/presentation/widgets/tenant_type_dropdown_button.dart';
 import '../../../ai_assistant/presentation/providers/ai_assistant_provider.dart';
+import '../../../ai_assistant/presentation/widgets/ai_floating_button.dart';
 import '../../data/providers/home_rent_post_provider.dart';
 import '../widgets/amenities_dropdown.dart';
 import '../widgets/counter_dropdown.dart';
@@ -82,6 +83,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
               ]
             : null,
       ),
+      floatingActionButton: const AIFloatingButton(),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Form(
