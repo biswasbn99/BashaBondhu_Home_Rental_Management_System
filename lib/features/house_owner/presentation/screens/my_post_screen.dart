@@ -189,6 +189,78 @@ class _MyPostCard extends StatelessWidget {
     );
   }
 
+  void _confirmToggleRented(BuildContext context, String languageCode) {
+    final isBn = languageCode == 'bn';
+    final isCurrentlyRented = post.isRentedOut;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(
+              isCurrentlyRented ? Icons.replay_rounded : Icons.do_not_disturb_on_rounded,
+              color: isCurrentlyRented ? Colors.green : Colors.deepOrange,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                isCurrentlyRented
+                    ? (isBn ? 'পোস্টটি কি পুনরায় চালু করবেন?' : 'Make Post Available?')
+                    : (isBn ? 'বাসাটি কি ভাড়া হয়ে গেছে?' : 'Mark as Rented Out?'),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          isCurrentlyRented
+              ? (isBn
+                  ? 'এই পোস্টটি পুনরায় সক্রিয় হবে এবং সকল ভাড়াটিয়া ও গেস্ট ব্যবহারকারীদের হোম স্ক্রিনে প্রদর্শিত হবে।'
+                  : 'This property will be marked as available and will be visible again on the Home Screen for all tenants and guests.')
+              : (isBn
+                  ? 'এই পোস্টটি "ভাড়া হয়ে গেছে" হিসেবে চিহ্নিত হবে এবং সকল ভাড়াটিয়া ও গেস্ট ব্যবহারকারীদের হোম স্ক্রিন থেকে সম্পূর্ণ লুকিয়ে রাখা হবে।'
+                  : 'This property will be marked as rented out and completely hidden from the Home Screen for all tenants and guests.'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(isBn ? 'বাতিল' : 'Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isCurrentlyRented ? Colors.green : Colors.deepOrange,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await context.read<MyPostProvider>().toggleRentedStatus(post);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isCurrentlyRented
+                          ? (isBn ? 'পোস্টটি সফলভাবে পুনরায় চালু হয়েছে!' : 'Property is now available on Home Screen!')
+                          : (isBn ? 'পোস্টটি ভাড়া হয়ে গেছে ও হোম স্ক্রিন থেকে হাইড করা হয়েছে।' : 'Property marked as Rented Out and hidden from Home Screen.'),
+                    ),
+                    backgroundColor: isCurrentlyRented ? Colors.green : Colors.deepOrange,
+                  ),
+                );
+              }
+            },
+            child: Text(
+              isCurrentlyRented
+                  ? (isBn ? 'হ্যাঁ, চালু করুন' : 'Yes, Make Available')
+                  : (isBn ? 'হ্যাঁ, ভাড়া হয়েছে' : 'Yes, Rented Out'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.localizations;
@@ -309,6 +381,48 @@ class _MyPostCard extends StatelessWidget {
                   ],
                 ),
               ),
+
+              // Rented Out / Available Status Badge
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: post.isRentedOut
+                        ? Colors.redAccent.withValues(alpha: 0.92)
+                        : Colors.green.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(6),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        post.isRentedOut ? Icons.do_not_disturb_on_rounded : Icons.check_circle_rounded,
+                        size: 13,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        post.isRentedOut
+                            ? (languageCode == 'bn' ? 'ভাড়া হয়ে গেছে' : 'Rented Out')
+                            : (languageCode == 'bn' ? 'ভাড়া দেওয়া হবে' : 'Available'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
 
@@ -393,7 +507,40 @@ class _MyPostCard extends StatelessWidget {
                 const Divider(height: 1),
                 const SizedBox(height: 12),
 
-                // --- Action Buttons: View, Edit, Delete ---
+                // --- 1. RENTED OUT TOGGLE BUTTON ---
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: post.isRentedOut
+                          ? Colors.green.withValues(alpha: isDark ? 0.18 : 0.08)
+                          : Colors.deepOrange.withValues(alpha: isDark ? 0.18 : 0.08),
+                      foregroundColor: post.isRentedOut
+                          ? (isDark ? Colors.greenAccent : Colors.green[800])
+                          : (isDark ? Colors.orangeAccent : Colors.deepOrange),
+                      side: BorderSide(
+                        color: post.isRentedOut ? Colors.green : Colors.deepOrange,
+                        width: 1.2,
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: Icon(
+                      post.isRentedOut ? Icons.replay_rounded : Icons.do_not_disturb_on_outlined,
+                      size: 18,
+                    ),
+                    label: Text(
+                      post.isRentedOut
+                          ? (languageCode == 'bn' ? 'পুনরায় চালু করুন (Show Post)' : 'Mark Available (Show Post)')
+                          : (languageCode == 'bn' ? 'ভাড়া হয়ে গেছে (Hide Post)' : 'Mark Rented Out (Hide Post)'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                    ),
+                    onPressed: () => _confirmToggleRented(context, languageCode),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // --- 2. Action Buttons: View, Edit, Delete ---
                 Row(
                   children: [
                     // View Button
@@ -401,11 +548,11 @@ class _MyPostCard extends StatelessWidget {
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
                           foregroundColor: theme.colorScheme.onSurface,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 9),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        icon: const Icon(Icons.visibility_outlined, size: 18),
-                        label: const Text('View'),
+                        icon: const Icon(Icons.visibility_outlined, size: 17),
+                        label: const Text('View', style: TextStyle(fontSize: 12)),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -424,11 +571,11 @@ class _MyPostCard extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.themeColor,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 9),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        icon: const Icon(Icons.mode_edit_outline_rounded, size: 18),
-                        label: const Text('Edit'),
+                        icon: const Icon(Icons.mode_edit_outline_rounded, size: 17),
+                        label: const Text('Edit', style: TextStyle(fontSize: 12)),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -448,7 +595,7 @@ class _MyPostCard extends StatelessWidget {
                         foregroundColor: Colors.redAccent,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
-                      icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                      icon: const Icon(Icons.delete_outline_rounded, size: 19),
                       onPressed: () => _confirmDelete(context),
                     ),
                   ],

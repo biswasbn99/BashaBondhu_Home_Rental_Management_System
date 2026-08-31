@@ -52,8 +52,8 @@ class PropertyFirestoreService {
     }
   }
 
-  /// Stream all active properties for HomeScreen / FindHomeScreen
-  Stream<List<PropertyModel>> streamAllProperties() {
+  /// Stream all active properties for HomeScreen / FindHomeScreen (only available by default)
+  Stream<List<PropertyModel>> streamAllProperties({bool onlyAvailable = true}) {
     return _propertiesCollection
         .snapshots()
         .map((snapshot) {
@@ -62,9 +62,15 @@ class PropertyFirestoreService {
         try {
           final data = doc.data();
           if (data is Map<String, dynamic>) {
-            list.add(PropertyModel.fromMap(data, doc.id));
+            final p = PropertyModel.fromMap(data, doc.id);
+            if (!onlyAvailable || p.isAvailable) {
+              list.add(p);
+            }
           } else if (data is Map) {
-            list.add(PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id));
+            final p = PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id);
+            if (!onlyAvailable || p.isAvailable) {
+              list.add(p);
+            }
           }
         } catch (e) {
           debugPrint('Error parsing property doc ${doc.id}: $e');
@@ -178,6 +184,20 @@ class PropertyFirestoreService {
       debugPrint('✅ Property deleted from Firestore: $propertyId');
     } catch (e) {
       debugPrint('❌ Error deleting property: $e');
+      rethrow;
+    }
+  }
+
+  /// Toggle property rented status (isAvailable = !isRentedOut)
+  Future<void> togglePropertyRentedStatus(String propertyId, bool isRentedOut) async {
+    try {
+      await _propertiesCollection.doc(propertyId).set({
+        'isAvailable': !isRentedOut,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      debugPrint('✅ Property rented status updated: $propertyId -> isAvailable: ${!isRentedOut}');
+    } catch (e) {
+      debugPrint('❌ Error toggling property rented status: $e');
       rethrow;
     }
   }
