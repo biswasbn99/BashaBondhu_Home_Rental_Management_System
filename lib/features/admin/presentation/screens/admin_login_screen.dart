@@ -59,21 +59,24 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         ),
       );
     } else {
+      final errorMsg = adminProvider.lastErrorMessage ?? 'ভুল ইমেইল বা পাসওয়ার্ড! সঠিক তথ্য দিন।';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
-              Icon(Icons.error_outline_rounded, color: Colors.white),
-              SizedBox(width: 10),
-              Text(
-                'ভুল ইমেইল বা পাসওয়ার্ড! সঠিক তথ্য দিন।',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              const Icon(Icons.error_outline_rounded, color: Colors.white),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  errorMsg,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -186,7 +189,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
                           labelText: 'Email Address',
-                          hintText: 'admin1@gmail.com',
+                          hintText: 'biswashridoy528@gmail.com',
                           prefixIcon: Icon(Icons.email_outlined),
                         ),
                         validator: (val) {
