@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/services/auth_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/main_nav_holder_screen.dart';
@@ -120,6 +121,7 @@ class AccountLogoutButton extends StatelessWidget {
                         Navigator.pop(dialogCtx);
                         await AuthService().signOut();
                         if (context.mounted) {
+                          context.read<UserProvider>().clearUser();
                           context.read<MainNavHolderProvider>().resetIndex();
                           Navigator.pushNamedAndRemoveUntil(
                             context,
