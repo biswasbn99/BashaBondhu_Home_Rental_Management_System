@@ -223,9 +223,9 @@ class FaqModel {
       category: map['category']?.toString() ?? 'general',
       targetAudience: map['targetAudience']?.toString() ?? 'all',
       questionEn: map['questionEn']?.toString() ?? map['question']?.toString() ?? '',
-      questionBn: map['questionBn']?.toString() ?? map['question_bn']?.toString() ?? '',
+      questionBn: map['questionBn']?.toString() ?? map['question_bn']?.toString() ?? map['questionBangla']?.toString() ?? map['question_bengali']?.toString() ?? '',
       answerEn: map['answerEn']?.toString() ?? map['answer']?.toString() ?? '',
-      answerBn: map['answerBn']?.toString() ?? map['answer_bn']?.toString() ?? '',
+      answerBn: map['answerBn']?.toString() ?? map['answer_bn']?.toString() ?? map['answerBangla']?.toString() ?? map['answer_bengali']?.toString() ?? '',
       order: (map['order'] as num?)?.toInt() ?? 0,
     );
   }

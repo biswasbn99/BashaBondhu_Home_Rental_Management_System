@@ -257,6 +257,143 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
               ),
             ],
 
+            // Persistent 4 Options Bar for House Owner
+            if (isOwner) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF162120) : const Color(0xFFEBF7F5),
+                  border: Border(
+                    top: BorderSide(
+                      color: isDark ? const Color(0xFF243432) : const Color(0xFFE2E9E7),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ActionChip(
+                        avatar: const Icon(Icons.auto_awesome_rounded, size: 14, color: Colors.white),
+                        label: Text(
+                          isBn ? '⚡ প্রধান ৪টি অপশন' : '⚡ Main 4 Options',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        backgroundColor: AppColors.themeColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () {
+                          aiProvider.showHouseOwner4Options(user, languageCode);
+                          _scrollToBottom();
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.people_outline_rounded, size: 14, color: AppColors.themeColor),
+                        label: Text(
+                          isBn ? '👥 ভাড়াটিয়া ডিমান্ড' : '👥 Tenant Demands',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'ভাড়াটিয়াদের ডিমান্ড' : 'Find Tenant Demands', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.lightbulb_outline_rounded, size: 14, color: Colors.amber),
+                        label: Text(
+                          isBn ? '💡 প্রস্তাবিত ভাড়ার রেঞ্জ' : '💡 Suggest Price Range',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'প্রস্তাবিত ভাড়ার রেঞ্জ' : 'Suggest Price Range', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.card_membership_rounded, size: 14, color: Colors.orange),
+                        label: Text(
+                          isBn ? '💳 প্যাকেজ' : '💳 Packages',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'সাবস্ক্রিপশন প্যাকেজ' : 'Subscription Packages', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.history_rounded, size: 14, color: Colors.teal),
+                        label: Text(
+                          isBn ? '📄 হিস্ট্রি' : '📄 History',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'সাবস্ক্রিপশন হিস্ট্রি' : 'Subscription History', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.privacy_tip_outlined, size: 14, color: Colors.blueAccent),
+                        label: Text(
+                          isBn ? '🛡️ প্রাইভেসি পলিসি' : '🛡️ Privacy Policy',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'প্রাইভেসি পলিসি বলো' : 'Tell me Privacy Policy', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.support_agent_rounded, size: 14, color: Colors.purple),
+                        label: Text(
+                          isBn ? '🤝 সাপোর্ট পলিসি' : '🤝 Support Policy',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'সাপোর্ট পলিসি বলো' : 'Tell me Support Policy', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.gavel_rounded, size: 14, color: Colors.indigo),
+                        label: Text(
+                          isBn ? '📜 শর্তাবলী' : '📜 Terms & Conditions',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'শর্তাবলী বলো' : 'Tell me Terms & Conditions', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.currency_exchange_rounded, size: 14, color: Colors.deepOrange),
+                        label: Text(
+                          isBn ? '💳 রিফান্ড পলিসি' : '💳 Refund Policy',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'রিফান্ড পলিসি বলো' : 'Tell me Refund Policy', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.help_outline_rounded, size: 14, color: Colors.cyan),
+                        label: Text(
+                          isBn ? '❓ সাধারণ জিজ্ঞাসা' : '❓ FAQ',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'সাধারণ জিজ্ঞাসা' : 'FAQ', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.menu_book_rounded, size: 14, color: Colors.teal),
+                        label: Text(
+                          isBn ? '📖 কীভাবে অ্যাপ ব্যবহার করবেন' : '📖 How to Use',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'বাড়িওয়ালা হিসেবে কীভাবে অ্যাপ ব্যবহার করব?' : 'How to use this app as a house owner?', user, languageCode),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
             // Input Bar & Voice Mic
             Container(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),

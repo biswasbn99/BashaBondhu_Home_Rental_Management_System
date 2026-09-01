@@ -98,12 +98,73 @@ class PolicyFirestoreService {
 
   Stream<List<FaqModel>> streamFaqs({String category = 'all', String targetAudience = 'all'}) {
     return _faqsCol.snapshots().map((snapshot) {
-      if (snapshot.docs.isEmpty) {
-        return _filterFaqs(_getDefaultFaqs(), category, targetAudience);
+      final List<FaqModel> firestoreList = [];
+      if (snapshot.docs.isNotEmpty) {
+        firestoreList.addAll(snapshot.docs.map((doc) => FaqModel.fromMap(doc.data(), doc.id)));
       }
-      final list = snapshot.docs.map((doc) => FaqModel.fromMap(doc.data(), doc.id)).toList();
-      return _filterFaqs(list, category, targetAudience);
+
+      final defaultList = _getDefaultFaqs();
+      final Map<String, FaqModel> merged = {};
+
+      for (final f in defaultList) {
+        merged[f.questionEn.toLowerCase().trim()] = f;
+      }
+      for (final f in firestoreList) {
+        final key = f.questionEn.toLowerCase().trim();
+        if (key.isNotEmpty) {
+          final existing = merged[key];
+          merged[key] = FaqModel(
+            id: f.id.isNotEmpty ? f.id : (existing?.id ?? ''),
+            category: f.category.isNotEmpty ? f.category : (existing?.category ?? 'general'),
+            targetAudience: f.targetAudience.isNotEmpty ? f.targetAudience : (existing?.targetAudience ?? 'all'),
+            questionEn: f.questionEn.isNotEmpty ? f.questionEn : (existing?.questionEn ?? ''),
+            questionBn: f.questionBn.isNotEmpty ? f.questionBn : (existing?.questionBn ?? f.questionEn),
+            answerEn: f.answerEn.isNotEmpty ? f.answerEn : (existing?.answerEn ?? ''),
+            answerBn: f.answerBn.isNotEmpty ? f.answerBn : (existing?.answerBn ?? f.answerEn),
+            order: f.order > 0 ? f.order : (existing?.order ?? 0),
+          );
+        }
+      }
+
+      return _filterFaqs(merged.values.toList(), category, targetAudience);
     });
+  }
+
+  Future<List<FaqModel>> getFaqs({String category = 'all', String targetAudience = 'all'}) async {
+    try {
+      final snapshot = await _faqsCol.get();
+      final List<FaqModel> firestoreList = [];
+      if (snapshot.docs.isNotEmpty) {
+        firestoreList.addAll(snapshot.docs.map((doc) => FaqModel.fromMap(doc.data(), doc.id)));
+      }
+
+      final defaultList = _getDefaultFaqs();
+      final Map<String, FaqModel> merged = {};
+
+      for (final f in defaultList) {
+        merged[f.questionEn.toLowerCase().trim()] = f;
+      }
+      for (final f in firestoreList) {
+        final key = f.questionEn.toLowerCase().trim();
+        if (key.isNotEmpty) {
+          final existing = merged[key];
+          merged[key] = FaqModel(
+            id: f.id.isNotEmpty ? f.id : (existing?.id ?? ''),
+            category: f.category.isNotEmpty ? f.category : (existing?.category ?? 'general'),
+            targetAudience: f.targetAudience.isNotEmpty ? f.targetAudience : (existing?.targetAudience ?? 'all'),
+            questionEn: f.questionEn.isNotEmpty ? f.questionEn : (existing?.questionEn ?? ''),
+            questionBn: f.questionBn.isNotEmpty ? f.questionBn : (existing?.questionBn ?? f.questionEn),
+            answerEn: f.answerEn.isNotEmpty ? f.answerEn : (existing?.answerEn ?? ''),
+            answerBn: f.answerBn.isNotEmpty ? f.answerBn : (existing?.answerBn ?? f.answerEn),
+            order: f.order > 0 ? f.order : (existing?.order ?? 0),
+          );
+        }
+      }
+
+      return _filterFaqs(merged.values.toList(), category, targetAudience);
+    } catch (e) {
+      return _filterFaqs(_getDefaultFaqs(), category, targetAudience);
+    }
   }
 
   List<FaqModel> _filterFaqs(List<FaqModel> list, String category, String targetAudience) {
@@ -617,7 +678,7 @@ class PolicyFirestoreService {
             'পছন্দসই বাসা না পেলে "Demand" অপশনে গিয়ে আপনার এলাকা ও বাজেট উল্লেখ করে চাহিদা পোস্ট করুন। বাড়িওয়ালারা আপনার পোস্ট দেখে সরাসরি আপনার সাথে যোগাযোগ করবেন।',
       ),
 
-      // 4. Posting (House Owner)
+      // 4. Posting & Renting Out (House Owner)
       const FaqModel(
         id: 'faq_4',
         category: 'posting',
@@ -626,45 +687,87 @@ class PolicyFirestoreService {
         questionEn: 'How do I publish a property listing as a House Owner?',
         questionBn: 'বাড়িওয়ালা হিসেবে আমি কীভাবে বাসা ভাড়ার বিজ্ঞাপন দেব?',
         answerEn:
-            'Tap the "+" or "Post Ad" button on your House Owner dashboard. Enter property address, upload clear photos, set rent price and amenities, then tap Publish.',
+            'Tap the "+" or "Post Free" button on your House Owner dashboard. Enter property address, upload clear photos, set rent price and amenities, then tap Publish to go live instantly.',
         answerBn:
-            'বাড়িওয়ালা ড্যাশবোর্ডে গিয়ে "+" বাটনে ট্যাপ করুন। এরপর বাসার ঠিকানা, পরিষ্কার ছবি, ভাড়ার পরিমাণ ও সুবিধাসমূহ সিলেক্ট করে সাবমিট করুন।',
+            'বাড়িওয়ালা ড্যাশবোর্ডে গিয়ে "+" বা "Post Free" বাটনে ট্যাপ করুন। এরপর বাসার ঠিকানা, পরিষ্কার ছবি, ভাড়ার পরিমাণ ও সুবিধাসমূহ সিলেক্ট করে সাবমিট করলেই বিজ্ঞাপন তাৎক্ষণিক লাইভ হয়ে যাবে।',
       ),
 
-      // 5. Viewing Demands (House Owner)
+      // 5. Rented Out Toggle (House Owner)
       const FaqModel(
         id: 'faq_5',
         category: 'posting',
         targetAudience: 'house_owner',
         order: 5,
-        questionEn: 'How can I see what tenants are currently looking for?',
-        questionBn: 'ভাড়াটিয়াদের চাহিদাগুলো বাড়িওয়ালা কীভাবে দেখতে পারবেন?',
+        questionEn: 'What is the "Rented Out" toggle button and how do I use it?',
+        questionBn: '"ভাড়া হয়ে গেছে (Rented Out)" বোতামের কাজ কী এবং কীভাবে ব্যবহার করব?',
         answerEn:
-            'From your House Owner Account, open "All Tenant Demands". You can browse verified renter requests and directly call interested tenants.',
+            'When your home is successfully rented, turn ON the "Rented Out" toggle from the My Post screen. This completely hides the listing from tenant search feeds while keeping your listing data safely saved. You can reactivate it anytime when vacant.',
         answerBn:
-            'বাড়িওয়ালা অ্যাকাউন্ট থেকে "All Tenant Demands" অপশনে গেলে বিভিন্ন এলাকার ভাড়াটিয়াদের সক্রিয় চাহিদা দেখতে পাবেন এবং সরাসরি কল করতে পারবেন।',
+            'বাসা ভাড়া হয়ে যাওয়ার সাথে সাথে আপনার My Post স্ক্রিন থেকে "ভাড়া হয়ে গেছে (Rented Out)" সুইচটি অন করে দিন। এতে আপনার বিজ্ঞাপনটি সাধারণ অনুসন্ধান থেকে সুরক্ষিত ও হাইড থাকবে। বাসা পরবর্তীতে আবার খালি হলে এক ক্লিকেই পুনরায় লাইভ করতে পারবেন।',
       ),
 
-      // 6. Subscriptions (House Owner)
+      // 6. Viewing Demands (House Owner)
       const FaqModel(
         id: 'faq_6',
-        category: 'management',
+        category: 'posting',
         targetAudience: 'house_owner',
         order: 6,
-        questionEn: 'What are the benefits of House Owner Subscription Plans?',
-        questionBn: 'বাড়িওয়ালা সাবস্ক্রিপশন প্ল্যানের সুবিধা কী কী?',
+        questionEn: 'How can I see what tenants are currently looking for?',
+        questionBn: 'ভাড়াটিয়াদের চাহিদা (Tenant Demands) বাড়িওয়ালা কীভাবে দেখতে পারবেন?',
         answerEn:
-            'Subscription plans allow house owners to post multiple listings, get "Featured" top placement badges, and receive priority tenant leads.',
+            'From your House Owner Account, open the "Demand" tab or ask this AI Assistant. You can browse verified renter requests with budget filters and directly call interested tenants.',
         answerBn:
-            'সাবস্ক্রিপশন প্ল্যানে একাধিক বিজ্ঞাপন প্রকাশ, বিজ্ঞাপনে "Featured" ব্যাজ এবং দ্রুত ভাড়াটিয়া পাওয়ার প্রায়োরিটি সুবিধা পাওয়া যায়।',
+            'বাড়িওয়ালা অ্যাকাউন্ট থেকে "Demand" স্ক্রিনে যান অথবা এই এআই সহকারীর মাধ্যমে এলাকার সক্রিয় ভাড়াটিয়াদের চাহিদাপত্র ও বাজেট ফিল্টার (যেমন: ৬হাজার-১০হাজার, ১১হাজার-১৫হাজার) দেখে সরাসরি আগ্রহী ভাড়াটিয়ার সাথে যোগাযোগ করতে পারবেন।',
       ),
 
-      // 7. Safety (All)
+      // 7. AI Suggest Price Range (House Owner)
       const FaqModel(
         id: 'faq_7',
+        category: 'management',
+        targetAudience: 'house_owner',
+        order: 7,
+        questionEn: 'How does the AI Suggested Rent Price Range help landlords?',
+        questionBn: 'এআই প্রস্তাবিত ভাড়ার রেঞ্জ (Suggest Price Range) কীভাবে সাহায্য করে?',
+        answerEn:
+            'The AI analyzes property market data across areas, rooms, and premium amenities (Lift, Parking, Generator, Gas) to suggest fair market rental rates and value additions without exposing private owner listings.',
+        answerBn:
+            'বাসাবন্ধু এআই প্ল্যাটফর্মের ডাটাবেজ বিশ্লেষণ করে বিভাগ, জেলা, এলাকা, রুম এবং বিশেষ সুবিধা (লিফট, পার্কিং, জেনারেটর ব্যাকআপ) বিবেচনা করে বাড়িওয়ালার গোপনীয়তা বজায় রেখে সঠিক ও যৌক্তিক ভাড়ার পূর্বাভাস ও পরামর্শ প্রদান করে।',
+      ),
+
+      // 8. Subscriptions (House Owner)
+      const FaqModel(
+        id: 'faq_8',
+        category: 'management',
+        targetAudience: 'house_owner',
+        order: 8,
+        questionEn: 'What are the benefits of House Owner Subscription Plans?',
+        questionBn: 'বাড়িওয়ালা সাবস্ক্রিপশন প্ল্যানের সুবিধা কী এবং রসিদ কোথায় পাব?',
+        answerEn:
+            'Subscription plans allow house owners to post multiple listings, get "Featured" top placement badges, and receive priority tenant leads. All digital receipts are stored securely in Subscription History.',
+        answerBn:
+            'সাবস্ক্রিপশন প্ল্যানে একাধিক বিজ্ঞাপন প্রকাশ, বিজ্ঞাপনে "Featured" ব্যাজ এবং দ্রুত ভাড়াটিয়া পাওয়ার প্রায়োরিটি সুবিধা পাওয়া যায়। সকল পেমেন্টের ডিজিটাল রসিদ ও লেনদেনের ইতিহাস Subscription History-তে সংরক্ষিত থাকে।',
+      ),
+
+      // 9. Password Reset (All)
+      const FaqModel(
+        id: 'faq_9',
         category: 'safety',
         targetAudience: 'all',
-        order: 7,
+        order: 9,
+        questionEn: 'How do I recover my password if forgotten?',
+        questionBn: 'পাসওয়ার্ড ভুলে গেলে কীভাবে জিমেইলে রিকভার করব?',
+        answerEn:
+            'On the Sign In screen, click "Forgot Password?". Enter your registered Gmail address and Firebase will instantly send a secure password reset link to your email inbox free of cost.',
+        answerBn:
+            'সাইন ইন স্ক্রিনের নিচে "Forgot Password?"-এ চাপ দিয়ে আপনার নিবন্ধিত জিমেইলটি দিন। সাথে সাথে আপনার ইমেইলে একটি নিরাপদ পাসওয়ার্ড রিসেট লিংক বিনামূল্যে পাঠানো হবে।',
+      ),
+
+      // 10. Safety & Verification (All)
+      const FaqModel(
+        id: 'faq_10',
+        category: 'safety',
+        targetAudience: 'all',
+        order: 10,
         questionEn: 'How does BashaBondhu verify property listings and users?',
         questionBn: 'বাসাবন্ধু কীভাবে বিজ্ঞাপন ও ব্যবহারকারীদের যাচাই করে?',
         answerEn:

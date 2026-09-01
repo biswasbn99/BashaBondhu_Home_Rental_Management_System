@@ -22,7 +22,6 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/subscription_history_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/tenant_subscription_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
-import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/tenant_dashboard_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/wishlist/data/providers/wishlist_provider.dart';
 
 class TenantAccountScreen extends StatelessWidget {
@@ -183,45 +182,7 @@ class TenantAccountScreen extends StatelessWidget {
           },
         ),
 
-        // 3. My Dashboard Button
-        AccountActionTile(
-          icon: Icons.dashboard_customize_rounded,
-          title: l10n.myDashboard,
-          subtitle: l10n.localeName == 'bn'
-              ? 'চাহিদা, পছন্দের তালিকা ও সকল কার্যক্রমের ওভারভিউ'
-              : 'Overview of your rental demands, wishlist & activity',
-          trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: AppColors.themeColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.insights_rounded, size: 13, color: AppColors.themeColor),
-                SizedBox(width: 4),
-                Text(
-                  'Overview',
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.themeColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          onTap: () {
-            debugPrint('➡️ Navigating to TenantDashboardScreen');
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const TenantDashboardScreen()),
-            );
-          },
-        ),
-
-        // 4. Profile Information
+        // 3. Profile Information
         AccountActionTile(
           icon: Icons.person_pin_circle_outlined,
           title: l10n.myProfile,
