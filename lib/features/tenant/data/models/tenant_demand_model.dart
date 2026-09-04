@@ -39,13 +39,19 @@ class TenantDemandModel {
   final String userWhatsApp;
   final String shortAddress;
   final String detailedDescription;
+  final String tenantVerificationStatus;
   final DateTime postDate;
   final bool isFulfilled;
+
+  bool get isTenantVerified => tenantVerificationStatus.toLowerCase() == 'verified';
+  bool get isTenantPending => tenantVerificationStatus.toLowerCase() == 'pending';
+  bool get isTenantUnverified => !isTenantVerified && !isTenantPending;
 
   TenantDemandModel({
     required this.id,
     this.tenantId = '',
     this.tenantEmail = '',
+    this.tenantVerificationStatus = 'unverified',
     required this.month,
     required this.houseType,
     required this.roomOrSeat,
@@ -82,6 +88,7 @@ class TenantDemandModel {
     return {
       'tenantId': tenantId,
       'tenantEmail': tenantEmail,
+      'tenantVerificationStatus': tenantVerificationStatus,
       'month': month,
       'houseType': houseType.name,
       'roomOrSeat': roomOrSeat,
@@ -185,6 +192,8 @@ class TenantDemandModel {
       id: docId,
       tenantId: map['tenantId']?.toString() ?? '',
       tenantEmail: map['tenantEmail']?.toString() ?? '',
+      tenantVerificationStatus: map['tenantVerificationStatus']?.toString() ??
+          (map['isVerified'] == true ? 'verified' : 'unverified'),
       month: map['month']?.toString() ?? 'January',
       houseType: parseHouseType(map['houseType']),
       roomOrSeat: map['roomOrSeat']?.toString() ?? '',
@@ -222,6 +231,7 @@ class TenantDemandModel {
     String? id,
     String? tenantId,
     String? tenantEmail,
+    String? tenantVerificationStatus,
     String? month,
     HouseType? houseType,
     String? roomOrSeat,
@@ -257,6 +267,7 @@ class TenantDemandModel {
       id: id ?? this.id,
       tenantId: tenantId ?? this.tenantId,
       tenantEmail: tenantEmail ?? this.tenantEmail,
+      tenantVerificationStatus: tenantVerificationStatus ?? this.tenantVerificationStatus,
       month: month ?? this.month,
       houseType: houseType ?? this.houseType,
       roomOrSeat: roomOrSeat ?? this.roomOrSeat,

@@ -424,6 +424,7 @@ class HomeRentPostProvider extends ChangeNotifier {
         id: '',
         ownerId: currentUser?.uid ?? 'guest_owner',
         ownerEmail: currentUser?.email ?? '',
+        ownerVerificationStatus: currentUser?.verificationStatus ?? 'unverified',
         images: [],
         month: selectedMonth!,
         houseType: selectedHouseType!,

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/providers/locale_provider.dart';
+import '../../../admin/data/providers/admin_provider.dart';
 
 class LanguageActionButton extends StatelessWidget {
   const LanguageActionButton({super.key});
@@ -22,6 +23,10 @@ class LanguageActionButton extends StatelessWidget {
           onTap: () {
             final newLang = isBn ? 'en' : 'bn';
             localeProvider.changeLocale(Locale(newLang));
+            try {
+              final adminProvider = context.read<AdminProvider>();
+              adminProvider.setLanguage(newLang == 'bn');
+            } catch (_) {}
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),

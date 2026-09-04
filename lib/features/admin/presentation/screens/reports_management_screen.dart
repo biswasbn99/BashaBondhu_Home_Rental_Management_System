@@ -62,7 +62,11 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
                         isBn
                             ? 'ভুয়া বিজ্ঞাপন, স্প্যাম ও অভিযোগ পরিচালনা করুন (${filteredReports.length} টি রিপোর্ট)'
                             : 'Review and resolve fake listings and spam reports (${filteredReports.length} reports)',
-                        style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                        ),
                       ),
                     ],
                   ),

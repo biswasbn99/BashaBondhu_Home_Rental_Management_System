@@ -14,6 +14,10 @@ class UserModel {
   final String nidBackImageUrl;
   final String createdAt;
 
+  // Verification Fields
+  final String verificationStatus; // 'verified', 'pending', 'unverified', 'rejected'
+  final String verificationFeedback; // Feedback reason if rejected / correction needed
+
   // Subscription & Gating Fields
   final List<String> unlockedPropertyIds; // properties unlocked by tenant
   final List<String> unlockedDemandIds;   // demands unlocked by house owner
@@ -36,6 +40,8 @@ class UserModel {
     this.nidFrontImageUrl = '',
     this.nidBackImageUrl = '',
     String? createdAt,
+    this.verificationStatus = 'unverified',
+    this.verificationFeedback = '',
     this.unlockedPropertyIds = const [],
     this.unlockedDemandIds = const [],
     this.radiusSearchCount = 0,
@@ -117,6 +123,11 @@ class UserModel {
     return (2 - unlockedDemandIds.length).clamp(0, 2);
   }
 
+  /// Verification getters
+  bool get isVerified => verificationStatus.toLowerCase() == 'verified';
+  bool get isVerificationPending => verificationStatus.toLowerCase() == 'pending';
+  bool get isVerificationRejected => verificationStatus.toLowerCase() == 'rejected';
+
   /// Free radius searches remaining (3 max for free tenant)
   int get freeRadiusSearchesRemaining {
     if (isSubscribed) return 999;
@@ -139,6 +150,9 @@ class UserModel {
       'nidFrontImageUrl': nidFrontImageUrl,
       'nidBackImageUrl': nidBackImageUrl,
       'createdAt': createdAt,
+      'verificationStatus': verificationStatus,
+      'verificationFeedback': verificationFeedback,
+      'isVerified': isVerified,
       'unlockedPropertyIds': unlockedPropertyIds,
       'unlockedDemandIds': unlockedDemandIds,
       'radiusSearchCount': radiusSearchCount,
@@ -148,6 +162,22 @@ class UserModel {
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
+    // Determine verification status from verificationStatus or fallback to nidVerificationStatus / isVerified
+    String status = (map['verificationStatus'] as String?) ??
+        (map['nidVerificationStatus'] as String?) ??
+        '';
+    if (status.isEmpty) {
+      if (map['isVerified'] == true) {
+        status = 'verified';
+      } else {
+        status = 'unverified';
+      }
+    }
+
+    final feedback = (map['verificationFeedback'] as String?) ??
+        (map['nidRejectionReason'] as String?) ??
+        '';
+
     return UserModel(
       uid: map['uid'] ?? '',
       email: map['email'] ?? '',
@@ -163,6 +193,8 @@ class UserModel {
       nidFrontImageUrl: map['nidFrontImageUrl'] ?? '',
       nidBackImageUrl: map['nidBackImageUrl'] ?? '',
       createdAt: map['createdAt'] ?? '',
+      verificationStatus: status,
+      verificationFeedback: feedback,
       unlockedPropertyIds: List<String>.from(map['unlockedPropertyIds'] ?? []),
       unlockedDemandIds: List<String>.from(map['unlockedDemandIds'] ?? []),
       radiusSearchCount: (map['radiusSearchCount'] as num?)?.toInt() ?? 0,
@@ -186,6 +218,8 @@ class UserModel {
     String? nidFrontImageUrl,
     String? nidBackImageUrl,
     String? createdAt,
+    String? verificationStatus,
+    String? verificationFeedback,
     List<String>? unlockedPropertyIds,
     List<String>? unlockedDemandIds,
     int? radiusSearchCount,
@@ -207,6 +241,8 @@ class UserModel {
       nidFrontImageUrl: nidFrontImageUrl ?? this.nidFrontImageUrl,
       nidBackImageUrl: nidBackImageUrl ?? this.nidBackImageUrl,
       createdAt: createdAt ?? this.createdAt,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      verificationFeedback: verificationFeedback ?? this.verificationFeedback,
       unlockedPropertyIds: unlockedPropertyIds ?? this.unlockedPropertyIds,
       unlockedDemandIds: unlockedDemandIds ?? this.unlockedDemandIds,
       radiusSearchCount: radiusSearchCount ?? this.radiusSearchCount,

@@ -160,11 +160,16 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            _currentIndex == 0
-                                ? (isBn ? 'প্রধান টেমপ্লেট ছবি' : 'Main Template Photo')
-                                : (isBn
-                                    ? 'অতিরিক্ত ছবি #${_currentIndex.toString().toLocalizedDigits("bn")}'
-                                    : 'Additional Photo #$_currentIndex'),
+                            (widget.title != null && widget.title!.isNotEmpty)
+                                ? widget.title!
+                                : (_currentIndex == 0
+                                    ? (isBn ? 'প্রধান টেমপ্লেট ছবি' : 'Main Photo')
+                                    : (isBn
+                                        ? 'অতিরিক্ত ছবি #${_currentIndex.toString().toLocalizedDigits("bn")}'
+                                        : 'Additional Photo #$_currentIndex')),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 15,

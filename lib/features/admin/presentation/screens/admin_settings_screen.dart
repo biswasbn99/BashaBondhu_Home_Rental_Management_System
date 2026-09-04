@@ -154,7 +154,11 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                           isBn
                               ? 'অ্যাপের নাম, যোগাযোগ, সোশাল লিংক ও নীতিমালা পরিচালনা করুন'
                               : 'Manage branding, contact info, social links, and legal policies',
-                          style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                          ),
                         ),
                       ],
                     ),

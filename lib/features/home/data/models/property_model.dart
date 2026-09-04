@@ -39,15 +39,20 @@ class PropertyModel {
   final String? marketDistance;
   final double? latitude;
   final double? longitude;
+  final String ownerVerificationStatus;
   final DateTime postDate;
   final bool isAvailable;
 
   bool get isRentedOut => !isAvailable;
+  bool get isOwnerVerified => ownerVerificationStatus.toLowerCase() == 'verified';
+  bool get isOwnerPending => ownerVerificationStatus.toLowerCase() == 'pending';
+  bool get isOwnerUnverified => !isOwnerVerified && !isOwnerPending;
 
   PropertyModel({
     required this.id,
     this.ownerId = '',
     this.ownerEmail = '',
+    this.ownerVerificationStatus = 'unverified',
     required this.images,
     required this.month,
     required this.houseType,
@@ -86,6 +91,7 @@ class PropertyModel {
     return {
       'ownerId': ownerId,
       'ownerEmail': ownerEmail,
+      'ownerVerificationStatus': ownerVerificationStatus,
       'images': images,
       'month': month,
       'houseType': houseType.name,
@@ -210,6 +216,8 @@ class PropertyModel {
       id: id,
       ownerId: map['ownerId']?.toString() ?? '',
       ownerEmail: map['ownerEmail']?.toString() ?? '',
+      ownerVerificationStatus: map['ownerVerificationStatus']?.toString() ??
+          (map['isVerified'] == true ? 'verified' : 'unverified'),
       images: parseImages(map['images']),
       month: map['month']?.toString() ?? 'January',
       houseType: parseHouseType(map['houseType']),
@@ -249,6 +257,7 @@ class PropertyModel {
     String? id,
     String? ownerId,
     String? ownerEmail,
+    String? ownerVerificationStatus,
     List<String>? images,
     String? month,
     HouseType? houseType,
@@ -286,6 +295,7 @@ class PropertyModel {
       id: id ?? this.id,
       ownerId: ownerId ?? this.ownerId,
       ownerEmail: ownerEmail ?? this.ownerEmail,
+      ownerVerificationStatus: ownerVerificationStatus ?? this.ownerVerificationStatus,
       images: images ?? this.images,
       month: month ?? this.month,
       houseType: houseType ?? this.houseType,

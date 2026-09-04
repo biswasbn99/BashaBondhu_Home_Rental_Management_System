@@ -62,7 +62,11 @@ class AnalyticsView extends StatelessWidget {
                     isBn
                         ? 'ইউজার প্রবৃদ্ধি, জনপ্রিয় এলাকা ও প্রপার্টি স্ট্যাটাসের লাইভ ভিজ্যুয়ালাইজেশন'
                         : 'Live visualization of user growth, popular locations, and property metrics',
-                    style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                    ),
                   ),
                   const SizedBox(height: 24),
 

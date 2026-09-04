@@ -53,12 +53,20 @@ class AdminFirestoreService {
   }
 
   Future<void> updateUserNidStatus(String uid, String status, {String? reason}) async {
+    final bool isVerified = status.toLowerCase() == 'verified';
     final Map<String, dynamic> updateData = {
-      'nidVerificationStatus': status, // 'verified', 'rejected', 'pending'
+      'nidVerificationStatus': status, // 'verified', 'unverified', 'pending', 'rejected'
+      'verificationStatus': status,
+      'isVerified': isVerified,
       'nidVerificationDate': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
     if (reason != null && reason.isNotEmpty) {
       updateData['nidRejectionReason'] = reason;
+      updateData['verificationFeedback'] = reason;
+    } else if (isVerified || status == 'unverified') {
+      updateData['nidRejectionReason'] = '';
+      updateData['verificationFeedback'] = '';
     }
     await _usersCollection.doc(uid).set(updateData, SetOptions(merge: true));
   }

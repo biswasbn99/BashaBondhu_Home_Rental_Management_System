@@ -88,7 +88,11 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                 isBn
                     ? 'সকল বাসাভাড়া বিজ্ঞাপন অনুমোদন, প্রত্যাখ্যান ও ডিলিট করুন (${filteredProperties.length} টি বিজ্ঞাপন)'
                     : 'Approve, Reject, or Delete House Listings (${filteredProperties.length} listings)',
-                style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                ),
               ),
               const SizedBox(height: 20),
 

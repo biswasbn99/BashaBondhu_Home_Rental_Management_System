@@ -406,6 +406,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
       await provider.submitDemand(
         tenantId: userProvider.user!.uid,
         tenantEmail: userProvider.user!.email,
+        tenantVerificationStatus: userProvider.user!.verificationStatus,
       );
 
       if (context.mounted) {

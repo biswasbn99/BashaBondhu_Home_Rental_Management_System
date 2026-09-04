@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../../../../app/app_colors.dart';
 import '../../../../app/providers/theme_provider.dart';
 import '../../../ai_assistant/presentation/screens/ai_assistant_screen.dart';
+import '../../../auth/data/models/user_model.dart';
 import '../../data/providers/admin_provider.dart';
+import '../../data/services/admin_firestore_service.dart';
 
 class AdminSidebar extends StatelessWidget {
   const AdminSidebar({super.key});
@@ -17,85 +19,124 @@ class AdminSidebar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final Color sidebarBg = isDark ? const Color(0xFF131D1C) : Colors.white;
-    final Color borderColor = isDark ? const Color(0xFF243432) : const Color(0xFFE2E9E7);
+    final Color sidebarBg = isDark ? const Color(0xFF0C1917) : Colors.white;
+    final Color borderColor = isDark ? const Color(0xFF1A332E) : const Color(0xFFE2E8F0);
 
-    return Material(
-      color: sidebarBg,
-      child: SizedBox(
-        width: 260,
-        child: Column(
-          children: [
-            // Admin Panel Branding Header
-            Container(
-              height: 80,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: borderColor, width: 1)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.themeColor.withValues(alpha: isDark ? 0.25 : 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.themeColor, size: 24),
+    return StreamBuilder<List<UserModel>>(
+      stream: AdminFirestoreService().streamAllUsers(),
+      builder: (context, snapshot) {
+        final pendingCount = (snapshot.data ?? []).where((u) => u.isVerificationPending).length;
+
+        return Material(
+          color: sidebarBg,
+          child: SizedBox(
+            width: 270,
+            child: Column(
+              children: [
+                // Admin Panel Branding Header
+                Container(
+                  height: 86,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: borderColor, width: 1.4)),
                   ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Row(
                     children: [
-                      Text(
-                        isBn ? 'অ্যাডমিন প্যানেল' : 'Admin Panel',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                          color: isDark ? Colors.white : const Color(0xFF142321),
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF2DD4BF), AppColors.themeColor],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.themeColor.withValues(alpha: isDark ? 0.4 : 0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
+                        child: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 24),
                       ),
-                      Text(
-                        'BashaBondhu System',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              isBn ? 'অ্যাডমিন প্যানেল' : 'Admin Portal',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16.5,
+                                letterSpacing: -0.2,
+                                color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'BashaBondhu System',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? const Color(0xFF2DD4BF) : AppColors.themeColor,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
 
-            // Modules Navigation List
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                children: [
-                  _SidebarItem(
-                    icon: Icons.dashboard_rounded,
-                    label: isBn ? 'ড্যাশবোর্ড' : 'Dashboard',
-                    module: AdminModule.dashboard,
-                    isSelected: adminProvider.currentModule == AdminModule.dashboard,
-                    isDark: isDark,
-                  ),
-                  _SidebarItem(
-                    icon: Icons.people_alt_rounded,
-                    label: isBn ? 'ইউজার ম্যানেজমেন্ট' : 'Users',
-                    module: AdminModule.users,
-                    isSelected: adminProvider.currentModule == AdminModule.users,
-                    isDark: isDark,
-                  ),
-                  _SidebarItem(
-                    icon: Icons.home_work_rounded,
-                    label: isBn ? 'বাসাভাড়া বিজ্ঞাপন' : 'Properties',
-                    module: AdminModule.properties,
-                    isSelected: adminProvider.currentModule == AdminModule.properties,
-                    isDark: isDark,
-                  ),
+                // Modules Navigation List
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                    children: [
+                      _SidebarItem(
+                        icon: Icons.dashboard_rounded,
+                        label: isBn ? 'ড্যাশবোর্ড' : 'Dashboard',
+                        module: AdminModule.dashboard,
+                        isSelected: adminProvider.currentModule == AdminModule.dashboard,
+                        isDark: isDark,
+                      ),
+                      _SidebarItem(
+                        icon: Icons.people_alt_rounded,
+                        label: isBn ? 'ইউজার ম্যানেজমেন্ট' : 'Users',
+                        module: AdminModule.users,
+                        isSelected: adminProvider.currentModule == AdminModule.users,
+                        isDark: isDark,
+                        badge: pendingCount > 0
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEF4444),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  pendingCount > 99 ? '99+' : pendingCount.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              )
+                            : null,
+                      ),
+                      _SidebarItem(
+                        icon: Icons.home_work_rounded,
+                        label: isBn ? 'বাসাভাড়া বিজ্ঞাপন' : 'Properties',
+                        module: AdminModule.properties,
+                        isSelected: adminProvider.currentModule == AdminModule.properties,
+                        isDark: isDark,
+                      ),
                   _SidebarItem(
                     icon: Icons.card_membership_rounded,
                     label: isBn ? 'সাবস্ক্রিপশন ও প্যাকেজ' : 'Subscriptions',
@@ -152,47 +193,48 @@ class AdminSidebar extends StatelessWidget {
                     isSelected: adminProvider.currentModule == AdminModule.settings,
                     isDark: isDark,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   // AI Assistant Item
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pushNamed(context, AIAssistantScreen.name);
-                        },
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF00A896), AppColors.themeColor],
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.themeColor.withValues(alpha: 0.3),
-                                blurRadius: 6,
-                              ),
-                            ],
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pushNamed(context, AIAssistantScreen.name);
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00A896), Color(0xFF0284C7)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 18),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  isBn ? 'এআই অ্যাডমিন সহকারী' : 'AI Admin Assistant',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12.5,
-                                  ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF00A896).withValues(alpha: isDark ? 0.4 : 0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                isBn ? 'এআই অ্যাডমিন সহকারী' : 'AI Admin Assistant',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 12),
+                          ],
                         ),
                       ),
                     ),
@@ -203,9 +245,9 @@ class AdminSidebar extends StatelessWidget {
 
             // Bottom Actions (Theme Switcher & Logout)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: borderColor, width: 1)),
+                border: Border(top: BorderSide(color: borderColor, width: 1.4)),
               ),
               child: Column(
                 children: [
@@ -214,7 +256,7 @@ class AdminSidebar extends StatelessWidget {
                     color: Colors.transparent,
                     child: ListTile(
                       dense: true,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       leading: Icon(
                         isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
                         color: isDark ? Colors.amber : AppColors.themeColor,
@@ -224,8 +266,8 @@ class AdminSidebar extends StatelessWidget {
                         isDark ? (isBn ? 'লাইট মোড' : 'Light Mode') : (isBn ? 'ডার্ক মোড' : 'Dark Mode'),
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.grey[200] : Colors.grey[800],
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
                         ),
                       ),
                       onTap: () {
@@ -240,13 +282,13 @@ class AdminSidebar extends StatelessWidget {
                     color: Colors.transparent,
                     child: ListTile(
                       dense: true,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       leading: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
                       title: Text(
                         isBn ? 'লগআউট' : 'Logout',
                         style: const TextStyle(
                           color: Colors.redAccent,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
                           fontSize: 13,
                         ),
                       ),
@@ -260,7 +302,9 @@ class AdminSidebar extends StatelessWidget {
         ),
       ),
     );
-  }
+  },
+);
+}
 }
 
 class _SidebarItem extends StatelessWidget {
@@ -270,6 +314,7 @@ class _SidebarItem extends StatelessWidget {
     required this.module,
     required this.isSelected,
     required this.isDark,
+    this.badge,
   });
 
   final IconData icon;
@@ -277,31 +322,77 @@ class _SidebarItem extends StatelessWidget {
   final AdminModule module;
   final bool isSelected;
   final bool isDark;
+  final Widget? badge;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Material(
-        color: isSelected ? AppColors.themeColor.withValues(alpha: isDark ? 0.25 : 0.12) : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        child: ListTile(
-          dense: true,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          leading: Icon(
-            icon,
-            color: isSelected ? AppColors.themeColor : (isDark ? Colors.grey[400] : Colors.grey[600]),
-            size: 20,
-          ),
-          title: Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? AppColors.themeColor : (isDark ? Colors.grey[300] : Colors.grey.shade800),
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              fontSize: 13.5,
+        color: isSelected
+            ? (isDark
+                ? AppColors.themeColor.withValues(alpha: 0.25)
+                : AppColors.themeColor.withValues(alpha: 0.12))
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => context.read<AdminProvider>().changeModule(module),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: isSelected
+                  ? Border.all(
+                      color: AppColors.themeColor.withValues(alpha: isDark ? 0.5 : 0.3),
+                      width: 1.2,
+                    )
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected
+                      ? (isDark ? const Color(0xFF2DD4BF) : AppColors.themeColor)
+                      : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569)),
+                  size: 21,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected
+                          ? (isDark ? Colors.white : AppColors.themeColor)
+                          : (isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B)),
+                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                      fontSize: 13.5,
+                    ),
+                  ),
+                ),
+                if (badge != null) ...[
+                  badge!,
+                  const SizedBox(width: 6),
+                ],
+                if (isSelected)
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF2DD4BF) : AppColors.themeColor,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: (isDark ? const Color(0xFF2DD4BF) : AppColors.themeColor).withValues(alpha: 0.6),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
-          onTap: () => context.read<AdminProvider>().changeModule(module),
         ),
       ),
     );

@@ -389,6 +389,7 @@ class DemandHomeProvider extends ChangeNotifier {
   Future<String> submitDemand({
     required String tenantId,
     required String tenantEmail,
+    String tenantVerificationStatus = 'unverified',
   }) async {
     assert(isDemandValid, 'submitDemand called when form is invalid');
     isPosting = true;
@@ -399,6 +400,7 @@ class DemandHomeProvider extends ChangeNotifier {
         id: '',
         tenantId: tenantId,
         tenantEmail: tenantEmail,
+        tenantVerificationStatus: tenantVerificationStatus,
         month: selectedMonth!,
         houseType: selectedHouseType!,
         roomOrSeat: selectedRoomOrSeat!,

@@ -54,7 +54,11 @@ class _CategoryManagementViewState extends State<CategoryManagementView> {
                         isBn
                             ? 'বাসাভাড়ার ক্যাটাগরি ও ধরনসমূহ পরিচালনা করুন (${categories.length} টি ক্যাটাগরি)'
                             : 'Manage Property Types and Accommodation Categories (${categories.length} categories)',
-                        style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                        ),
                       ),
                     ],
                   ),

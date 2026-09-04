@@ -258,20 +258,18 @@ class _DemandCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Flexible(
-                            child: Text(
-                              demand.userName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
+                          Text(
+                            demand.userName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
                             ),
                           ),
-                          const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
@@ -287,6 +285,7 @@ class _DemandCard extends StatelessWidget {
                               ),
                             ),
                           ),
+                          _buildTenantVerificationBadge(demand.tenantVerificationStatus, languageCode, isDark),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -534,6 +533,85 @@ class _DemandCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildTenantVerificationBadge(String status, String languageCode, bool isDark) {
+    final isBn = languageCode == 'bn';
+    final normalized = status.toLowerCase();
+
+    if (normalized == 'verified') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.6) : const Color(0xFFE8F5E9),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5), width: 0.8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.verified_rounded, size: 11, color: Color(0xFF10B981)),
+            const SizedBox(width: 3),
+            Text(
+              isBn ? 'ভেরিফাইড' : 'Verified',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF10B981),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (normalized == 'pending') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.5) : const Color(0xFFFFFBEB),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5), width: 0.8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.hourglass_top_rounded, size: 11, color: Color(0xFFF59E0B)),
+            const SizedBox(width: 3),
+            Text(
+              isBn ? 'পেন্ডিং' : 'Pending',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFD97706),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[850] : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: isDark ? Colors.grey[700]! : const Color(0xFFCBD5E1), width: 0.8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.gpp_bad_outlined, size: 11, color: isDark ? Colors.grey[400] : const Color(0xFF64748B)),
+            const SizedBox(width: 3),
+            Text(
+              isBn ? 'আনভেরিফাইড' : 'Unverified',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Future<void> _launchCaller(String number) async {

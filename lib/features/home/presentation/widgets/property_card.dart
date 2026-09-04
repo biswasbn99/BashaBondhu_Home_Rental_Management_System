@@ -379,47 +379,61 @@ class PropertyCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                // Contact Row (Masked if locked: 017******45)
+                // Contact Row (Masked if locked: 017******45) & Owner Verification Badge
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.phone_iphone_rounded, size: 15, color: Colors.grey),
-                      const SizedBox(width: 5),
-                      Text(
-                        isUnlocked ? property.userMobile : PrivacyHelper.maskPhoneNumber(property.userMobile),
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: isUnlocked ? FontWeight.w600 : FontWeight.bold,
-                          color: isUnlocked ? theme.colorScheme.onSurfaceVariant : Colors.amber.shade800,
-                        ),
-                      ),
-                      if (!isUnlocked) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: Colors.amber.shade700, width: 0.8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.lock_rounded, size: 10, color: Colors.amber),
-                              const SizedBox(width: 3),
-                              Text(
-                                l10n.locked,
+                      Flexible(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.phone_iphone_rounded, size: 15, color: Colors.grey),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                isUnlocked ? property.userMobile : PrivacyHelper.maskPhoneNumber(property.userMobile),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.amber.shade900,
+                                  fontSize: 12.5,
+                                  fontWeight: isUnlocked ? FontWeight.w600 : FontWeight.bold,
+                                  color: isUnlocked ? theme.colorScheme.onSurfaceVariant : Colors.amber.shade800,
+                                ),
+                              ),
+                            ),
+                            if (!isUnlocked) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.amber.shade700, width: 0.8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.lock_rounded, size: 10, color: Colors.amber),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      l10n.locked,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.amber.shade900,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
+                      const SizedBox(width: 6),
+                      _buildOwnerVerificationBadge(property.ownerVerificationStatus, languageCode, isDark),
                     ],
                   ),
                 ),
@@ -487,6 +501,85 @@ class PropertyCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildOwnerVerificationBadge(String status, String languageCode, bool isDark) {
+    final isBn = languageCode == 'bn';
+    final normalized = status.toLowerCase();
+
+    if (normalized == 'verified') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF064E3B).withValues(alpha: 0.6) : const Color(0xFFE8F5E9),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5), width: 0.8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.verified_rounded, size: 12, color: Color(0xFF10B981)),
+            const SizedBox(width: 4),
+            Text(
+              isBn ? 'ভেরিফাইড মালিক' : 'Verified Owner',
+              style: const TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF10B981),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (normalized == 'pending') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF78350F).withValues(alpha: 0.5) : const Color(0xFFFFFBEB),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5), width: 0.8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.hourglass_top_rounded, size: 12, color: Color(0xFFF59E0B)),
+            const SizedBox(width: 4),
+            Text(
+              isBn ? 'পেন্ডিং' : 'Pending',
+              style: const TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFD97706),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[850] : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: isDark ? Colors.grey[700]! : const Color(0xFFCBD5E1), width: 0.8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.gpp_bad_outlined, size: 12, color: isDark ? Colors.grey[400] : const Color(0xFF64748B)),
+            const SizedBox(width: 4),
+            Text(
+              isBn ? 'আনভেরিফাইড' : 'Unverified',
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _buildChip(IconData icon, String label, ThemeData theme) {

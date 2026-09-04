@@ -399,6 +399,7 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
       id: widget.property.id,
       ownerId: widget.property.ownerId,
       ownerEmail: widget.property.ownerEmail,
+      ownerVerificationStatus: widget.property.ownerVerificationStatus,
       images: finalImages,
       month: _selectedMonth ?? widget.property.month,
       houseType: _selectedHouseType ?? widget.property.houseType,

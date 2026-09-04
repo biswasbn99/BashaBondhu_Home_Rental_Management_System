@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
+import '../../../../app/providers/locale_provider.dart';
 import '../../../../app/providers/theme_provider.dart';
 import '../../../auth/presentation/widgets/app_logo.dart';
 import '../../../auth/presentation/widgets/forgot_password_dialog.dart';
 import '../../../shared/presentation/widgets/basha_bondhu_title.dart';
+import '../../../shared/presentation/widgets/language_action_button.dart';
 import '../../data/providers/admin_provider.dart';
 
 class AdminLoginScreen extends StatefulWidget {
@@ -29,7 +31,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleLogin(bool isBn) async {
     if (!_formKey.currentState!.validate()) return;
 
     final email = _emailController.text.trim();
@@ -42,24 +44,30 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
-              Icon(Icons.check_circle_rounded, color: Colors.white),
-              SizedBox(width: 10),
+              const Icon(Icons.check_circle_rounded, color: Colors.white),
+              const SizedBox(width: 10),
               Text(
-                'লগইন সফল হয়েছে! অ্যাডমিন ড্যাশবোর্ডে স্বাগতম।',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                isBn
+                    ? 'লগইন সফল হয়েছে! অ্যাডমিন ড্যাশবোর্ডে স্বাগতম।'
+                    : 'Login successful! Welcome to Admin Dashboard.',
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
           ),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
     } else {
-      final errorMsg = adminProvider.lastErrorMessage ?? 'ভুল ইমেইল বা পাসওয়ার্ড! সঠিক তথ্য দিন।';
+      final rawError = adminProvider.lastErrorMessage;
+      final errorMsg = !isBn && (rawError == null || rawError.contains('ভুল') || rawError.contains('ব্যর্থ'))
+          ? 'Invalid email or password! Please check your credentials.'
+          : (rawError ?? (isBn ? 'ভুল ইমেইল বা পাসওয়ার্ড! সঠিক তথ্য দিন।' : 'Invalid email or password! Please check your credentials.'));
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -87,37 +95,52 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final adminProvider = context.watch<AdminProvider>();
+    final localeProvider = context.watch<LocaleProvider>();
+    final isBn = adminProvider.isBangla || localeProvider.currentLocale.languageCode == 'bn';
     final isLoading = adminProvider.isLoading;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0E1615) : const Color(0xFFF4F7F6),
       body: Stack(
         children: [
-          // Top-right Dark/Light Switcher
+          // Top-right Language Action Button & Dark/Light Switcher (matching Tenant & House Owner design)
           Positioned(
             top: 20,
             right: 20,
-            child: IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: isDark ? const Color(0xFF202E2C) : Colors.white,
-                elevation: 2,
-              ),
-              icon: Icon(
-                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                color: isDark ? Colors.amber : AppColors.themeColor,
-              ),
-              tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
-              onPressed: () {
-                final newMode = isDark ? ThemeMode.light : ThemeMode.dark;
-                context.read<ThemeProvider>().changeThemeMode(newMode);
-              },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const LanguageActionButton(),
+                const SizedBox(width: 4),
+                IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: isDark ? const Color(0xFF202E2C) : Colors.white,
+                    elevation: 2,
+                    side: BorderSide(
+                      color: isDark ? const Color(0xFF2C3E3B) : const Color(0xFFD6E2E0),
+                      width: 1.2,
+                    ),
+                  ),
+                  icon: Icon(
+                    isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                    color: isDark ? Colors.amber : AppColors.themeColor,
+                  ),
+                  tooltip: isDark
+                      ? (isBn ? 'লাইট মোডে পরিবর্তন করুন' : 'Switch to Light Mode')
+                      : (isBn ? 'ডার্ক মোডে পরিবর্তন করুন' : 'Switch to Dark Mode'),
+                  onPressed: () {
+                    final newMode = isDark ? ThemeMode.light : ThemeMode.dark;
+                    context.read<ThemeProvider>().changeThemeMode(newMode);
+                  },
+                ),
+              ],
             ),
           ),
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Container(
-                width: 420,
+                width: 430,
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF162120) : Colors.white,
@@ -157,14 +180,14 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                             color: AppColors.themeColor.withValues(alpha: 0.3),
                           ),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.admin_panel_settings_rounded, color: AppColors.themeColor, size: 16),
-                            SizedBox(width: 6),
+                            const Icon(Icons.admin_panel_settings_rounded, color: AppColors.themeColor, size: 16),
+                            const SizedBox(width: 6),
                             Text(
-                              'ADMIN PORTAL',
-                              style: TextStyle(
+                              isBn ? 'অ্যাডমিন পোর্টাল' : 'ADMIN PORTAL',
+                              style: const TextStyle(
                                 color: AppColors.themeColor,
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.bold,
@@ -176,7 +199,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Secure Administrator Access',
+                        isBn ? 'সুরক্ষিত অ্যাডমিনিস্ট্রেটর অ্যাক্সেস' : 'Secure Administrator Access',
                         style: TextStyle(
                           color: theme.colorScheme.onSurfaceVariant,
                           fontSize: 12.5,
@@ -187,14 +210,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'Email Address',
+                        decoration: InputDecoration(
+                          labelText: isBn ? 'ইমেইল অ্যাড্রেস' : 'Email Address',
                           hintText: 'biswashridoy528@gmail.com',
-                          prefixIcon: Icon(Icons.email_outlined),
+                          prefixIcon: const Icon(Icons.email_outlined),
                         ),
                         validator: (val) {
                           if (val == null || val.trim().isEmpty) {
-                            return 'অনুগ্রহ করে ইমেইল অ্যাড্রেস লিখুন';
+                            return isBn ? 'অনুগ্রহ করে ইমেইল অ্যাড্রেস লিখুন' : 'Please enter your email address';
+                          }
+                          if (!val.contains('@') || !val.contains('.')) {
+                            return isBn ? 'সঠিক ইমেইল অ্যাড্রেস লিখুন' : 'Please enter a valid email address';
                           }
                           return null;
                         },
@@ -204,7 +230,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          labelText: isBn ? 'পাসওয়ার্ড' : 'Password',
                           hintText: '•••••••',
                           prefixIcon: const Icon(Icons.lock_outline_rounded),
                           suffixIcon: IconButton(
@@ -221,7 +247,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         ),
                         validator: (val) {
                           if (val == null || val.trim().isEmpty) {
-                            return 'অনুগ্রহ করে পাসওয়ার্ড লিখুন';
+                            return isBn ? 'অনুগ্রহ করে পাসওয়ার্ড লিখুন' : 'Please enter your password';
                           }
                           return null;
                         },
@@ -241,9 +267,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text(
-                            'Forgot Password?',
-                            style: TextStyle(
+                          child: Text(
+                            isBn ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot Password?',
+                            style: const TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.bold,
                               color: AppColors.themeColor,
@@ -255,7 +281,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(
-                          onPressed: isLoading ? null : _handleLogin,
+                          onPressed: isLoading ? null : () => _handleLogin(isBn),
                           style: FilledButton.styleFrom(
                             backgroundColor: AppColors.themeColor,
                             padding: const EdgeInsets.symmetric(vertical: 18),
@@ -270,9 +296,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                     color: Colors.white,
                                   ),
                                 )
-                              : const Text(
-                                  'Login to Dashboard',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              : Text(
+                                  isBn ? 'ড্যাশবোর্ডে লগইন করুন' : 'Login to Dashboard',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
                         ),
                       ),

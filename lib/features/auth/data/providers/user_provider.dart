@@ -105,16 +105,38 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
+  StreamSubscription<DocumentSnapshot>? _userSubscription;
+
   Future<void> fetchUserData(String uid) async {
     _isLoading = true;
     notifyListeners();
 
     try {
+      // 1. Initial immediate fetch
       DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists && doc.data() != null) {
-        _user = UserModel.fromMap(doc.data() as Map<String, dynamic>);
+        final data = Map<String, dynamic>.from(doc.data() as Map);
+        if (!data.containsKey('uid') || (data['uid'] as String).isEmpty) {
+          data['uid'] = uid;
+        }
+        _user = UserModel.fromMap(data);
         await _saveToCache(_user!);
       }
+
+      // 2. Real-time stream subscription so any admin verification/unverification updates live instantly
+      _userSubscription?.cancel();
+      _userSubscription = _firestore.collection('users').doc(uid).snapshots().listen((snapshot) {
+        if (snapshot.exists && snapshot.data() != null) {
+          final liveData = Map<String, dynamic>.from(snapshot.data() as Map);
+          if (!liveData.containsKey('uid') || (liveData['uid'] as String).isEmpty) {
+            liveData['uid'] = uid;
+          }
+          _user = UserModel.fromMap(liveData);
+          _saveToCache(_user!);
+          notifyListeners();
+          debugPrint('🔄 Real-time user update received: ${_user?.fullName} | Status: ${_user?.verificationStatus}');
+        }
+      });
     } catch (e) {
       debugPrint('Error fetching user data: $e');
     } finally {
@@ -152,8 +174,17 @@ class UserProvider extends ChangeNotifier {
   }
 
   void clearUser() {
+    _userSubscription?.cancel();
+    _userSubscription = null;
     _user = null;
     _clearCache();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _userSubscription?.cancel();
+    _userSubscription = null;
+    super.dispose();
   }
 }

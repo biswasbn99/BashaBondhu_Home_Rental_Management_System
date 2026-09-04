@@ -335,7 +335,11 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
                     isBn
                         ? 'ভাড়াটিয়া (Tenant) ও বাড়িওয়ালা (House Owner) উভয়ের জন্য আলাদাভাবে পলিসি পরিচালনা করুন'
                         : 'Configure separate, customized policies and terms for Tenants and House Owners independently',
-                    style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                    ),
                   ),
                 ],
               ),

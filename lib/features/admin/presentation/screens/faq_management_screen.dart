@@ -61,7 +61,11 @@ class _FaqManagementViewState extends State<FaqManagementView> {
                         isBn
                             ? 'ভাড়াটিয়া ও বাড়িওয়ালাদের জন্য পৃথক প্রশ্নোত্তর পরিচালনা করুন (${faqs.length} টি FAQ)'
                             : 'Manage role-targeted FAQs for Tenants and House Owners (${faqs.length} FAQs)',
-                        style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : const Color(0xFF7A8A88)),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                        ),
                       ),
                     ],
                   ),

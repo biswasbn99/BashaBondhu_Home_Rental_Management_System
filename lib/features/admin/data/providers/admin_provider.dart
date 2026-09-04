@@ -21,6 +21,7 @@ class AdminProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   AdminModule _currentModule = AdminModule.dashboard;
+  String _userManagementFilter = 'All';
   bool _isLoggedIn = false;
   bool _isLoading = false;
   bool _isBangla = false; // Default language is English as requested
@@ -29,6 +30,7 @@ class AdminProvider extends ChangeNotifier {
   String? _lastErrorMessage;
 
   AdminModule get currentModule => _currentModule;
+  String get userManagementFilter => _userManagementFilter;
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
   bool get isBangla => _isBangla;
@@ -38,6 +40,11 @@ class AdminProvider extends ChangeNotifier {
 
   void changeModule(AdminModule module) {
     _currentModule = module;
+    notifyListeners();
+  }
+
+  void setUserManagementFilter(String filter) {
+    _userManagementFilter = filter;
     notifyListeners();
   }
 
