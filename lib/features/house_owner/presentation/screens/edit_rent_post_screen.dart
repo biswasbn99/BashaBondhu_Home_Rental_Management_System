@@ -32,6 +32,7 @@ import '../../../shared/presentation/widgets/month_dropdown_button.dart';
 import '../../../shared/presentation/widgets/number_of_room_or_seat_dropdown_button.dart';
 import '../../../shared/presentation/widgets/parking_dropdown_button.dart';
 import '../../../shared/presentation/widgets/tenant_type_dropdown_button.dart';
+import '../../../ai_assistant/presentation/providers/ai_assistant_provider.dart';
 import '../providers/my_post_provider.dart';
 
 class EditRentPostScreen extends StatefulWidget {
@@ -302,11 +303,15 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
   }
 
   Future<void> _saveChanges() async {
-    final l10n = context.localizations;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isBn = languageCode == 'bn';
+
     if (_images.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('প্রধান থাম্বনেইল ছবি যুক্ত করা আবশ্যক'),
+        SnackBar(
+          content: Text(
+            isBn ? 'প্রধান থাম্বনেইল ছবি যুক্ত করা আবশ্যক' : 'Main thumbnail image is required',
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -319,13 +324,50 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
         _shortAddress.trim().isEmpty ||
         _detailedDescription.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all required fields'),
+        SnackBar(
+          content: Text(
+            isBn
+                ? 'অনুগ্রহ করে সকল প্রয়োজনীয় তথ্য সঠিকভাবে পূরণ করুন'
+                : 'Please fill all required fields correctly',
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
       return;
     }
+
+    // Bilingual Save Confirmation Dialog
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.edit_note_rounded, color: AppColors.themeColor),
+            const SizedBox(width: 8),
+            Text(isBn ? 'পরিবর্তন সংরক্ষণ' : 'Confirm Save Changes'),
+          ],
+        ),
+        content: Text(
+          isBn
+              ? 'আপনি কি এই পোস্টের পরিবর্তনগুলো সংরক্ষণ করতে চান?'
+              : 'Are you sure you want to save changes to this post?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(isBn ? 'বাতিল' : 'Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.themeColor),
+            child: Text(isBn ? 'সংরক্ষণ করুন' : 'Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
 
     setState(() => _isSaving = true);
 
@@ -398,7 +440,9 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.postUpdatedSuccess),
+            content: Text(
+              isBn ? '🎉 আপনার পোস্ট সফলভাবে আপডেট করা হয়েছে!' : '🎉 Post updated successfully!',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -409,7 +453,9 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error updating post: $e'),
+            content: Text(
+              isBn ? 'পোস্ট আপডেট করতে সমস্যা হয়েছে: $e' : 'Error updating post: $e',
+            ),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -776,9 +822,110 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
               ),
               const SizedBox(height: 24),
 
-              // --- Detailed Description Section ---
-              DecoratedSectionHeader(title: l10n.detailedDescription),
-              const SizedBox(height: 12),
+              // --- Detailed Description Section with AI Generation Action ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: DecoratedSectionHeader(title: l10n.detailedDescription)),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.themeColor,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    ),
+                    icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+                    label: Text(
+                      Localizations.localeOf(context).languageCode == 'bn' ? 'এআই দিয়ে লিখুন' : 'AI Generate',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+                    ),
+                    onPressed: () async {
+                      final languageCode = Localizations.localeOf(context).languageCode;
+                      final isBn = languageCode == 'bn';
+                      final division = _selectedDivision?.getLocalizedName(languageCode);
+                      final district = _selectedDistrict?.getLocalizedName(languageCode);
+                      final area = _selectedArea?.getLocalizedName(languageCode) ?? (isBn ? 'ঢাকা' : 'Dhaka');
+                      final subArea = _selectedSubArea?.getLocalizedName(languageCode);
+                      final shortAddress = _shortAddress;
+                      final houseType = _selectedHouseType?.getLocalizedLabel(l10n) ?? (isBn ? 'ফ্ল্যাট' : 'Flat');
+                      final roomOrSeat = _selectedRoomOrSeat ?? (isBn ? '২ বেডরুম' : '2 Bedrooms');
+                      final tenantType = _selectedTenantType?.getLocalizedLabel(l10n);
+                      final month = _selectedMonth;
+                      final floor = _floorNumber?.toString() ?? (isBn ? '৩' : '3');
+                      final amount = _amount.isNotEmpty ? _amount : '15000';
+                      final electricityBillType = _electricityBillType;
+                      final marketDistance = _marketDistance;
+                      final commonBathrooms = _commonBathrooms;
+                      final attachedBathrooms = _attachedBathrooms;
+                      final kitchenCount = _kitchenCount;
+                      final balconies = _balconies;
+                      final amenities = <String>[
+                        if (_hasLift == true) (isBn ? 'লিফট সুবিধা' : 'Lift Access'),
+                        if (_hasParking == true) (isBn ? 'গাড়ি পার্কিং' : 'Car Parking'),
+                        if (_hasGenerator == true) (isBn ? 'জেনারেটর ব্যাকআপ' : 'Generator Backup'),
+                        if (_hasCctv == true) (isBn ? 'সিসিটিভি নিরাপত্তা' : 'CCTV Security'),
+                        if (_hasSecurityGuard == true) (isBn ? '২৪ ঘণ্টা দারোয়ান' : '24/7 Security Guard'),
+                        if (_hasWifi == true) (isBn ? 'উচ্চগতির ওয়াইফাই' : 'High-speed WiFi'),
+                      ];
+
+                      final messenger = ScaffoldMessenger.of(context);
+                      final aiProvider = context.read<AIAssistantProvider>();
+
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(isBn ? 'এআই সুন্দরভাবে বিবরণ তৈরি করছে...' : 'AI is generating decorated description...'),
+                            ],
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+
+                      final genText = await aiProvider.generateAdDescriptionForOwner(
+                            area: area,
+                            subArea: subArea,
+                            district: district,
+                            division: division,
+                            shortAddress: shortAddress,
+                            houseType: houseType,
+                            roomOrSeat: roomOrSeat,
+                            tenantType: tenantType,
+                            month: month,
+                            floor: floor,
+                            amount: amount,
+                            commonBathrooms: commonBathrooms,
+                            attachedBathrooms: attachedBathrooms,
+                            kitchenCount: kitchenCount,
+                            balconies: balconies,
+                            electricityBillType: electricityBillType,
+                            amenities: amenities,
+                            marketDistance: marketDistance,
+                            languageCode: languageCode,
+                          );
+
+                      if (!mounted) return;
+
+                      setState(() {
+                        _detailedDescription = genText;
+                      });
+                      messenger.hideCurrentSnackBar();
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(isBn ? '✨ এআই আকর্ষণীয় বিবরণ তৈরি করেছে!' : '✨ AI decorated description generated!'),
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               ValidatedTextArea(
                 hint: l10n.detailedDescription,
                 maxWords: 999,

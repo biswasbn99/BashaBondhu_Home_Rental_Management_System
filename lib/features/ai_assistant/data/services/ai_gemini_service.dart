@@ -242,7 +242,8 @@ Respond with a JSON object:
         lower.contains('প্রশ্নাবলী') ||
         lower.contains('এফএকিউ')) {
       final faqText = isBn
-          ? '''❓ **বাসাবন্ধু সাধারণ জিজ্ঞাসা ও সমাধান (FAQs):**
+          ? (isOwner
+              ? '''❓ **বাসাবন্ধু বাড়িওয়ালা সাধারণ জিজ্ঞাসা ও সমাধান (FAQs):**
 
 **প্রশ্ন ১: আমি কীভাবে বিনামূল্যে বাসা ভাড়ার বিজ্ঞাপন (To-Let) দেব?**
 👉 **উত্তর:** বাড়িওয়ালা অ্যাকাউন্টে লগইন করে নিচে **"Post Free"** বা **"+"** বাটনে চাপ দিন। আপনার বাসার সঠিক এলাকা (বিভাগ, জেলা, এলাকা, সাব-এরিয়া), রুমের বিবরণ (বেডরুম, বাথরুম, বারান্দা, ফ্লোর), মাসিক ভাড়া ও পরিষ্কার ছবি যুক্ত করে সাবমিট করলেই বিজ্ঞাপন তাৎক্ষণিক লাইভ হয়ে যাবে।
@@ -267,7 +268,33 @@ Respond with a JSON object:
 
 **প্রশ্ন ৮: বাসাবন্ধু কীভাবে প্রপার্টি বিজ্ঞাপন ও ব্যবহারকারীদের নিরাপত্তা নিশ্চিত করে?**
 👉 **উত্তর:** আমরা মোবাইল ওটিপি (OTP) ও এনআইডি ভেরিফিকেশনের মাধ্যমে প্রকৃত ব্যবহারকারী নিশ্চিত করি এবং ভুয়া বা বিভ্রান্তিকর বিজ্ঞাপন প্রতিরোধে নিয়মিত অডিট পরিচালনা করি।'''
-          : '''❓ **BashaBondhu Frequently Asked Questions (FAQs):**
+              : '''❓ **বাসাবন্ধু ভাড়াটিয়া সাধারণ জিজ্ঞাসা ও সমাধান (FAQs):**
+
+**প্রশ্ন ১: আমি কীভাবে পছন্দের এলাকা, রুম ও বাজেট অনুযায়ী বাসা খুঁজব?**
+👉 **উত্তর:** হোম স্ক্রিনে গিয়ে সার্চ বক্সে আপনার কাঙ্ক্ষিত এলাকা লিখুন অথবা "ফিল্টার" বাটনে চাপ দিয়ে বিভাগ, জেলা, এলাকা, বেডরুম সংখ্যা, বাথরুম, বারান্দা এবং সর্বোচ্চ ভাড়ার রেঞ্জ নির্ধারণ করে সার্চ করুন।
+
+**প্রশ্ন ২: বাড়িওয়ালার ফোন ও হোয়াটসঅ্যাপ নম্বর কীভাবে আনলক করব?**
+👉 **উত্তর:** যেকোনো বাসার বিবরণ পেইজে গিয়ে "যোগাযোগ করুন" বা "বাড়িওয়ালার নম্বর দেখুন" বাটনে চাপ দিন। আপনার অ্যাকাউন্টে সক্রিয় সাবস্ক্রিপশন প্যাকেজ থাকলে সাথে সাথে বাড়িওয়ালার মোবাইল নম্বর ও হোয়াটসঅ্যাপ আনলক হয়ে যাবে।
+
+**প্রশ্ন ৩: ভাড়াটিয়া হিসেবে ডিমান্ড পোস্ট (Tenant Demand) কীভাবে করব?**
+👉 **উত্তর:** নিচের মেনু থেকে "ডিমান্ড" ট্যাবে গিয়ে "+" বা "পোস্ট করুন" বাটনে চাপ দিন। আপনার বাজেট, পছন্দের এলাকা, ফ্যামিলি/ব্যাচেলর ধরণ ও প্রয়োজনীয় সুযোগ-সুবিধা দিয়ে সাবমিট করলেই বাড়িওয়ালারা আপনার চাহিদা দেখতে পাবেন।
+
+**প্রশ্ন ৪: 'বাসা পেয়ে গেছি (Mark as Fulfilled)' বোতামের কাজ কী?**
+👉 **উত্তর:** মনমতো বাসা পেয়ে গেলে আপনার "My Demands" স্ক্রিনে গিয়ে সংশ্লিষ্ট ডিমান্ডের "বাসা পেয়ে গেছি" টগল অন করে দিন। এর ফলে বাড়িওয়ালারা আর অনাবশ্যক ফোন দেবেন না এবং পোস্টটি আর্কাইভ হয়ে যাবে।
+
+**প্রশ্ন ৫: পছন্দের বাসা কীভাবে উইশলিস্টে (Wishlist) সংরক্ষণ করব?**
+👉 **উত্তর:** যেকোনো বাসার ছবির ওপর থাকা লাভ (❤️) আইকনে চাপ দিলে সেটি আপনার Wishlist-এ সেভ হবে। পরবর্তীতে অ্যাকাউন্ট স্ক্রিন থেকে এক ক্লিকেই সংরক্ষিত বাসাগুলো দেখতে পারবেন।
+
+**প্রশ্ন ৬: সাবস্ক্রিপশন প্যাকেজ ও পেমেন্ট রসিদ কীভাবে পাব?**
+👉 **উত্তর:** অ্যাকাউন্ট মেনু থেকে "সাবস্ক্রিপশন প্যাকেজ" বেছে নিয়ে বিকাশ (bKash) পেমেন্টের মাধ্যমে প্ল্যান এক্টিভ করুন। সফল পেমেন্টের সাথে সাথেই "সাবস্ক্রিপশন হিস্ট্রি"-তে ডিজিটাল রসিদ ও মেয়াদ দেখতে পাবেন।
+
+**প্রশ্ন ৭: পাসওয়ার্ড ভুলে গেলে কীভাবে উদ্ধার করব?**
+👉 **উত্তর:** লগইন স্ক্রিনে থাকা "Forgot Password?" অপশনে ট্যাপ করে আপনার রেজিস্টার্ড জিমেইল দিন। আপনার ইনবক্সে পাসওয়ার্ড রিসেটের সুরক্ষিত লিঙ্ক পাঠানো হবে।
+
+**প্রশ্ন ৮: বাসাবন্ধুর বাড়িওয়ালা ও প্রপার্টিগুলো কি ভেরিফাইড ও নিরাপদ?**
+👉 **উত্তর:** হ্যাঁ, আমাদের প্ল্যাটফর্মে বাড়িওয়ালাদের এনআইডি ও ফোন নম্বর যাচাই করা হয় এবং ভুয়া বিজ্ঞাপন প্রতিরোধে নিয়মিত অ্যাডমিন অডিট পরিচালিত হয়।''')
+          : (isOwner
+              ? '''❓ **BashaBondhu House Owner Frequently Asked Questions (FAQs):**
 
 **Q1: How do I post a free To-Let advertisement as a House Owner?**
 👉 **Answer:** Sign in as a House Owner and tap the **"Post Free"** or **"+"** button on your dashboard. Enter your property location (Division, District, Area, Sub-Area), room configurations (bedrooms, bathrooms, balconies, floor level), monthly rent, deposit, and upload clear photos to publish immediately.
@@ -291,7 +318,32 @@ Respond with a JSON object:
 👉 **Answer:** On the Sign In screen, click **"Forgot Password?"**. Enter your registered Gmail address and Firebase will instantly send a secure password reset link to your email free of cost.
 
 **Q8: How does BashaBondhu ensure listing authenticity & security?**
-👉 **Answer:** We verify users via mobile OTP and NID verification, and conduct manual audits on listings to prevent fake or misleading advertisements.''';
+👉 **Answer:** We verify users via mobile OTP and NID verification, and conduct manual audits on listings to prevent fake or misleading advertisements.'''
+              : '''❓ **BashaBondhu Tenant Frequently Asked Questions (FAQs):**
+
+**Q1: How do I search and filter rental homes by area, rooms, and budget?**
+👉 **Answer:** Navigate to the Home screen and type your desired location into the search bar, or use the "Filter" button to select Division, District, Area, Bedroom count, Bathrooms, Balconies, and maximum budget limit.
+
+**Q2: How do I unlock house owner contact numbers and WhatsApp?**
+👉 **Answer:** Open any property details page and tap "Contact Owner" or "Show Phone Number". With an active subscription plan, the owner's verified phone and WhatsApp will be unlocked immediately.
+
+**Q3: How do I post a Tenant Demand requirement?**
+👉 **Answer:** Go to the "Demands" tab from the bottom navigation and tap the "+" or "Post Requirement" button. Specify your budget, preferred area, family/bachelor category, and move-in date to let owners contact you directly.
+
+**Q4: What does the "Mark as Fulfilled" toggle button do?**
+👉 **Answer:** Once you secure your rental home, go to "My Demands" and toggle "Fulfilled". This closes the public demand so house owners will no longer contact you for that listing.
+
+**Q5: How do I save favorite rental homes to my Wishlist?**
+👉 **Answer:** Tap the heart (❤️) icon on any property card or details view. You can review all saved homes anytime from your Account screen.
+
+**Q6: How do I subscribe and access payment receipts?**
+👉 **Answer:** Select "Subscription Packages" from your Account menu and subscribe via bKash. You will receive digital transaction receipts with remaining unlock credits in "Subscription History".
+
+**Q7: What should I do if I forget my account password?**
+👉 **Answer:** Tap "Forgot Password?" on the Sign-In screen, enter your registered Gmail address, and follow the secure password reset link sent to your inbox.
+
+**Q8: Are properties and house owners on BashaBondhu verified and safe?**
+👉 **Answer:** Yes, all house owners undergo phone & NID verification with strict admin auditing to guarantee authentic, scam-free rental experiences.''');
 
       return AIResponseData(
         replyText: faqText,
@@ -299,10 +351,10 @@ Respond with a JSON object:
         interactiveChips: isBn
             ? (isOwner
                 ? ['📖 কীভাবে অ্যাপ ব্যবহার করবেন', '👥 ভাড়াটিয়াদের ডিমান্ড খুঁজুন', '💡 প্রস্তাবিত ভাড়ার রেঞ্জ', '⚡ প্রধান ৪টি অপশন']
-                : ['🔍 বাসা খুঁজুন', '📝 ডিমান্ড পোস্ট করুন', '💳 সাবস্ক্রিপশন প্যাকেজ', '📄 সাবস্ক্রিপশন হিস্ট্রি'])
+                : ['🔍 বাসা খুঁজুন', '📖 কীভাবে অ্যাপ ব্যবহার করবেন', '💳 সাবস্ক্রিপশন প্যাকেজ', '⚡ প্রধান ৩টি অপশন'])
             : (isOwner
                 ? ['📖 How to Use', '👥 Find Tenant Demand', '💡 Suggest Price Range', '⚡ Main 4 Options']
-                : ['🔍 Find a Home', '📝 Post a Demand', '💳 Subscription Packages', '📄 Subscription History']),
+                : ['🔍 Find Home', '📖 How to Use', '💳 Subscription Packages', '⚡ Main 3 Options']),
         quickFollowUps: isBn ? ['কীভাবে অ্যাপ ব্যবহার করবেন', 'প্রাইভেসি পলিসি', 'শর্তাবলী'] : ['How to Use', 'Privacy Policy', 'Terms & Conditions'],
       );
     }
@@ -319,7 +371,8 @@ Respond with a JSON object:
         lower.contains('user guide') ||
         lower.contains('app guide')) {
       final guideText = isBn
-          ? '''📖 **বাড়িওয়ালাদের জন্য বাসাবন্ধু অ্যাপ ব্যবহারের সহজ নির্দেশিকা (Step-by-Step Guide):**
+          ? (isOwner
+              ? '''📖 **বাড়িওয়ালাদের জন্য বাসাবন্ধু অ্যাপ ব্যবহারের সহজ নির্দেশিকা (Step-by-Step Guide):**
 
 ১️⃣ **অ্যাকাউন্ট ও প্রোফাইল সেটআপ (Account Setup):**
    • বাড়িওয়ালা (House Owner) হিসেবে সাইন ইন করে আপনার প্রোফাইল সম্পূর্ণ করুন।
@@ -350,7 +403,32 @@ Respond with a JSON object:
    • পাসওয়ার্ড ভুলে গেলে সাইন ইন স্ক্রিনের "Forgot Password?" দিয়ে ফ্রিতে জিমেইলের মাধ্যমে রিসেট করুন।
 ──────────────────
 💡 *অ্যাপ ব্যবহারের যেকোনো বিষয়ে আরও বিস্তারিত জানতে নিচের বাটনে ক্লিক করুন।*'''
-          : '''📖 **Step-by-Step Guide: How to Use BashaBondhu as a House Owner:**
+              : '''📖 **ভাড়াটিয়াদের জন্য বাসাবন্ধু অ্যাপ ব্যবহারের সহজ নির্দেশিকা (Step-by-Step Guide):**
+
+১️⃣ **অ্যাকাউন্ট ও প্রোফাইল ভেরিফিকেশন (Account Setup):**
+   • ভাড়াটিয়া (Tenant) হিসেবে লগইন করে আপনার প্রোফাইল ও এনআইডি ভেরিফিকেশন সম্পন্ন করুন।
+   • ভেরিফাইড প্রোফাইল থাকলে বাড়িওয়ালারা আপনার চাহিদাকে সর্বোচ্চ অগ্রাধিকার দেবেন।
+
+২️⃣ **পছন্দের বাসা খোঁজা ও ফিল্টারিং (Search & Filter):**
+   • হোম স্ক্রিনে এলাকা লিখে সার্চ করুন অথবা রুমের সংখ্যা, লিফট, পার্কিং ও বাজেট দিয়ে নিখুঁত ফিল্টার করুন।
+
+৩️⃣ **ভাড়াটিয়া ডিমান্ড পোস্ট (Post Tenant Demand):**
+   • কাঙ্ক্ষিত এলাকায় বাসা না পেলে "ডিমান্ড" স্ক্রিনে গিয়ে আপনার বাজেট ও চাহিদার বিবরণ পোস্ট করুন।
+   • এলাকার বাড়িওয়ালারা আপনার পোস্ট দেখে সরাসরি আপনার সাথে যোগাযোগ করবেন।
+
+৪️⃣ **উইশলিস্টে বাসা সংরক্ষণ (Save to Wishlist):**
+   • পছন্দের বাসাগুলোর ছবিতে লাভ (❤️) আইকনে চাপ দিয়ে সংরক্ষণ করে রাখুন এবং পরবর্তীতে তুলনা করুন।
+
+৫️⃣ **বাড়িওয়ালার নম্বর আনলক ও সাবস্ক্রিপশন (Unlock Contacts):**
+   • সাবস্ক্রিপশন প্যাকেজ সক্রিয় করে বাড়িওয়ালার ফোন নম্বর ও হোয়াটসঅ্যাপ সাথে সাথে আনলক করুন।
+   • ডিজিটাল রসিদ ও ট্রানজেকশন হিস্ট্রি সংরক্ষিত থাকে **Subscription History**-তে।
+
+৬️⃣ **বাসা পাওয়ার পর ডিমান্ড ক্লোজ করা (Mark as Fulfilled):**
+   • পছন্দের বাসা পেয়ে গেলে **My Demands** স্ক্রিনে গিয়ে 'বাসা পেয়ে গেছি' অন করে দিন।
+──────────────────
+💡 *অ্যাপ ব্যবহারের যেকোনো বিষয়ে আরও বিস্তারিত জানতে নিচের বাটনে ক্লিক করুন।*''')
+          : (isOwner
+              ? '''📖 **Step-by-Step Guide: How to Use BashaBondhu as a House Owner:**
 
 1️⃣ **Account Setup & Profile:**
    • Sign in with your House Owner credentials and keep your contact details updated.
@@ -378,15 +456,42 @@ Respond with a JSON object:
    • Toggle English/Bengali from any screen AppBar.
    • Reset forgotten passwords seamlessly via free Firebase Gmail links.
 ──────────────────
-💡 *Tap any quick option below to explore further.*''';
+💡 *Tap any quick option below to explore further.*'''
+              : '''📖 **Step-by-Step Guide: How to Use BashaBondhu as a Tenant:**
+
+1️⃣ **Account Setup & NID Verification:**
+   • Sign in as a Tenant and complete profile details & NID verification for top trust.
+
+2️⃣ **Search Homes & Smart Filtering:**
+   • Search by location on Home screen, filter by budget, bedroom count, lift, and parking.
+
+3️⃣ **Post Rental Requirements (Tenant Demand):**
+   • If suitable flats are not listed, tap "Post Demand" to publish your specific budget and requirements.
+
+4️⃣ **Save Favorites to Wishlist:**
+   • Tap the heart (❤️) icon to bookmark prospective flats and compare them anytime.
+
+5️⃣ **Unlock Owner Contacts & Subscriptions:**
+   • Subscribe via bKash to unlock house owners' verified phone and WhatsApp contacts directly.
+
+6️⃣ **Close Demand with "Mark as Fulfilled":**
+   • Once you rent your flat, toggle "Fulfilled" in **My Demands** to close the listing.
+──────────────────
+💡 *Tap any quick option below to explore further.*''');
 
       return AIResponseData(
         replyText: guideText,
         intent: 'general',
         interactiveChips: isBn
-            ? ['❓ সাধারণ জিজ্ঞাসা (FAQ)', '👥 ভাড়াটিয়াদের ডিমান্ড খুঁজুন', '💡 প্রস্তাবিত ভাড়ার রেঞ্জ', '⚡ প্রধান ৪টি অপশন']
-            : ['❓ FAQ', '👥 Find Tenant Demand', '💡 Suggest Price Range', '⚡ Main 4 Options'],
-        quickFollowUps: isBn ? ['সাধারণ জিজ্ঞাসা (FAQ)', 'সাবস্ক্রিপশন প্যাকেজ', '⚡ প্রধান ৪টি অপশন'] : ['FAQ', 'Subscription Packages', '⚡ Main 4 Options'],
+            ? (isOwner
+                ? ['❓ সাধারণ জিজ্ঞাসা (FAQ)', '👥 ভাড়াটিয়াদের ডিমান্ড খুঁজুন', '💡 প্রস্তাবিত ভাড়ার রেঞ্জ', '⚡ প্রধান ৪টি অপশন']
+                : ['🔍 বাসা খুঁজুন', '❓ সাধারণ জিজ্ঞাসা', '💳 সাবস্ক্রিপশন প্যাকেজ', '⚡ প্রধান ৩টি অপশন'])
+            : (isOwner
+                ? ['❓ FAQ', '👥 Find Tenant Demand', '💡 Suggest Price Range', '⚡ Main 4 Options']
+                : ['🔍 Find Home', '❓ FAQ', '💳 Subscription Packages', '⚡ Main 3 Options']),
+        quickFollowUps: isBn
+            ? [isOwner ? '⚡ প্রধান ৪টি অপশন' : '⚡ প্রধান ৩টি অপশন', 'সাধারণ জিজ্ঞাসা (FAQ)', 'সাবস্ক্রিপশন প্যাকেজ']
+            : [isOwner ? '⚡ Main 4 Options' : '⚡ Main 3 Options', 'FAQ', 'Subscription Packages'],
       );
     }
 
@@ -743,5 +848,235 @@ All users must adhere to the following community standards and platform terms:
       }
     }
     return null;
+  }
+
+  /// Generate decorated, high-converting property ad description using Gemini API or built-in fallback
+  Future<String> generateDecoratedPropertyDescription({
+    required String area,
+    String? subArea,
+    String? district,
+    String? division,
+    String? shortAddress,
+    required String houseType,
+    required String roomOrSeat,
+    String? tenantType,
+    String? month,
+    required String floor,
+    required String amount,
+    int? commonBathrooms,
+    int? attachedBathrooms,
+    int? kitchenCount,
+    int? balconies,
+    String? electricityBillType,
+    required List<String> amenities,
+    String? marketDistance,
+    required String languageCode,
+  }) async {
+    final isBn = languageCode == 'bn';
+
+    // Build comprehensive location string
+    final locParts = <String>[
+      if (shortAddress != null && shortAddress.trim().isNotEmpty) shortAddress.trim(),
+      if (subArea != null && subArea.trim().isNotEmpty) subArea.trim(),
+      if (area.trim().isNotEmpty) area.trim(),
+      if (district != null && district.trim().isNotEmpty && (area.isEmpty || district.trim() != area.trim())) district.trim(),
+      if (division != null && division.trim().isNotEmpty && (district == null || division.trim() != district.trim())) division.trim(),
+    ];
+    final fullLocation = locParts.isNotEmpty ? locParts.join(', ') : (isBn ? 'ঢাকা' : 'Dhaka');
+
+    final userPrompt = '''
+You are a professional real estate advertising expert for "বাসাবন্ধু (BashaBondhu)" home rental platform in Bangladesh.
+Generate a richly decorated, well-structured, eye-catching, and comprehensive property To-Let advertisement in ${isBn ? "Bengali (বাংলা)" : "English"}.
+
+PROPERTY DETAILS:
+- Location / Address: $fullLocation
+- House / Unit Type: $houseType ($roomOrSeat)
+- Floor Level: $floor
+- Bathrooms: ${attachedBathrooms ?? 0} attached, ${commonBathrooms ?? 0} common
+- Kitchen: ${kitchenCount ?? 1}
+- Balconies / Veranda: ${balconies ?? 0}
+- Electricity / Utility Bill: ${electricityBillType ?? (isBn ? 'প্রিপেইড মিটার' : 'Prepaid Meter')}
+- Special Amenities: ${amenities.isNotEmpty ? amenities.join(', ') : (isBn ? 'লিফট, জেনারেটর, সিসিটিভি ও সার্বক্ষণিক নিরাপত্তা' : 'Lift, Generator, CCTV, 24/7 Security')}
+- Market / Transit Distance: ${marketDistance ?? (isBn ? 'হেঁটে ২-৩ মিনিট' : '2-3 mins walking distance')}
+- Available From: ${month ?? (isBn ? 'চলতি মাস' : 'Current Month')}
+- Preferred Tenant: ${tenantType ?? (isBn ? 'পরিবার / ব্যাচেলর / চাকরিজীবী' : 'Family / Executive')}
+- Monthly Rent: ৳ $amount BDT (Negotiable)
+
+REQUIREMENTS:
+1. Write in natural, polite, and persuasive ${isBn ? "Bengali" : "English"}.
+2. Use appropriate real estate emojis (🏠, 📍, 🏢, ✨, 💡, 👥, 📅, 💰, 📞).
+3. Decorate with clear section headers and bullet points.
+4. Keep the output clean without markdown code fences (no ```).
+5. Must be complete and ready for the landlord to publish.
+''';
+
+    try {
+      final url = Uri.parse('$_geminiEndpoint?key=$_geminiApiKey');
+      final contents = [
+        {
+          "role": "user",
+          "parts": [
+            {"text": userPrompt}
+          ]
+        }
+      ];
+
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              "contents": contents,
+              "generationConfig": {
+                "temperature": 0.4,
+                "topK": 32,
+                "topP": 0.9,
+                "maxOutputTokens": 800,
+              }
+            }),
+          )
+          .timeout(const Duration(seconds: 6));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final candidate = data['candidates']?[0];
+        final textPart = candidate?['content']?['parts']?[0]?['text'] as String?;
+        if (textPart != null && textPart.trim().isNotEmpty) {
+          final cleaned = textPart
+              .replaceAll(RegExp(r'^```(json|markdown)?', multiLine: true), '')
+              .replaceAll(RegExp(r'```$', multiLine: true), '')
+              .trim();
+          if (cleaned.length > 50) {
+            return cleaned;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Gemini ad description generation fallback triggered: $e');
+    }
+
+    // Fallback: Rich, beautifully decorated structured description template
+    return _generateFallbackDecoratedAd(
+      fullLocation: fullLocation,
+      houseType: houseType,
+      roomOrSeat: roomOrSeat,
+      floor: floor,
+      amount: amount,
+      month: month,
+      tenantType: tenantType,
+      commonBathrooms: commonBathrooms,
+      attachedBathrooms: attachedBathrooms,
+      kitchenCount: kitchenCount,
+      balconies: balconies,
+      electricityBillType: electricityBillType,
+      amenities: amenities,
+      marketDistance: marketDistance,
+      isBn: isBn,
+    );
+  }
+
+  String _generateFallbackDecoratedAd({
+    required String fullLocation,
+    required String houseType,
+    required String roomOrSeat,
+    required String floor,
+    required String amount,
+    String? month,
+    String? tenantType,
+    int? commonBathrooms,
+    int? attachedBathrooms,
+    int? kitchenCount,
+    int? balconies,
+    String? electricityBillType,
+    required List<String> amenities,
+    String? marketDistance,
+    required bool isBn,
+  }) {
+    final totalBaths = (attachedBathrooms ?? 0) + (commonBathrooms ?? 0);
+    final bathDetails = isBn
+        ? '$totalBaths টি ${attachedBathrooms != null && attachedBathrooms > 0 ? "(সংযুক্ত: $attachedBathrooms, " : "("}কমন: ${commonBathrooms ?? 1})'
+        : '$totalBaths ${attachedBathrooms != null && attachedBathrooms > 0 ? "(Attached: $attachedBathrooms, " : "("}Common: ${commonBathrooms ?? 1})';
+
+    final balconyText = (balconies != null && balconies > 0)
+        ? (isBn ? '$balconies টি খোলা বারান্দা' : '$balconies open balcony(ies)')
+        : (isBn ? 'খোলামেলা মনোরম বারান্দা' : 'Open airy balcony');
+
+    final kitchenText = (kitchenCount != null && kitchenCount > 0)
+        ? (isBn ? '$kitchenCount টি সুপরিসর রান্নাঘর' : '$kitchenCount spacious kitchen')
+        : (isBn ? 'আধুনিক সুপরিসর রান্নাঘর' : 'Modern spacious kitchen');
+
+    final electricityText = electricityBillType ?? (isBn ? 'প্রিপেইড কার্ড / মিটার অনুযায়ী' : 'Prepaid card / As per meter');
+    final availableMonth = month ?? (isBn ? 'চলতি মাস' : 'Immediate / Next month');
+    final targetTenant = tenantType ?? (isBn ? 'পরিবার / শান্ত ভদ্র চাকরিজীবী' : 'Family / Executives');
+    final marketDistText = marketDistance ?? (isBn ? 'হেঁটে ২-৩ মিনিট' : '2-3 mins walking distance');
+
+    final defaultAmenities = isBn
+        ? ['লিফট সুবিধা', 'জেনারেটর ব্যাকআপ', 'সিসিটিভি নজরদারি', '২৪ ঘণ্টা নিরাপত্তা প্রহরী', 'পর্যাপ্ত আলো-বাতাস']
+        : ['Lift access', 'Generator backup', 'CCTV surveillance', '24/7 Security guard', 'Ample natural light & airflow'];
+
+    final amenityList = amenities.isNotEmpty ? amenities : defaultAmenities;
+    final amenityBullets = amenityList.map((a) => '• $a').join('\n');
+
+    if (isBn) {
+      return '''🏠 **আকর্ষণীয় বাসাভাড়া বিজ্ঞাপন (To-Let)**
+━━━━━━━━━━━━━━━━━━━━━━━
+📍 **ঠিকানা ও লোকেশন:**
+• $fullLocation
+• শান্ত, মনোরম ও সম্পূর্ণ নিরাপদ পরিবেশ
+• 🛒 বাজার ও প্রধান রাস্তা: $marketDistText
+
+🏢 **বাসার বিবরণ ও লেআউট:**
+• বাসার ধরণ: $houseType ($roomOrSeat)
+• ফ্লোর: $floor তলা
+• বাথরুম: $bathDetails
+• বারান্দা: $balconyText
+• রান্নাঘর: $kitchenText
+
+✨ **বিশেষ সুযোগ-সুবিধাসমূহ:**
+$amenityBullets
+• সার্বক্ষণিক নিরবচ্ছিন্ন পানি ও গ্যাস সুবিধা
+• দক্ষিণমুখী প্রশস্ত আলো-বাতাসপূর্ণ রুম
+
+💡 **ইউটিলিটি ও বিল:**
+• বিদ্যুৎ বিল: $electricityText
+• সার্বক্ষণিক পরিচ্ছন্ন ও সুব্যবস্থাপনা
+
+👥 **কাদের জন্য উপযুক্ত:** $targetTenant
+📅 **কবে থেকে ভাড়া হবে:** $availableMonth মাস থেকে
+
+💰 **মাসিক ভাড়া:** ৳ $amount (আলোচনা সাপেক্ষে)
+━━━━━━━━━━━━━━━━━━━━━━━
+📞 আগ্রহী প্রকৃত ভাড়াটিয়াদের বিস্তারিত জানতে ও বাসা দেখতে সরাসরি যোগাযোগের অনুরোধ করা যাচ্ছে।''';
+    } else {
+      return '''🏠 **Attractive To-Let / House Rental Notice**
+━━━━━━━━━━━━━━━━━━━━━━━
+📍 **Location & Neighborhood:**
+• $fullLocation
+• Quiet, pleasant and highly secure residential environment
+• 🛒 Market & Transport Hub: $marketDistText
+
+🏢 **Property Specifications & Layout:**
+• Property Type: $houseType ($roomOrSeat)
+• Floor Level: Floor $floor
+• Bathrooms: $bathDetails
+• Balcony: $balconyText
+• Kitchen: $kitchenText
+
+✨ **Amenities & Highlights:**
+$amenityBullets
+• 24/7 uninterrupted water and gas supply
+• Bright, south-facing rooms with generous natural light & ventilation
+
+💡 **Utilities & Metering:**
+• Electricity: $electricityText
+• Dedicated building maintenance and security
+
+👥 **Preferred Tenant:** $targetTenant
+📅 **Available From:** $availableMonth onwards
+
+💰 **Monthly Rent:** ৳ $amount (Negotiable)
+━━━━━━━━━━━━━━━━━━━━━━━
+📞 Interested and genuine tenants are warmly requested to contact directly for viewing appointments.''';
+    }
   }
 }

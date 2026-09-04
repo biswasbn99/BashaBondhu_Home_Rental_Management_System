@@ -22,8 +22,10 @@ class SubscriptionHistoryScreen extends StatelessWidget {
 
   void _showReceiptDialog(BuildContext context, SubscriptionTransactionModel tx, bool isDark) {
     final isBn = Localizations.localeOf(context).languageCode == 'bn';
-    final dateStr = '${tx.purchasedAt.day}/${tx.purchasedAt.month}/${tx.purchasedAt.year} • ${tx.purchasedAt.hour}:${tx.purchasedAt.minute.toString().padLeft(2, '0')}';
-    final expiryStr = '${tx.expiresAt.day}/${tx.expiresAt.month}/${tx.expiresAt.year}';
+    final rawDateStr = '${tx.purchasedAt.day}/${tx.purchasedAt.month}/${tx.purchasedAt.year} • ${tx.purchasedAt.hour}:${tx.purchasedAt.minute.toString().padLeft(2, '0')}';
+    final rawExpiryStr = '${tx.expiresAt.day}/${tx.expiresAt.month}/${tx.expiresAt.year}';
+    final dateStr = isBn ? rawDateStr.toLocalizedDigits('bn') : rawDateStr;
+    final expiryStr = isBn ? rawExpiryStr.toLocalizedDigits('bn') : rawExpiryStr;
 
     showDialog(
       context: context,
@@ -65,7 +67,7 @@ class SubscriptionHistoryScreen extends StatelessWidget {
               const SizedBox(height: 8),
               _buildDialogRow(isBn ? 'প্যাকেজ:' : 'Plan Name:', tx.planTitle),
               const SizedBox(height: 8),
-              _buildDialogRow(isBn ? 'পরিশোধিত অর্থ:' : 'Amount Paid:', '৳ ${tx.amountPaid.toInt()}'),
+              _buildDialogRow(isBn ? 'পরিশোধিত অর্থ:' : 'Amount Paid:', isBn ? '৳ ${tx.amountPaid.toInt().toString().toLocalizedDigits('bn')}' : '৳ ${tx.amountPaid.toInt()}'),
               const SizedBox(height: 8),
               _buildDialogRow(isBn ? 'লেনদেন আইডি:' : 'Trx ID:', tx.transactionId),
               const SizedBox(height: 8),
@@ -211,8 +213,10 @@ class SubscriptionHistoryScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final item = list[index];
               final isExpired = item.expiresAt.isBefore(DateTime.now());
-              final formattedPurchase = '${item.purchasedAt.day}/${item.purchasedAt.month}/${item.purchasedAt.year} • ${item.purchasedAt.hour}:${item.purchasedAt.minute.toString().padLeft(2, '0')}';
-              final formattedExpiry = '${item.expiresAt.day}/${item.expiresAt.month}/${item.expiresAt.year}';
+              final rawPurchase = '${item.purchasedAt.day}/${item.purchasedAt.month}/${item.purchasedAt.year} • ${item.purchasedAt.hour}:${item.purchasedAt.minute.toString().padLeft(2, '0')}';
+              final rawExpiry = '${item.expiresAt.day}/${item.expiresAt.month}/${item.expiresAt.year}';
+              final formattedPurchase = isBn ? rawPurchase.toLocalizedDigits('bn') : rawPurchase;
+              final formattedExpiry = isBn ? rawExpiry.toLocalizedDigits('bn') : rawExpiry;
 
               return Container(
                 padding: const EdgeInsets.all(16),

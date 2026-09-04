@@ -278,9 +278,9 @@ class _DemandCard extends StatelessWidget {
                               color: AppColors.themeColor.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              'ভাড়াটিয়া',
-                              style: TextStyle(
+                            child: Text(
+                              languageCode == 'bn' ? 'ভাড়াটিয়া' : 'Tenant',
+                              style: const TextStyle(
                                 color: AppColors.themeColor,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
@@ -291,7 +291,7 @@ class _DemandCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _formatDate(demand.postDate),
+                        _formatDate(demand.postDate, languageCode),
                         style: TextStyle(
                           fontSize: 11.5,
                           color: theme.colorScheme.onSurfaceVariant,
@@ -305,7 +305,9 @@ class _DemandCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '৳ ${demand.budgetRange ?? "-"}',
+                      demand.budgetRange != null
+                          ? '৳ ${(demand.budgetRange!).toLocalizedDigits(languageCode)}'
+                          : '৳ -',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,
@@ -549,14 +551,21 @@ class _DemandCard extends StatelessWidget {
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, String languageCode) {
     final diff = DateTime.now().difference(date);
+    final isBn = languageCode == 'bn';
     if (diff.inMinutes < 60) {
-      return '${diff.inMinutes} মিনিট আগে';
+      return isBn
+          ? '${diff.inMinutes.toString().toLocalizedDigits("bn")} মিনিট আগে'
+          : '${diff.inMinutes} mins ago';
     } else if (diff.inHours < 24) {
-      return '${diff.inHours} ঘন্টা আগে';
+      return isBn
+          ? '${diff.inHours.toString().toLocalizedDigits("bn")} ঘন্টা আগে'
+          : '${diff.inHours} hours ago';
     } else {
-      return '${diff.inDays} দিন আগে';
+      return isBn
+          ? '${diff.inDays.toString().toLocalizedDigits("bn")} দিন আগে'
+          : '${diff.inDays} days ago';
     }
   }
 }

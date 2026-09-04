@@ -173,49 +173,6 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Voice Wave Listening Indicator
-            if (aiProvider.isListening) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.redAccent.withValues(alpha: 0.15),
-                      Colors.orangeAccent.withValues(alpha: 0.15),
-                    ],
-                  ),
-                  border: const Border(
-                    bottom: BorderSide(color: Colors.redAccent, width: 1),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.mic_rounded, color: Colors.redAccent, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        aiProvider.spokenText.isNotEmpty
-                            ? '🎙️ "${aiProvider.spokenText}"'
-                            : (isBn ? '🎙️ শুনছি... মুখে বাংলায় বা ইংরেজিতে বলুন' : '🎙️ Listening... Speak now'),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.redAccent,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.stop_circle_rounded, color: Colors.redAccent, size: 22),
-                      onPressed: () => aiProvider.stopListening(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
             // Chat Messages List
             Expanded(
               child: ListView.builder(
@@ -394,7 +351,134 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
               ),
             ],
 
-            // Input Bar & Voice Mic
+            // Persistent 3 Options Bar for Tenant
+            if (!isOwner && !isAdmin) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF162120) : const Color(0xFFEBF7F5),
+                  border: Border(
+                    top: BorderSide(
+                      color: isDark ? const Color(0xFF243432) : const Color(0xFFE2E9E7),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      ActionChip(
+                        avatar: const Icon(Icons.auto_awesome_rounded, size: 14, color: Colors.white),
+                        label: Text(
+                          isBn ? '⚡ প্রধান ৩টি অপশন' : '⚡ Main 3 Options',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        backgroundColor: AppColors.themeColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () {
+                          aiProvider.showTenant3Options(user, languageCode);
+                          _scrollToBottom();
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.search_rounded, size: 14, color: AppColors.themeColor),
+                        label: Text(
+                          isBn ? '🔍 বাসা খুঁজুন' : '🔍 Find Home',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'বাসা খুঁজুন' : 'Find Home', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.card_membership_rounded, size: 14, color: Colors.orange),
+                        label: Text(
+                          isBn ? '💳 প্যাকেজ' : '💳 Packages',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'সাবস্ক্রিপশন প্যাকেজ' : 'Subscription Packages', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.history_rounded, size: 14, color: Colors.teal),
+                        label: Text(
+                          isBn ? '📄 হিস্ট্রি' : '📄 History',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'সাবস্ক্রিপশন হিস্ট্রি' : 'Subscription History', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.privacy_tip_outlined, size: 14, color: Colors.blueAccent),
+                        label: Text(
+                          isBn ? '🛡️ প্রাইভেসি পলিসি' : '🛡️ Privacy Policy',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'প্রাইভেসি পলিসি বলো' : 'Tell me Privacy Policy', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.support_agent_rounded, size: 14, color: Colors.purple),
+                        label: Text(
+                          isBn ? '🤝 সাপোর্ট পলিসি' : '🤝 Support Policy',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'সাপোর্ট পলিসি বলো' : 'Tell me Support Policy', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.gavel_rounded, size: 14, color: Colors.indigo),
+                        label: Text(
+                          isBn ? '📜 শর্তাবলী' : '📜 Terms & Conditions',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'শর্তাবলী বলো' : 'Tell me Terms & Conditions', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.currency_exchange_rounded, size: 14, color: Colors.deepOrange),
+                        label: Text(
+                          isBn ? '💳 রিফান্ড পলিসি' : '💳 Refund Policy',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'রিফান্ড পলিসি বলো' : 'Tell me Refund Policy', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.help_outline_rounded, size: 14, color: Colors.cyan),
+                        label: Text(
+                          isBn ? '❓ সাধারণ জিজ্ঞাসা' : '❓ FAQ',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'সাধারণ জিজ্ঞাসা' : 'FAQ', user, languageCode),
+                      ),
+                      const SizedBox(width: 6),
+                      ActionChip(
+                        avatar: const Icon(Icons.menu_book_rounded, size: 14, color: Colors.teal),
+                        label: Text(
+                          isBn ? '📖 কীভাবে অ্যাপ ব্যবহার করবেন' : '📖 How to Use',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        onPressed: () => _handleSend(isBn ? 'ভাড়াটিয়া হিসেবে কীভাবে অ্যাপ ব্যবহার করব?' : 'How to use this app as a tenant?', user, languageCode),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
+            // Input Bar
             Container(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
               decoration: BoxDecoration(
@@ -408,38 +492,6 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
               ),
               child: Row(
                 children: [
-                  // Voice Mic Button
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        if (aiProvider.isListening) {
-                          aiProvider.stopListening();
-                        } else {
-                          aiProvider.startListening(languageCode, (finalText) {
-                            _handleSend(finalText, user, languageCode);
-                          });
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(24),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: aiProvider.isListening
-                              ? Colors.redAccent
-                              : AppColors.themeColor.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          aiProvider.isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
-                          color: aiProvider.isListening ? Colors.white : AppColors.themeColor,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-
                   // Text Input
                   Expanded(
                     child: Container(
@@ -457,9 +509,13 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                         textInputAction: TextInputAction.send,
                         onSubmitted: (val) => _handleSend(val, user, languageCode),
                         decoration: InputDecoration(
-                          hintText: isBn
-                              ? 'প্রশ্ন লিখুন বা বলুন (যেমন: মিরপুরে ২ বেড বাসা)'
-                              : 'Ask anything or type requirements...',
+                          hintText: !isAdmin
+                              ? (isBn
+                                  ? 'এলাকা বা ভাড়ার রেঞ্জ লিখুন (যেমন: মিরপুর বা ১০-১৫ হাজার)'
+                                  : 'Write area or price range (e.g. Mirpur or 10k-15k)')
+                              : (isBn
+                                  ? 'প্রশ্ন বা রিকোয়ারমেন্ট লিখুন (যেমন: মিরপুরে ২ বেড বাসা)'
+                                  : 'Ask anything or type requirements...'),
                           hintStyle: TextStyle(fontSize: 12.5, color: Colors.grey[500]),
                           border: InputBorder.none,
                           isDense: true,

@@ -182,7 +182,9 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      widget.user.isSubscribed ? 'Premium' : 'প্যাকেজ',
+                      widget.user.isSubscribed
+                          ? 'Premium'
+                          : (l10n.localeName == 'bn' ? 'প্যাকেজ' : 'Packages'),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,

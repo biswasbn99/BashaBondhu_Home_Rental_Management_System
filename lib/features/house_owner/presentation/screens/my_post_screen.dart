@@ -78,6 +78,7 @@ class _MyPostScreenState extends State<MyPostScreen> {
   Widget _buildEmptyState(BuildContext context, dynamic l10n) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
 
     return Center(
       child: Padding(
@@ -110,7 +111,9 @@ class _MyPostScreenState extends State<MyPostScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'আপনি এখনো কোনো বাসাভাড়ার বিজ্ঞাপন পোস্ট করেননি। নতুন পোস্ট তৈরি করতে নিচের বাটনে ক্লিক করুন।',
+              isBn
+                  ? 'আপনি এখনো কোনো বাসাভাড়ার বিজ্ঞাপন পোস্ট করেননি। নতুন পোস্ট তৈরি করতে নিচের বাটনে ক্লিক করুন।'
+                  : "You haven't posted any rental advertisements yet. Tap the button below to create a new post.",
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -166,7 +169,7 @@ class _MyPostCard extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -186,7 +189,7 @@ class _MyPostCard extends StatelessWidget {
                 );
               }
             },
-            child: const Text('Delete'),
+            child: Text(l10n.deleteAction),
           ),
         ],
       ),
@@ -317,7 +320,7 @@ class _MyPostCard extends StatelessWidget {
                     ],
                   ),
                   child: Text(
-                    '৳ ${post.amount} / ${l10n.perMonth}',
+                    '৳ ${post.amount.toLocalizedDigits(languageCode)} / ${l10n.perMonth}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -340,7 +343,7 @@ class _MyPostCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        post.houseType.name.toUpperCase(),
+                        post.houseType.getLocalizedLabel(l10n).toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -457,7 +460,7 @@ class _MyPostCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          '${l10n.floorLabel}: ${post.floorNumber}',
+                          '${l10n.floorLabel}: ${post.floorNumber?.toLocalizedDigits(languageCode)}',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -496,15 +499,15 @@ class _MyPostCard extends StatelessWidget {
                   runSpacing: 6,
                   children: [
                     if (post.attachedBathrooms != null && post.attachedBathrooms! > 0)
-                      _buildChip(Icons.bathtub_outlined, '${post.attachedBathrooms} Attached Bath', theme),
+                      _buildChip(Icons.bathtub_outlined, '${post.attachedBathrooms!.toLocalizedDigits(languageCode)} ${l10n.attachedBathroom}', theme),
                     if (post.balconies != null && post.balconies! > 0)
-                      _buildChip(Icons.balcony_outlined, '${post.balconies} Balcony', theme),
+                      _buildChip(Icons.balcony_outlined, '${post.balconies!.toLocalizedDigits(languageCode)} ${l10n.balcony}', theme),
                     if (post.hasLift == true)
-                      _buildChip(Icons.elevator_outlined, 'Lift', theme),
+                      _buildChip(Icons.elevator_outlined, l10n.lift, theme),
                     if (post.hasGenerator == true)
-                      _buildChip(Icons.bolt_outlined, 'Generator', theme),
+                      _buildChip(Icons.bolt_outlined, l10n.generator, theme),
                     if (post.hasWifi == true)
-                      _buildChip(Icons.wifi, 'WiFi', theme),
+                      _buildChip(Icons.wifi, l10n.wifi, theme),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -556,7 +559,7 @@ class _MyPostCard extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                         icon: const Icon(Icons.visibility_outlined, size: 17),
-                        label: const Text('View', style: TextStyle(fontSize: 12)),
+                        label: Text(languageCode == 'bn' ? 'দেখুন' : 'View', style: const TextStyle(fontSize: 12)),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -579,7 +582,7 @@ class _MyPostCard extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                         icon: const Icon(Icons.mode_edit_outline_rounded, size: 17),
-                        label: const Text('Edit', style: TextStyle(fontSize: 12)),
+                        label: Text(languageCode == 'bn' ? 'এডিট' : 'Edit', style: const TextStyle(fontSize: 12)),
                         onPressed: () {
                           Navigator.push(
                             context,

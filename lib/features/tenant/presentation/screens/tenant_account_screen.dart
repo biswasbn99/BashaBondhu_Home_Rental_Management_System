@@ -54,7 +54,7 @@ class TenantAccountScreen extends StatelessWidget {
               child: AccountStatCard(
                 icon: Icons.favorite_rounded,
                 iconColor: Colors.redAccent,
-                count: wishlistProvider.wishlistProperties.length.toString(),
+                count: wishlistProvider.wishlistProperties.length.toLocalizedDigits(l10n.localeName),
                 label: l10n.savedHouses,
                 onTap: () => navProvider.changeIndex(3),
               ),
@@ -150,7 +150,7 @@ class TenantAccountScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  user.isSubscribed ? 'Premium' : 'প্যাকেজ',
+                  user.isSubscribed ? 'Premium' : (l10n.localeName == 'bn' ? 'প্যাকেজ' : 'Packages'),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -196,7 +196,7 @@ class TenantAccountScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              '${user.profileCompletionPercentage}% ${user.isProfileComplete ? l10n.complete : l10n.incomplete}',
+              '${user.profileCompletionPercentage.toLocalizedDigits(l10n.localeName)}% ${user.isProfileComplete ? l10n.complete : l10n.incomplete}',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,

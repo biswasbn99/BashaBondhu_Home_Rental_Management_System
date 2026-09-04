@@ -88,6 +88,7 @@ class ShowDemandDetailsScreen extends StatelessWidget {
     final l10n = context.localizations;
     final theme = Theme.of(context);
     final languageCode = Localizations.localeOf(context).languageCode;
+    final bool isBn = languageCode == 'bn';
     final userProvider = context.watch<UserProvider>();
     final user = userProvider.user;
     final isGuest = userProvider.isGuest || user == null;
@@ -150,10 +151,16 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                     label: l10n.roomOrSeat,
                     value: demand.roomOrSeat.getLocalizedRoomOrSeat(l10n),
                   ),
+                  if (demand.floorNumber != null && demand.floorNumber! > 0)
+                    _DetailTile(
+                      icon: Icons.layers_outlined,
+                      label: isBn ? 'ফ্লোর নম্বর' : 'Floor Number',
+                      value: '${demand.floorNumber!.toLocalizedDigits(languageCode)} ${isBn ? 'তলা' : 'Floor'}',
+                    ),
 
                   const SizedBox(height: 28),
 
-                  // --- Location Section ---
+                  // --- Location Section (Division, District, Area, Sub-Area) ---
                   DecoratedSectionHeader(title: l10n.locationLabel),
                   const SizedBox(height: 16),
                   _DetailTile(
@@ -168,15 +175,130 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                   ),
                   _DetailTile(
                     icon: Icons.pin_drop_rounded,
-                    label: l10n.upazila,
+                    label: isBn ? 'উপজেলা / থানা' : 'Upazila / Area',
                     value: demand.area.getLocalizedName(languageCode),
                   ),
-                  if (demand.shortAddress.isNotEmpty && isUnlocked)
-                    _DetailTile(
-                      icon: Icons.home_outlined,
-                      label: l10n.shortAddress,
-                      value: demand.shortAddress,
-                    ),
+                  // Sub-Area (Union / Ward / Area posted by tenant)
+                  if (demand.subArea != null &&
+                      (demand.subArea!.name.trim().isNotEmpty || demand.subArea!.bnName.trim().isNotEmpty)) ...[
+                    if (isUnlocked)
+                      _DetailTile(
+                        icon: Icons.holiday_village_outlined,
+                        label: isBn ? 'সাব-এরিয়া / ইউনিয়ন' : 'Sub-Area / Union',
+                        value: demand.subArea!.getLocalizedName(languageCode),
+                        isBoldValue: true,
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.holiday_village_outlined, size: 20, color: AppColors.themeColor),
+                            const SizedBox(width: 12),
+                            Text(
+                              '${isBn ? 'সাব-এরিয়া / ইউনিয়ন' : 'Sub-Area / Union'}: ',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () => _handleUnlock(context, user),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: Colors.amber.shade700, width: 0.8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.lock_rounded, size: 12, color: Colors.amber),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            isBn ? '🔒 লক করা (আনলক করতে ট্যাপ করুন)' : '🔒 Locked (Tap to unlock)',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.amber.shade900,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                  if (demand.shortAddress.trim().isNotEmpty) ...[
+                    if (isUnlocked)
+                      _DetailTile(
+                        icon: Icons.home_outlined,
+                        label: l10n.shortAddress,
+                        value: demand.shortAddress,
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.home_outlined, size: 20, color: AppColors.themeColor),
+                            const SizedBox(width: 12),
+                            Text(
+                              '${l10n.shortAddress}: ',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () => _handleUnlock(context, user),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: Colors.amber.shade700, width: 0.8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.lock_rounded, size: 12, color: Colors.amber),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            isBn ? '🔒 লক করা (আনলক করতে ট্যাপ করুন)' : '🔒 Locked (Tap to unlock)',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.amber.shade900,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
 
                   const SizedBox(height: 28),
 
@@ -186,14 +308,16 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                   _DetailTile(
                     icon: Icons.payments_outlined,
                     label: l10n.budgetLabel,
-                    value: '৳ ${demand.budgetRange ?? "-"}',
+                    value: demand.budgetRange != null
+                        ? '৳ ${(demand.budgetRange!).toLocalizedDigits(languageCode)}'
+                        : '৳ -',
                     valueColor: AppColors.themeColor,
                     isBoldValue: true,
                   ),
 
                   const SizedBox(height: 28),
 
-                  // --- Required Facilities ---
+                  // --- Required Facilities & Notice Status ---
                   DecoratedSectionHeader(title: l10n.facilitiesLabel),
                   const SizedBox(height: 16),
                   Wrap(
@@ -208,17 +332,22 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                       if (demand.attachedBathrooms != null && demand.attachedBathrooms! > 0)
                         _facilityBadge(
                           icon: Icons.bathtub_outlined,
-                          label: '${demand.attachedBathrooms} ${l10n.attachedBathroom}',
+                          label: '${demand.attachedBathrooms!.toLocalizedDigits(languageCode)} ${l10n.attachedBathroom}',
                         ),
                       if (demand.bathrooms != null && demand.bathrooms! > 0)
                         _facilityBadge(
                           icon: Icons.shower_outlined,
-                          label: '${demand.bathrooms} ${l10n.commonBathroom}',
+                          label: '${demand.bathrooms!.toLocalizedDigits(languageCode)} ${l10n.commonBathroom}',
+                        ),
+                      if (demand.kitchenCount != null && demand.kitchenCount! > 0)
+                        _facilityBadge(
+                          icon: Icons.kitchen_outlined,
+                          label: '${demand.kitchenCount!.toLocalizedDigits(languageCode)} ${isBn ? 'রান্নাঘর' : 'Kitchen'}',
                         ),
                       if (demand.balconies != null && demand.balconies! > 0)
                         _facilityBadge(
                           icon: Icons.balcony_outlined,
-                          label: '${demand.balconies} ${l10n.balcony}',
+                          label: '${demand.balconies!.toLocalizedDigits(languageCode)} ${l10n.balcony}',
                         ),
                       if (demand.hasLift == true)
                         _facilityBadge(
@@ -249,6 +378,24 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                         _facilityBadge(
                           icon: Icons.security_rounded,
                           label: l10n.securityGuard,
+                        ),
+                      if (demand.hasGivenNotice != null)
+                        _facilityBadge(
+                          icon: Icons.campaign_outlined,
+                          label: isBn
+                              ? (demand.hasGivenNotice! ? 'বর্তমান বাসায় নোটিশ দেওয়া হয়েছে' : 'নোটিশ দেওয়া হয়নি')
+                              : (demand.hasGivenNotice! ? 'Notice Given' : 'Notice Not Given'),
+                          color: demand.hasGivenNotice! ? Colors.teal : Colors.blueGrey,
+                        ),
+                      if (demand.marketDistance != null && demand.marketDistance!.trim().isNotEmpty)
+                        _facilityBadge(
+                          icon: Icons.directions_walk_rounded,
+                          label: demand.marketDistance!,
+                        ),
+                      if (demand.electricityBillType != null && demand.electricityBillType!.trim().isNotEmpty)
+                        _facilityBadge(
+                          icon: Icons.electric_bolt_outlined,
+                          label: demand.electricityBillType!,
                         ),
                     ],
                   ),
@@ -297,6 +444,7 @@ class ShowDemandDetailsScreen extends StatelessWidget {
     String displayWhatsApp,
     bool isUnlocked,
   ) {
+    final languageCode = Localizations.localeOf(context).languageCode;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -343,9 +491,9 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                         color: AppColors.themeColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
-                        "ভাড়াটিয়া",
-                        style: TextStyle(
+                      child: Text(
+                        languageCode == 'bn' ? 'ভাড়াটিয়া' : 'Tenant',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10.5,
                           fontWeight: FontWeight.bold,
@@ -375,7 +523,9 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "পোস্ট করেছেন: ${_formatDate(demand.postDate)}",
+                  languageCode == 'bn'
+                      ? 'পোস্ট করেছেন: ${_formatDate(demand.postDate, languageCode)}'
+                      : 'Posted: ${_formatDate(demand.postDate, languageCode)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.grey[600],
                     fontWeight: FontWeight.w500,
@@ -536,14 +686,21 @@ class ShowDemandDetailsScreen extends StatelessWidget {
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, String languageCode) {
     final diff = DateTime.now().difference(date);
+    final isBn = languageCode == 'bn';
     if (diff.inMinutes < 60) {
-      return '${diff.inMinutes} মিনিট আগে';
+      return isBn
+          ? '${diff.inMinutes.toString().toLocalizedDigits("bn")} মিনিট আগে'
+          : '${diff.inMinutes} mins ago';
     } else if (diff.inHours < 24) {
-      return '${diff.inHours} ঘন্টা আগে';
+      return isBn
+          ? '${diff.inHours.toString().toLocalizedDigits("bn")} ঘন্টা আগে'
+          : '${diff.inHours} hours ago';
     } else {
-      return '${diff.inDays} দিন আগে';
+      return isBn
+          ? '${diff.inDays.toString().toLocalizedDigits("bn")} দিন আগে'
+          : '${diff.inDays} days ago';
     }
   }
 }

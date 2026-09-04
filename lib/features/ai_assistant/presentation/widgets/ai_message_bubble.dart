@@ -868,7 +868,7 @@ class _MatchingDemandsCarousel extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            '🎯 ${item.matchPercentage}%',
+                            '🎯 ${item.matchPercentage.toLocalizedDigits(languageCode)}%',
                             style: const TextStyle(
                               color: Colors.green,
                               fontSize: 10,

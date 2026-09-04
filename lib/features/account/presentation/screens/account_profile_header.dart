@@ -146,7 +146,11 @@ class AccountProfileHeader extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                user != null ? user!.userType.toUpperCase() : l10n.guestUser.toUpperCase(),
+                                user != null
+                                    ? (l10n.localeName == 'bn'
+                                        ? (isOwner ? 'বাড়িওয়ালা' : (isTenant ? 'ভাড়াটিয়া' : user!.userType))
+                                        : user!.userType.toUpperCase())
+                                    : l10n.guestUser.toUpperCase(),
                                 style: TextStyle(
                                   color: isOwner
                                       ? AppColors.themeColor
@@ -170,7 +174,9 @@ class AccountProfileHeader extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              isComplete ? '100% ${l10n.complete}' : '$completion% ${l10n.incomplete}',
+                              isComplete
+                                  ? '${'100'.toLocalizedDigits(l10n.localeName)}% ${l10n.complete}'
+                                  : '${completion.toLocalizedDigits(l10n.localeName)}% ${l10n.incomplete}',
                               style: TextStyle(
                                 fontSize: 9.5,
                                 fontWeight: FontWeight.bold,

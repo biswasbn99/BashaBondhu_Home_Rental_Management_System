@@ -10,7 +10,8 @@ class PolicyFirestoreService {
   CollectionReference<Map<String, dynamic>> get _faqsCol =>
       _firestore.collection('faqs');
 
-  String getPolicyDocId(String policyType, String targetAudience) {
+  String getPolicyDocId(String rawPolicyType, String targetAudience) {
+    final policyType = rawPolicyType == 'terms_and_conditions' ? 'terms_conditions' : rawPolicyType;
     if (policyType.startsWith('tenant_') || policyType.startsWith('house_owner_')) {
       return policyType;
     }
@@ -194,7 +195,8 @@ class PolicyFirestoreService {
   // -------------------------------------------------------------
 
   AppPolicyModel _getDefaultPolicy(String rawType, String targetAudience) {
-    final type = rawType.replaceFirst('tenant_', '').replaceFirst('house_owner_', '');
+    final cleanRaw = rawType == 'terms_and_conditions' ? 'terms_conditions' : rawType;
+    final type = cleanRaw.replaceFirst('tenant_', '').replaceFirst('house_owner_', '');
     final docId = '${targetAudience}_$type';
 
     if (targetAudience == 'house_owner') {

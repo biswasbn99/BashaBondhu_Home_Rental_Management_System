@@ -301,7 +301,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('ত্রুটি ঘটেছে: $e'),
+            content: Text(context.localizations.localeName == 'bn' ? 'ত্রুটি ঘটেছে: $e' : 'Error occurred: $e'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -601,12 +601,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           Text(
             "${_firstNameController.text} ${_lastNameController.text}".trim().isNotEmpty
                 ? "${_firstNameController.text} ${_lastNameController.text}".trim()
-                : (userType.isNotEmpty ? userType : l10n.myProfile),
+                : (userType.isNotEmpty
+                    ? (l10n.localeName == 'bn'
+                        ? (userType == 'House Owner' ? 'বাড়িওয়ালা' : (userType == 'Tenant' ? 'ভাড়াটিয়া' : userType))
+                        : userType)
+                    : l10n.myProfile),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(
-            userType,
+            l10n.localeName == 'bn'
+                ? (userType == 'House Owner' ? 'বাড়িওয়ালা' : (userType == 'Tenant' ? 'ভাড়াটিয়া' : userType))
+                : userType,
             style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : _grey, fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 16),
@@ -650,7 +656,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         ),
                       ),
                       child: Text(
-                        isComplete ? '$completion% ${l10n.complete}' : '$completion% ${l10n.incomplete}',
+                        isComplete
+                            ? '${'100'.toLocalizedDigits(l10n.localeName)}% ${l10n.complete}'
+                            : '${completion.toLocalizedDigits(l10n.localeName)}% ${l10n.incomplete}',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,

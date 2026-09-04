@@ -108,6 +108,7 @@ class MyDemandScreen extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, dynamic l10n) {
+    final isBn = l10n.localeName == 'bn';
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -137,7 +138,9 @@ class MyDemandScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'আপনি এখনো কোনো বাসাভাড়ার চাহিদা পোস্ট করেননি। আপনার চাহিদা পোস্ট করতে নিচের বাটনে চাপ দিন।',
+              isBn
+                  ? 'আপনি এখনো কোনো বাসাভাড়ার চাহিদা পোস্ট করেননি। আপনার চাহিদা পোস্ট করতে নিচের বাটনে চাপ দিন।'
+                  : 'You have not posted any rental demands yet. Tap the button below to post your requirements.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -280,7 +283,7 @@ class _MyDemandCard extends StatelessWidget {
 
                 // Date
                 Text(
-                  _formatDate(demand.postDate),
+                  _formatDate(demand.postDate, languageCode),
                   style: TextStyle(
                     fontSize: 11,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -301,7 +304,9 @@ class _MyDemandCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '৳ ${demand.budgetRange ?? "বাজেট নির্ধারিত নেই"}',
+                      demand.budgetRange != null
+                          ? '৳ ${(demand.budgetRange!).toLocalizedDigits(languageCode)}'
+                          : (languageCode == 'bn' ? 'বাজেট নির্ধারিত নেই' : 'Budget not set'),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
@@ -595,21 +600,28 @@ class _MyDemandCard extends StatelessWidget {
                 );
               }
             },
-            child: const Text('মুছে ফেলুন'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, String languageCode) {
     final diff = DateTime.now().difference(date);
+    final isBn = languageCode == 'bn';
     if (diff.inMinutes < 60) {
-      return '${diff.inMinutes} মিনিট আগে';
+      return isBn
+          ? '${diff.inMinutes.toString().toLocalizedDigits("bn")} মিনিট আগে'
+          : '${diff.inMinutes} mins ago';
     } else if (diff.inHours < 24) {
-      return '${diff.inHours} ঘন্টা আগে';
+      return isBn
+          ? '${diff.inHours.toString().toLocalizedDigits("bn")} ঘন্টা আগে'
+          : '${diff.inHours} hours ago';
     } else {
-      return '${diff.inDays} দিন আগে';
+      return isBn
+          ? '${diff.inDays.toString().toLocalizedDigits("bn")} দিন আগে'
+          : '${diff.inDays} days ago';
     }
   }
 }

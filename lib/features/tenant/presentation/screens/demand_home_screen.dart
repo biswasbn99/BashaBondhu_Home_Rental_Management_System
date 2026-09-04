@@ -357,11 +357,16 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                           if (isFormValid && provider.isDemandValid) {
                             _postDemand(context, provider);
                           } else {
+                            final isBn = Localizations.localeOf(context).languageCode == 'bn';
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('অনুগ্রহ করে সকল আবশ্যকীয় তথ্য (বিভাগ, জেলা, এলাকা, মাস, বাসার ধরন, বাজেট, ভাড়াটিয়ার ধরন, রুম/সিট, যোগাযোগের নাম ও সঠিক মোবাইল নম্বর) সঠিকভাবে পূরণ করুন।'),
+                              SnackBar(
+                                content: Text(
+                                  isBn
+                                      ? 'অনুগ্রহ করে সকল আবশ্যকীয় তথ্য (বিভাগ, জেলা, এলাকা, মাস, বাসার ধরন, বাজেট, ভাড়াটিয়ার ধরন, রুম/সিট, যোগাযোগের নাম ও সঠিক মোবাইল নম্বর) সঠিকভাবে পূরণ করুন।'
+                                      : 'Please fill in all required fields (Division, District, Area, Month, House Type, Budget, Tenant Type, Room/Seat, Name & valid Mobile) properly.',
+                                ),
                                 backgroundColor: Colors.redAccent,
-                                duration: Duration(seconds: 4),
+                                duration: const Duration(seconds: 4),
                               ),
                             );
                           }
@@ -387,7 +392,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
 
   Future<void> _postDemand(BuildContext context, DemandHomeProvider provider) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final l10n = context.localizations;
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
 
     if (userProvider.isGuest || userProvider.user == null) {
       AuthPromptDialog.show(
@@ -404,33 +409,167 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
       );
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.demandPostedSuccess),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: l10n.myDemands,
-              textColor: Colors.white,
-              onPressed: () {
-                Navigator.pushNamed(context, MyDemandScreen.name);
-              },
-            ),
-          ),
-        );
         provider.resetFilters();
         setState(() => _autovalidateMode = AutovalidateMode.disabled);
+
+        // Show the post-demand success popup dialog
+        _showDemandSuccessDialog(context, isBn);
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('ত্রুটি ঘটেছে: $e'),
+            content: Text(isBn ? 'ত্রুটি ঘটেছে: $e' : 'An error occurred: $e'),
             backgroundColor: Colors.redAccent,
           ),
         );
       }
     }
+  }
+
+  void _showDemandSuccessDialog(BuildContext context, bool isBn) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 10,
+          backgroundColor: isDark ? const Color(0xFF1E2625) : Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Top Success Icon Badge
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: isDark ? 0.2 : 0.12),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.green.withValues(alpha: 0.35),
+                      width: 2,
+                    ),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.green,
+                      size: 42,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Dialog Title
+                Text(
+                  isBn ? 'চাহিদা পোস্ট সফল হয়েছে!' : 'Demand Posted Successfully!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18.5,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF1B2A27),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Dialog Message
+                Text(
+                  isBn
+                      ? 'আপনার ভাড়ার চাহিদা বিজ্ঞাপনটি সফলভাবে প্রকাশিত হয়েছে। আপনি কি এখন আপনার পোস্ট করা চাহিদার পেজে যেতে চান?'
+                      : 'Your rental demand post has been published successfully. Would you like to view your posted demands now?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    height: 1.45,
+                    color: isDark ? Colors.grey[300] : const Color(0xFF5A6A67),
+                  ),
+                ),
+                const SizedBox(height: 22),
+
+                // Action Buttons: Cancel and Go to My Demands
+                Row(
+                  children: [
+                    // Cancel Option
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(dialogCtx);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(
+                            color: isDark ? Colors.grey[700]! : Colors.grey[350]!,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          isBn ? 'বাতিল' : 'Cancel',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.grey[300] : const Color(0xFF556563),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // Move to My Demand Page Option
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () {
+                          Navigator.pop(dialogCtx);
+                          Navigator.pushNamed(context, MyDemandScreen.name);
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.themeColor,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          elevation: 1,
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                isBn ? 'আমার ডিমান্ড পেজ' : 'My Demands',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildOrangeBanner(BuildContext context) {

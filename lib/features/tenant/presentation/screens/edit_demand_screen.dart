@@ -206,9 +206,10 @@ class _EditDemandScreenState extends State<EditDemandScreen> {
         _selectedRoomOrSeat == null ||
         _selectedBudgetRange == null ||
         _selectedTenantType == null) {
+      final isBn = Localizations.localeOf(context).languageCode == 'bn';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('অনুগ্রহ করে সকল আবশ্যকীয় তথ্য পূরণ করুন।'),
+        SnackBar(
+          content: Text(isBn ? 'অনুগ্রহ করে সকল আবশ্যকীয় তথ্য পূরণ করুন।' : 'Please fill in all required fields.'),
           backgroundColor: Colors.redAccent,
         ),
       );

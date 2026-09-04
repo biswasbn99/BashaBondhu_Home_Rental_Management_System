@@ -64,19 +64,29 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
       });
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
+      final isBn = Localizations.localeOf(context).languageCode == 'bn';
       setState(() {
         if (e.code == 'user-not-found') {
-          _errorMessage = 'এই ইমেইল দিয়ে কোনো অ্যাকাউন্ট খুঁজে পাওয়া যায়নি।';
+          _errorMessage = isBn
+              ? 'এই ইমেইল দিয়ে কোনো অ্যাকাউন্ট খুঁজে পাওয়া যায়নি।'
+              : 'No account found with this email address.';
         } else if (e.code == 'invalid-email') {
-          _errorMessage = 'সঠিক ইমেইল ঠিকানা প্রদান করুন।';
+          _errorMessage = isBn
+              ? 'সঠিক ইমেইল ঠিকানা প্রদান করুন।'
+              : 'Please enter a valid email address.';
         } else {
-          _errorMessage = e.message ?? 'পাসওয়ার্ড রিসেট লিংক পাঠাতে সমস্যা হয়েছে।';
+          _errorMessage = isBn
+              ? (e.message ?? 'পাসওয়ার্ড রিসেট লিংক পাঠাতে সমস্যা হয়েছে।')
+              : (e.message ?? 'Failed to send password reset link.');
         }
       });
     } catch (e) {
       if (!mounted) return;
+      final isBn = Localizations.localeOf(context).languageCode == 'bn';
       setState(() {
-        _errorMessage = e.toString().replaceAll('Exception:', '').trim();
+        _errorMessage = isBn
+            ? 'পাসওয়ার্ড রিসেট করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।'
+            : e.toString().replaceAll('Exception:', '').trim();
       });
     } finally {
       if (mounted) {

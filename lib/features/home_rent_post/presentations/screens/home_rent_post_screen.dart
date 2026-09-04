@@ -106,10 +106,12 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     children: [
                       const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 22),
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'দয়া করে লাল দাগ চিহ্নিত সব প্রয়োজনীয় ফিল্ড এবং থাম্বনেইল ছবি পূরণ করুন।',
-                          style: TextStyle(
+                          isBn
+                              ? 'দয়া করে লাল দাগ চিহ্নিত সব প্রয়োজনীয় ফিল্ড এবং থাম্বনেইল ছবি পূরণ করুন।'
+                              : 'Please fill all required fields highlighted in red and add a thumbnail image.',
+                          style: const TextStyle(
                             color: Colors.redAccent,
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
@@ -142,11 +144,11 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                       onImageRemoved: provider.removeImage,
                     ),
                     if (provider.showValidationErrors && !provider.hasThumbnail) ...[
-                      const Padding(
-                        padding: EdgeInsets.only(left: 12, top: 6),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12, top: 6),
                         child: Text(
-                          '* প্রধান থাম্বনেইল ছবি যুক্ত করা আবশ্যক',
-                          style: TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                          isBn ? '* প্রধান থাম্বনেইল ছবি যুক্ত করা আবশ্যক' : '* Main thumbnail image is required',
+                          style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -461,20 +463,33 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
                     ),
                     onPressed: () async {
+                      final division = provider.selectedDivision?.getLocalizedName(languageCode);
+                      final district = provider.selectedDistrict?.getLocalizedName(languageCode);
                       final area = provider.selectedUpazila?.getLocalizedName(languageCode) ??
                           (isBn ? 'ঢাকা' : 'Dhaka');
+                      final subArea = provider.selectedArea?.getLocalizedName(languageCode);
+                      final shortAddress = provider.shortAddress;
                       final houseType = provider.selectedHouseType?.getLocalizedLabel(l10n) ??
                           (isBn ? 'ফ্ল্যাট' : 'Flat');
                       final roomOrSeat = provider.selectedRoomOrSeat?.getLocalizedRoomOrSeat(l10n) ??
                           (isBn ? '২ বেডরুম' : '2 Bedrooms');
-                      final floor = provider.floorNumber?.toString() ?? '1';
+                      final tenantType = provider.selectedTenantType?.getLocalizedLabel(l10n);
+                      final month = provider.selectedMonth;
+                      final floor = provider.floorNumber?.toString() ?? (isBn ? '৩' : '3');
                       final amount = provider.amount.isNotEmpty ? provider.amount : '15000';
+                      final electricityBillType = provider.electricityBillType;
+                      final marketDistance = provider.marketDistance;
+                      final commonBathrooms = provider.commonBathrooms;
+                      final attachedBathrooms = provider.attachedBathrooms;
+                      final kitchenCount = provider.kitchenCount;
+                      final balconies = provider.balconies;
                       final amenities = <String>[
-                        if (provider.hasLift == true) (isBn ? 'লিফট' : 'Lift'),
-                        if (provider.hasParking == true) (isBn ? 'পার্কিং' : 'Parking'),
-                        if (provider.hasGenerator == true) (isBn ? 'জেনারেটর' : 'Generator'),
-                        if (provider.hasCctv == true) (isBn ? 'সিসিটিভি' : 'CCTV'),
-                        if (provider.hasSecurityGuard == true) (isBn ? 'দারোয়ান' : 'Security Guard'),
+                        if (provider.hasLift == true) (isBn ? 'লিফট সুবিধা' : 'Lift Access'),
+                        if (provider.hasParking == true) (isBn ? 'গাড়ি পার্কিং' : 'Car Parking'),
+                        if (provider.hasGenerator == true) (isBn ? 'জেনারেটর ব্যাকআপ' : 'Generator Backup'),
+                        if (provider.hasCctv == true) (isBn ? 'সিসিটিভি নিরাপত্তা' : 'CCTV Security'),
+                        if (provider.hasSecurityGuard == true) (isBn ? '২৪ ঘণ্টা দারোয়ান' : '24/7 Security Guard'),
+                        if (provider.hasWifi == true) (isBn ? 'উচ্চগতির ওয়াইফাই' : 'High-speed WiFi'),
                       ];
 
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -487,7 +502,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                               ),
                               const SizedBox(width: 12),
-                              Text(isBn ? 'এআই বিবরণ তৈরি করছে...' : 'AI is generating description...'),
+                              Text(isBn ? 'এআই সুন্দরভাবে বিবরণ তৈরি করছে...' : 'AI is generating decorated description...'),
                             ],
                           ),
                           duration: const Duration(seconds: 2),
@@ -496,11 +511,23 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
 
                       final genText = await context.read<AIAssistantProvider>().generateAdDescriptionForOwner(
                             area: area,
+                            subArea: subArea,
+                            district: district,
+                            division: division,
+                            shortAddress: shortAddress,
                             houseType: houseType,
                             roomOrSeat: roomOrSeat,
+                            tenantType: tenantType,
+                            month: month,
                             floor: floor,
                             amount: amount,
+                            commonBathrooms: commonBathrooms,
+                            attachedBathrooms: attachedBathrooms,
+                            kitchenCount: kitchenCount,
+                            balconies: balconies,
+                            electricityBillType: electricityBillType,
                             amenities: amenities,
+                            marketDistance: marketDistance,
                             languageCode: languageCode,
                           );
 
@@ -509,7 +536,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(isBn ? '✨ এআই বিবরণ সফলভাবে যুক্ত হয়েছে!' : '✨ AI description generated!'),
+                            content: Text(isBn ? '✨ এআই আকর্ষণীয় বিবরণ তৈরি করেছে!' : '✨ AI decorated description generated!'),
                             backgroundColor: Colors.green,
                             behavior: SnackBarBehavior.floating,
                           ),
@@ -521,7 +548,6 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
               ),
               const SizedBox(height: 8),
               ValidatedTextArea(
-                key: ValueKey('desc_${provider.detailedDescription.hashCode}'),
                 hint: l10n.detailedDescription,
                 maxWords: 999,
                 initialValue: provider.detailedDescription,
@@ -545,14 +571,66 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                             return;
                           }
 
+                          if (!provider.isFormValid) {
+                            provider.triggerValidation();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  isBn
+                                      ? 'অনুগ্রহ করে থাম্বনেইল ছবি ও প্রয়োজনীয় সব তথ্য সঠিকভাবে পূরণ করুন।'
+                                      : 'Please provide thumbnail image and fill all required fields correctly.',
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Bilingual Post Confirmation Dialog
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              title: Row(
+                                children: [
+                                  const Icon(Icons.help_outline_rounded, color: AppColors.themeColor),
+                                  const SizedBox(width: 8),
+                                  Text(isBn ? 'পোস্ট নিশ্চিতকরণ' : 'Confirm Post'),
+                                ],
+                              ),
+                              content: Text(
+                                isBn
+                                    ? 'আপনি কি এই বাসাভাড়া বিজ্ঞাপনটি প্রকাশ করতে চান?'
+                                    : 'Are you sure you want to publish this rental post?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: Text(isBn ? 'বাতিল' : 'Cancel'),
+                                ),
+                                FilledButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  style: FilledButton.styleFrom(backgroundColor: AppColors.themeColor),
+                                  child: Text(isBn ? 'হ্যাঁ, পোস্ট করুন' : 'Yes, Publish'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirm != true) return;
+
                           final success = await provider.publishPost(userProvider.user);
                           if (success) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('🎉 আপনার বাসাভাড়া পোস্ট সফলভাবে প্রকাশিত হয়েছে!'),
+                                SnackBar(
+                                  content: Text(
+                                    isBn
+                                        ? '🎉 আপনার বাসাভাড়া পোস্ট সফলভাবে প্রকাশিত হয়েছে!'
+                                        : '🎉 Your rental post has been published successfully!',
+                                  ),
                                   backgroundColor: Colors.green,
-                                  duration: Duration(seconds: 3),
+                                  duration: const Duration(seconds: 3),
                                 ),
                               );
 
@@ -564,8 +642,12 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                           } else {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('অনুগ্রহ করে থাম্বনেইল ছবি ও প্রয়োজনীয় সব তথ্য সঠিকভাবে পূরণ করুন।'),
+                                SnackBar(
+                                  content: Text(
+                                    isBn
+                                        ? 'পোস্ট প্রকাশ করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।'
+                                        : 'Failed to publish post. Please try again.',
+                                  ),
                                   backgroundColor: Colors.redAccent,
                                 ),
                               );

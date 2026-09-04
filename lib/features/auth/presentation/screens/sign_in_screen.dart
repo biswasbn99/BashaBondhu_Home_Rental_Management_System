@@ -1,16 +1,18 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
-import '../../../../app/validators.dart';
+import '../../../../app/providers/locale_provider.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/forgot_password_dialog.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/services/auth_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/language_action_button.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({
@@ -48,10 +50,15 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.localizations;
+    final localeProvider = context.watch<LocaleProvider>();
+    final isBn = localeProvider.currentLocale.languageCode == 'bn';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.signIn),
+        title: Text(isBn ? 'লগইন করুন' : l10n.signIn),
+        actions: const [
+          LanguageActionButton(),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -62,13 +69,16 @@ class _SignInScreenState extends State<SignInScreen> {
               autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
                 children: [
+                  const SizedBox(height: 12),
+                  const AppLogo(width: 95, height: 95),
                   const SizedBox(height: 16),
-                  const AppLogo(width: 100, height: 100),
-                  const SizedBox(height: 16),
-                  Text(l10n.signIn, style: context.textTheme.titleLarge),
+                  Text(
+                    isBn ? 'লগইন করুন' : l10n.signIn,
+                    style: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 4),
                   Text(
-                    l10n.signInSubTitle,
+                    isBn ? 'এগিয়ে যেতে আপনার তথ্য প্রদান করুন' : l10n.signInSubTitle,
                     style: context.textTheme.labelLarge,
                   ),
 
@@ -98,7 +108,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  l10n.lockedRoleLabel,
+                                  isBn ? 'অ্যাকাউন্টের ধরণ' : l10n.lockedRoleLabel,
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -107,7 +117,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  _selectedUserType == 'House Owner' ? 'House Owner' : 'Tenant',
+                                  _selectedUserType == 'House Owner'
+                                      ? (isBn ? 'বাড়িওয়ালা (House Owner)' : 'House Owner')
+                                      : (isBn ? 'ভাড়াটিয়া (Tenant)' : 'Tenant'),
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
@@ -117,7 +129,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                           ),
                           Tooltip(
-                            message: l10n.roleLockedTooltip,
+                            message: isBn ? 'এই ভূমিকাটি লক করা আছে' : l10n.roleLockedTooltip,
                             child: const Icon(Icons.lock_rounded, size: 18, color: AppColors.themeColor),
                           ),
                         ],
@@ -126,12 +138,20 @@ class _SignInScreenState extends State<SignInScreen> {
                   ] else ...[
                     DropdownButtonFormField<String>(
                       initialValue: _selectedUserType,
-                      decoration: const InputDecoration(
-                        hintText: 'Select User Type',
+                      decoration: InputDecoration(
+                        hintText: isBn ? 'ব্যবহারকারীর ধরণ নির্বাচন করুন' : 'Select User Type',
+                        prefixIcon: const Icon(Icons.badge_outlined, size: 20),
                       ),
-                      items: ['House Owner', 'Tenant']
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                          .toList(),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'House Owner',
+                          child: Text(isBn ? 'বাড়িওয়ালা (House Owner)' : 'House Owner'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Tenant',
+                          child: Text(isBn ? 'ভাড়াটিয়া (Tenant)' : 'Tenant'),
+                        ),
+                      ],
                       onChanged: (value) {
                         setState(() {
                           _selectedUserType = value;
@@ -139,29 +159,43 @@ class _SignInScreenState extends State<SignInScreen> {
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please select a user type';
+                          return isBn ? 'দয়া করে অ্যাকাউন্টের ধরণ নির্বাচন করুন' : 'Please select a user type';
                         }
                         return null;
                       },
                     ),
                   ],
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   TextFormField(
                     controller: _emailTEController,
                     textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(hintText: 'Email'),
-                    validator: Validators.validateEmail,
+                    decoration: InputDecoration(
+                      hintText: isBn ? 'ইমেইল এড্রেস' : 'Email',
+                      labelText: isBn ? 'ইমেইল' : 'Email',
+                      prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return isBn ? 'দয়া করে আপনার ইমেইল প্রদান করুন' : 'Please enter your email';
+                      }
+                      if (!EmailValidator.validate(value.trim())) {
+                        return isBn ? 'সঠিক ইমেইল এড্রেস লিখুন' : 'Enter a valid email';
+                      }
+                      return null;
+                    },
                   ),
                 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   TextFormField(
                     controller: _passwordTEController,
                     textInputAction: TextInputAction.done,
                     obscureText: _isPasswordObscured,
                     obscuringCharacter: '*',
                     decoration: InputDecoration(
-                      hintText: 'Password',
+                      hintText: isBn ? 'পাসওয়ার্ড' : 'Password',
+                      labelText: isBn ? 'পাসওয়ার্ড' : 'Password',
+                      prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isPasswordObscured
@@ -175,9 +209,17 @@ class _SignInScreenState extends State<SignInScreen> {
                         },
                       ),
                     ),
-                    validator: Validators.validatePassword,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return isBn ? 'দয়া করে পাসওয়ার্ড প্রদান করুন' : 'Enter your password';
+                      }
+                      if (value.length < 6) {
+                        return isBn ? 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে' : 'Enter a password more than 6 letters';
+                      }
+                      return null;
+                    },
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -193,22 +235,20 @@ class _SignInScreenState extends State<SignInScreen> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: Text(
-                        Localizations.localeOf(context).languageCode == 'bn'
-                            ? 'পাসওয়ার্ড ভুলে গেছেন?'
-                            : 'Forgot Password?',
+                        isBn ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot Password?',
                         style: const TextStyle(
-                          fontSize: 12.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColors.themeColor,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 18),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: _isLoading ? null : _onTapSignInButton,
+                      onPressed: _isLoading ? null : () => _onTapSignInButton(isBn),
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,
@@ -218,7 +258,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : Text(l10n.signIn),
+                          : Text(isBn ? 'লগইন করুন' : l10n.signIn),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -226,12 +266,12 @@ class _SignInScreenState extends State<SignInScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        l10n.doNotHaveAnAccount,
+                        isBn ? 'কোনো অ্যাকাউন্ট নেই?' : l10n.doNotHaveAnAccount,
                         style: context.textTheme.labelLarge,
                       ),
                       TextButton(
                         onPressed: _onTapSignUpNavigation,
-                        child: Text(l10n.signUp),
+                        child: Text(isBn ? 'রেজিস্ট্রেশন করুন' : l10n.signUp),
                       ),
                     ],
                   )
@@ -244,7 +284,7 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  Future<void> _onTapSignInButton() async {
+  Future<void> _onTapSignInButton(bool isBn) async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
@@ -273,25 +313,88 @@ class _SignInScreenState extends State<SignInScreen> {
           } else {
             await AuthService().signOut();
             if (mounted) {
+              final regRole = userType == 'House Owner'
+                  ? (isBn ? 'বাড়িওয়ালা (House Owner)' : 'House Owner')
+                  : (isBn ? 'ভাড়াটিয়া (Tenant)' : 'Tenant');
+              final selRole = _selectedUserType == 'House Owner'
+                  ? (isBn ? 'বাড়িওয়ালা (House Owner)' : 'House Owner')
+                  : (isBn ? 'ভাড়াটিয়া (Tenant)' : 'Tenant');
+
+              final message = isBn
+                  ? 'অননুমোদিত প্রবেশ। আপনি $regRole হিসেবে নিবন্ধিত, কিন্তু $selRole হিসেবে লগইন করতে চেয়েছেন।'
+                  : 'Unauthorized access. You are registered as $regRole, but trying to log in as $selRole.';
+
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Unauthorized access. Please login as $_selectedUserType.')),
+                SnackBar(
+                  content: Text(message),
+                  backgroundColor: Colors.red.shade700,
+                  behavior: SnackBarBehavior.floating,
+                ),
               );
             }
           }
         }
       } on FirebaseAuthException catch (e) {
         if (!mounted) return;
+        final errorMessage = _getLocalizedAuthErrorMessage(e, isBn);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? 'Login failed')),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       } catch (e) {
         if (!mounted) return;
+        final errorStr = isBn
+            ? 'লগইন ব্যর্থ হয়েছে। আপনার ইমেইল ও পাসওয়ার্ড যাচাই করে আবার চেষ্টা করুন।'
+            : 'Login failed. Please verify your email and password and try again.';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception:', '').trim())),
+          SnackBar(
+            content: Text(errorStr),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
+    }
+  }
+
+  String _getLocalizedAuthErrorMessage(FirebaseAuthException e, bool isBn) {
+    switch (e.code) {
+      case 'user-not-found':
+      case 'wrong-password':
+      case 'invalid-credential':
+      case 'INVALID_LOGIN_CREDENTIALS':
+        return isBn
+            ? 'ভুল ইমেইল বা পাসওয়ার্ড প্রদান করেছেন। দয়া করে সঠিক তথ্য দিন।'
+            : 'Incorrect email or password. Please check your credentials and try again.';
+      case 'invalid-email':
+        return isBn
+            ? 'ইমেইল ঠিকানাটি সঠিক নয়।'
+            : 'The email address is invalid.';
+      case 'user-disabled':
+        return isBn
+            ? 'এই ব্যবহারকারীর অ্যাকাউন্টটি নিষ্ক্রিয় করা হয়েছে। সহায়তার জন্য যোগাযোগ করুন।'
+            : 'This user account has been disabled. Please contact support.';
+      case 'too-many-requests':
+        return isBn
+            ? 'অতিরিক্ত ভুল চেষ্টার কারণে সাময়িকভাবে বন্ধ করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।'
+            : 'Too many unsuccessful attempts. Please try again later.';
+      case 'network-request-failed':
+        return isBn
+            ? 'ইন্টারনেট সংযোগে সমস্যা হচ্ছে। আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।'
+            : 'Network error. Please check your internet connection.';
+      case 'operation-not-allowed':
+        return isBn
+            ? 'এই মাধ্যমে লগইন বর্তমানে বন্ধ রয়েছে।'
+            : 'Sign-in with email and password is not enabled.';
+      default:
+        return isBn
+            ? 'ভুল ইমেইল বা পাসওয়ার্ড প্রদান করেছেন। দয়া করে সঠিক তথ্য দিন।'
+            : (e.message ?? 'Login failed. Please check your credentials and try again.');
     }
   }
 
