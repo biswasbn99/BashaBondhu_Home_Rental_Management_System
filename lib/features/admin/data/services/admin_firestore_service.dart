@@ -555,8 +555,6 @@ class AdminFirestoreService {
     'youtubeUrl': 'https://youtube.com/@bashabondhu',
     'whatsappNumber': '+8801700000000',
     'websiteUrl': 'https://bashabondhu.com',
-    'termsAndConditions': 'BashaBondhu Terms & Conditions:\n1. All listings must be accurate and authentic.\n2. Users must respect privacy and security regulations.',
-    'privacyPolicy': 'BashaBondhu Privacy Policy:\n1. We protect your personal information.\n2. NID verification data is encrypted and securely reviewed.',
     'autoApprovalEnabled': true,
     'autoApproveProperties': true,
     'autoApproveDemands': true,

@@ -8,7 +8,6 @@ enum AdminModule {
   properties,
   subscriptions,
   locations,
-  categories,
   reports,
   policies,
   faq,

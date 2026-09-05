@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
 import '../../../../app/providers/theme_provider.dart';
-import '../../../ai_assistant/presentation/screens/ai_assistant_screen.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../data/providers/admin_provider.dart';
 import '../../data/services/admin_firestore_service.dart';
@@ -152,13 +151,6 @@ class AdminSidebar extends StatelessWidget {
                     isDark: isDark,
                   ),
                   _SidebarItem(
-                    icon: Icons.category_rounded,
-                    label: isBn ? 'ক্যাটাগরি' : 'Categories',
-                    module: AdminModule.categories,
-                    isSelected: adminProvider.currentModule == AdminModule.categories,
-                    isDark: isDark,
-                  ),
-                  _SidebarItem(
                     icon: Icons.report_problem_rounded,
                     label: isBn ? 'অভিযোগ / রিপোর্ট' : 'Reports',
                     module: AdminModule.reports,
@@ -192,52 +184,6 @@ class AdminSidebar extends StatelessWidget {
                     module: AdminModule.settings,
                     isSelected: adminProvider.currentModule == AdminModule.settings,
                     isDark: isDark,
-                  ),
-                  const SizedBox(height: 12),
-                  // AI Assistant Item
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.pushNamed(context, AIAssistantScreen.name);
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF00A896), Color(0xFF0284C7)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF00A896).withValues(alpha: isDark ? 0.4 : 0.25),
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                isBn ? 'এআই অ্যাডমিন সহকারী' : 'AI Admin Assistant',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                            const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 12),
-                          ],
-                        ),
-                      ),
-                    ),
                   ),
                 ],
               ),

@@ -319,8 +319,6 @@ class AdminLayout extends StatelessWidget {
         return Icons.card_membership_rounded;
       case AdminModule.locations:
         return Icons.location_on_rounded;
-      case AdminModule.categories:
-        return Icons.category_rounded;
       case AdminModule.reports:
         return Icons.report_problem_rounded;
       case AdminModule.policies:
@@ -346,8 +344,6 @@ class AdminLayout extends StatelessWidget {
         return isBn ? 'সাবস্ক্রিপশন ও অফার ম্যানেজমেন্ট' : 'Subscription & Offer Management';
       case AdminModule.locations:
         return isBn ? 'লোকেশন' : 'Location Management';
-      case AdminModule.categories:
-        return isBn ? 'ক্যাটাগরি' : 'Category Management';
       case AdminModule.reports:
         return isBn ? 'রিপোর্ট ও অভিযোগ' : 'Reports Management';
       case AdminModule.policies:

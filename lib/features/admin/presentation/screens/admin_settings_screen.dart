@@ -25,8 +25,6 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   late TextEditingController _youtubeUrlController;
   late TextEditingController _whatsappNumberController;
   late TextEditingController _websiteUrlController;
-  late TextEditingController _termsController;
-  late TextEditingController _privacyController;
 
   bool _isInitialized = false;
 
@@ -42,8 +40,6 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
     _youtubeUrlController = TextEditingController();
     _whatsappNumberController = TextEditingController();
     _websiteUrlController = TextEditingController();
-    _termsController = TextEditingController();
-    _privacyController = TextEditingController();
   }
 
   @override
@@ -57,8 +53,6 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
     _youtubeUrlController.dispose();
     _whatsappNumberController.dispose();
     _websiteUrlController.dispose();
-    _termsController.dispose();
-    _privacyController.dispose();
     super.dispose();
   }
 
@@ -73,8 +67,6 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
     _youtubeUrlController.text = data['youtubeUrl']?.toString() ?? '';
     _whatsappNumberController.text = data['whatsappNumber']?.toString() ?? '';
     _websiteUrlController.text = data['websiteUrl']?.toString() ?? '';
-    _termsController.text = data['termsAndConditions']?.toString() ?? '';
-    _privacyController.text = data['privacyPolicy']?.toString() ?? '';
     _isInitialized = true;
   }
 
@@ -89,8 +81,6 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
       'youtubeUrl': _youtubeUrlController.text.trim(),
       'whatsappNumber': _whatsappNumberController.text.trim(),
       'websiteUrl': _websiteUrlController.text.trim(),
-      'termsAndConditions': _termsController.text.trim(),
-      'privacyPolicy': _privacyController.text.trim(),
     };
 
     await _adminService.saveSettings(data);
@@ -152,8 +142,8 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                         const SizedBox(height: 4),
                         Text(
                           isBn
-                              ? 'অ্যাপের নাম, যোগাযোগ, সোশাল লিংক ও নীতিমালা পরিচালনা করুন'
-                              : 'Manage branding, contact info, social links, and legal policies',
+                              ? 'অ্যাপের নাম, সাধারণ ব্র্যান্ডিং, যোগাযোগ ও সোশাল লিংক পরিচালনা করুন'
+                              : 'Manage branding, contact info, and social links',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -265,19 +255,6 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                         }
                       },
                     ),
-                  ],
-                ),
-                const SizedBox(height: 18),
-
-                // 4. Legal Policies
-                _buildCard(
-                  title: isBn ? 'নীতিমালা ও শর্তাবলী (Legal Policies)' : 'Legal Policies',
-                  icon: Icons.policy_rounded,
-                  isDark: isDark,
-                  children: [
-                    _buildTextField(_termsController, isBn ? 'শর্তাবলী (Terms & Conditions)' : 'Terms & Conditions', Icons.gavel_rounded, maxLines: 4),
-                    const SizedBox(height: 12),
-                    _buildTextField(_privacyController, isBn ? 'গোপনীয়তা নীতি (Privacy Policy)' : 'Privacy Policy', Icons.privacy_tip_rounded, maxLines: 4),
                   ],
                 ),
               ],
