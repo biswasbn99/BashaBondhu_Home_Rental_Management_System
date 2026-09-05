@@ -172,13 +172,6 @@ class AdminSidebar extends StatelessWidget {
                     isDark: isDark,
                   ),
                   _SidebarItem(
-                    icon: Icons.analytics_rounded,
-                    label: isBn ? 'অ্যানালিটিক্স' : 'Analytics',
-                    module: AdminModule.analytics,
-                    isSelected: adminProvider.currentModule == AdminModule.analytics,
-                    isDark: isDark,
-                  ),
-                  _SidebarItem(
                     icon: Icons.settings_rounded,
                     label: isBn ? 'সেটিংস' : 'Settings',
                     module: AdminModule.settings,
