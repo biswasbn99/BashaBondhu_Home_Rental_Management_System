@@ -1,5 +1,6 @@
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/widgets/app_logo.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/basha_bondhu_title.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/language_action_button.dart';
 import 'package:flutter/material.dart';
 
 class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -26,7 +27,10 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       automaticallyImplyLeading: automaticallyImplyLeading,
       titleSpacing: titleSpacing,
-      actions: actions,
+      actions: actions ??
+          const [
+            LanguageActionButton(),
+          ],
       centerTitle: false,
       title: title ?? const FittedBox(
         fit: BoxFit.scaleDown,

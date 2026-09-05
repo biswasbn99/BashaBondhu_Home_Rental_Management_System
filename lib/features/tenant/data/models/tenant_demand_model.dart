@@ -42,10 +42,16 @@ class TenantDemandModel {
   final String tenantVerificationStatus;
   final DateTime postDate;
   final bool isFulfilled;
+  final String approvalStatus; // 'approved', 'pending', 'rejected'
+  final String? rejectionReason;
+  final DateTime? approvedAt;
 
   bool get isTenantVerified => tenantVerificationStatus.toLowerCase() == 'verified';
   bool get isTenantPending => tenantVerificationStatus.toLowerCase() == 'pending';
   bool get isTenantUnverified => !isTenantVerified && !isTenantPending;
+  bool get isApproved => approvalStatus == 'approved';
+  bool get isPendingApproval => approvalStatus == 'pending';
+  bool get isRejected => approvalStatus == 'rejected';
 
   TenantDemandModel({
     required this.id,
@@ -82,6 +88,9 @@ class TenantDemandModel {
     this.detailedDescription = '',
     required this.postDate,
     this.isFulfilled = false,
+    this.approvalStatus = 'approved',
+    this.rejectionReason,
+    this.approvedAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -119,6 +128,9 @@ class TenantDemandModel {
       'detailedDescription': detailedDescription,
       'postDate': Timestamp.fromDate(postDate),
       'isFulfilled': isFulfilled,
+      'approvalStatus': approvalStatus,
+      'rejectionReason': rejectionReason,
+      'approvedAt': approvedAt?.toIso8601String(),
     };
   }
 
@@ -224,6 +236,9 @@ class TenantDemandModel {
       detailedDescription: map['detailedDescription']?.toString() ?? '',
       postDate: parseDate(map['postDate']),
       isFulfilled: parseBool(map['isFulfilled']) ?? false,
+      approvalStatus: map['approvalStatus']?.toString() ?? 'approved',
+      rejectionReason: map['rejectionReason']?.toString(),
+      approvedAt: map['approvedAt'] != null ? parseDate(map['approvedAt']) : null,
     );
   }
 
@@ -262,6 +277,9 @@ class TenantDemandModel {
     String? detailedDescription,
     DateTime? postDate,
     bool? isFulfilled,
+    String? approvalStatus,
+    String? rejectionReason,
+    DateTime? approvedAt,
   }) {
     return TenantDemandModel(
       id: id ?? this.id,
@@ -298,6 +316,9 @@ class TenantDemandModel {
       detailedDescription: detailedDescription ?? this.detailedDescription,
       postDate: postDate ?? this.postDate,
       isFulfilled: isFulfilled ?? this.isFulfilled,
+      approvalStatus: approvalStatus ?? this.approvalStatus,
+      rejectionReason: rejectionReason ?? this.rejectionReason,
+      approvedAt: approvedAt ?? this.approvedAt,
     );
   }
 }

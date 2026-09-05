@@ -444,6 +444,9 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
       latitude: _latitude,
       longitude: _longitude,
       postDate: widget.property.postDate,
+      approvalStatus: 'pending',
+      isAvailable: false,
+      rejectionReason: '',
     );
 
     if (!mounted) return;
@@ -455,7 +458,7 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isBn ? '🎉 আপনার পোস্ট সফলভাবে আপডেট করা হয়েছে!' : '🎉 Post updated successfully!',
+              isBn ? '🎉 আপনার পোস্টটি আপডেট করে পুনরায় পর্যালোচনার জন্য জমা দেওয়া হয়েছে!' : '🎉 Post updated and submitted for admin review!',
             ),
             backgroundColor: Colors.green,
           ),

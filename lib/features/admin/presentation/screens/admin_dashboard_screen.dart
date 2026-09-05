@@ -99,7 +99,25 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                                 totalDemands: totalDemands,
                                 pendingProperties: pendingProperties,
                               ),
-                              const SizedBox(height: 22),
+                              const SizedBox(height: 18),
+
+                              // 1.1 Urgent Pending Appeals Alert Banner (if any pending)
+                              Builder(
+                                builder: (context) {
+                                  final pendingAppeals = users.where((u) => u.appealStatus == 'pending').toList();
+                                  if (pendingAppeals.isEmpty) return const SizedBox.shrink();
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 20),
+                                    child: _buildPendingAppealsAlertBanner(
+                                      context: context,
+                                      isBn: isBn,
+                                      isDark: isDark,
+                                      pendingAppeals: pendingAppeals,
+                                      adminProvider: adminProvider,
+                                    ),
+                                  );
+                                },
+                              ),
 
                               // 2. Comprehensive Real-time KPI Metric Cards (4 Cards Side by Side on Web)
                               _buildSectionHeader(
@@ -478,6 +496,135 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 1.1 Urgent Pending Appeals Alert Banner ---
+  Widget _buildPendingAppealsAlertBanner({
+    required BuildContext context,
+    required bool isBn,
+    required bool isDark,
+    required List<UserModel> pendingAppeals,
+    required AdminProvider adminProvider,
+  }) {
+    final latestUser = pendingAppeals.first;
+    final latestName = latestUser.fullName.isNotEmpty
+        ? latestUser.fullName
+        : "${latestUser.firstName} ${latestUser.lastName}".trim();
+    final displayName = latestName.isNotEmpty ? latestName : latestUser.email;
+    final userMsg = latestUser.appealNote.isNotEmpty ? latestUser.appealNote : 'No message';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF2C1905), const Color(0xFF1F1203)]
+              : [const Color(0xFFFFFBEB), const Color(0xFFFEF3C7)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.amber.shade700.withValues(alpha: isDark ? 0.6 : 0.4),
+          width: 1.4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.amber.withValues(alpha: isDark ? 0.15 : 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 16,
+        runSpacing: 12,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade600.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber.shade700.withValues(alpha: 0.4)),
+                ),
+                child: Icon(Icons.gavel_rounded, color: isDark ? Colors.amber.shade300 : Colors.amber.shade800, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          isBn
+                              ? '⚖️ অ্যাকাউন্ট আনব্লক আবেদন অপেক্ষারত (${pendingAppeals.length} টি)'
+                              : '⚖️ Account Reclaim Appeals Pending (${pendingAppeals.length})',
+                          style: TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w900,
+                            color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            isBn ? 'জরুরি' : 'URGENT',
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '"$displayName": $userMsg',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.amber.shade700,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 2,
+            ),
+            icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+            label: Text(
+              isBn ? 'আবেদনসমূহ পর্যালোচনা করুন' : 'Review All Appeals',
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+            ),
+            onPressed: () {
+              adminProvider.setUserManagementFilter('Appeals');
+              adminProvider.changeModule(AdminModule.users);
+            },
           ),
         ],
       ),

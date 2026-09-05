@@ -293,6 +293,73 @@ class _MyDemandCard extends StatelessWidget {
             ),
           ),
 
+          // --- Live Approval Status Banner (Pending Review / Rejected) ---
+          if (demand.isPendingApproval)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: Colors.amber.withValues(alpha: isDark ? 0.25 : 0.12),
+              child: Row(
+                children: [
+                  Icon(Icons.hourglass_top_rounded, size: 15, color: isDark ? Colors.amberAccent : Colors.amber.shade900),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      languageCode == 'bn'
+                          ? '⏳ পর্যালোচনায় রয়েছে: অ্যাডমিন অনুমোদনের পর চাহিদা পোস্টটি বাড়িওয়ালারা দেখতে পাবেন।'
+                          : '⏳ Under Review: This demand post is awaiting admin approval before being visible to house owners.',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.amberAccent : Colors.amber.shade900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (demand.isRejected)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: Colors.red.withValues(alpha: isDark ? 0.25 : 0.12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.cancel_rounded, size: 15, color: Colors.redAccent),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          languageCode == 'bn'
+                              ? '❌ চাহিদা পোস্টটি প্রত্যাখ্যান করা হয়েছে'
+                              : '❌ Demand post has been rejected',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                        if (demand.rejectionReason != null && demand.rejectionReason!.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            '${languageCode == "bn" ? "কারণ" : "Reason"}: ${demand.rejectionReason}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.red[200] : Colors.red[900],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // Details Body
           Padding(
             padding: const EdgeInsets.all(16),
@@ -364,7 +431,7 @@ class _MyDemandCard extends StatelessWidget {
                       const Icon(Icons.chat_outlined, size: 14, color: Colors.green),
                       const SizedBox(width: 4),
                       Text(
-                        'হোয়াটসঅ্যাপ যুক্ত',
+                        languageCode == 'bn' ? 'হোয়াটসঅ্যাপ যুক্ত' : 'WhatsApp Linked',
                         style: TextStyle(fontSize: 11.5, color: Colors.green[700], fontWeight: FontWeight.w500),
                       ),
                     ],
@@ -415,8 +482,8 @@ class _MyDemandCard extends StatelessWidget {
                 ),
                 label: Text(
                   demand.isFulfilled
-                      ? (languageCode == 'bn' ? 'পুনরায় খুঁজছি (Show Demand)' : 'Reopen Demand (Show Post)')
-                      : (languageCode == 'bn' ? 'বাসা পাওয়া গেছে (Hide Demand)' : 'Found Home (Hide Demand)'),
+                      ? (languageCode == 'bn' ? 'পুনরায় খুঁজছি' : 'Reopen Demand')
+                      : (languageCode == 'bn' ? 'বাসা পাওয়া গেছে' : 'Found Home'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
                 ),
                 onPressed: () => _confirmToggleFulfilled(context, languageCode),
@@ -477,7 +544,7 @@ class _MyDemandCard extends StatelessWidget {
                     ),
                     onPressed: () => _confirmDelete(context, l10n),
                     icon: const Icon(Icons.delete_outline_rounded, size: 16),
-                    label: Text(l10n.deletePhoto, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    label: Text(languageCode == 'bn' ? 'মুছে ফেলুন' : 'Delete', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],

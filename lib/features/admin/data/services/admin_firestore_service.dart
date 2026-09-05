@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../home/data/models/property_model.dart';
+import '../../../shared/data/models/app_notification_model.dart';
+import '../../../shared/data/services/notification_firestore_service.dart';
+import '../../../tenant/data/models/tenant_demand_model.dart';
 
 class AdminFirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -9,6 +12,7 @@ class AdminFirestoreService {
   // Collection References
   CollectionReference get _usersCollection => _firestore.collection('users');
   CollectionReference get _propertiesCollection => _firestore.collection('properties');
+  CollectionReference get _demandsCollection => _firestore.collection('tenant_demands');
   CollectionReference get _reportsCollection => _firestore.collection('reports');
   CollectionReference get _categoriesCollection => _firestore.collection('categories');
   CollectionReference get _faqsCollection => _firestore.collection('faqs');
@@ -45,11 +49,55 @@ class AdminFirestoreService {
     });
   }
 
-  Future<void> updateUserBlockStatus(String uid, bool isBlocked) async {
-    await _usersCollection.doc(uid).set({
+  Future<void> updateUserBlockStatus(String uid, bool isBlocked, {String? reason}) async {
+    final Map<String, dynamic> updateData = {
       'isBlocked': isBlocked,
       'updatedAt': FieldValue.serverTimestamp(),
+    };
+    if (isBlocked) {
+      updateData['blockReason'] = (reason != null && reason.trim().isNotEmpty)
+          ? reason.trim()
+          : 'Account suspended due to policy violation';
+      updateData['blockedAt'] = DateTime.now().toIso8601String();
+      updateData['appealStatus'] = 'none';
+      updateData['appealFeedback'] = '';
+    } else {
+      updateData['blockReason'] = '';
+      updateData['appealStatus'] = 'approved';
+    }
+    await _usersCollection.doc(uid).set(updateData, SetOptions(merge: true));
+  }
+
+  Future<void> submitUserAppeal(String uid, {required String note, required String contact}) async {
+    await _usersCollection.doc(uid).set({
+      'appealStatus': 'pending',
+      'appealNote': note.trim(),
+      'appealContact': contact.trim(),
+      'appealAt': DateTime.now().toIso8601String(),
+      'appealFeedback': '',
+      'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+  }
+
+  Future<void> resolveUserAppeal(String uid, {required bool approve, String? adminFeedback}) async {
+    final Map<String, dynamic> updateData = {
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+    if (approve) {
+      updateData['isBlocked'] = false;
+      updateData['blockReason'] = '';
+      updateData['appealStatus'] = 'approved';
+      updateData['appealFeedback'] = (adminFeedback != null && adminFeedback.trim().isNotEmpty)
+          ? adminFeedback.trim()
+          : 'Appeal approved by administration. Account restored.';
+    } else {
+      updateData['isBlocked'] = true;
+      updateData['appealStatus'] = 'rejected';
+      updateData['appealFeedback'] = (adminFeedback != null && adminFeedback.trim().isNotEmpty)
+          ? adminFeedback.trim()
+          : 'Appeal rejected after review.';
+    }
+    await _usersCollection.doc(uid).set(updateData, SetOptions(merge: true));
   }
 
   Future<void> updateUserNidStatus(String uid, String status, {String? reason}) async {
@@ -102,19 +150,204 @@ class AdminFirestoreService {
   }
 
   Future<void> updatePropertyApproval(String propertyId, String status, {String? reason}) async {
+    final bool isApproved = status == 'approved';
     final Map<String, dynamic> updateData = {
       'approvalStatus': status, // 'approved', 'pending', 'rejected'
-      'isApproved': status == 'approved',
+      'isApproved': isApproved,
+      'isAvailable': isApproved,
       'approvalDate': FieldValue.serverTimestamp(),
+      'approvedAt': isApproved ? DateTime.now().toIso8601String() : null,
     };
     if (reason != null && reason.isNotEmpty) {
       updateData['rejectionReason'] = reason;
+    } else if (isApproved) {
+      updateData['rejectionReason'] = '';
     }
     await _propertiesCollection.doc(propertyId).set(updateData, SetOptions(merge: true));
+
+    // Send Notification to House Owner
+    try {
+      final docSnap = await _propertiesCollection.doc(propertyId).get();
+      if (docSnap.exists && docSnap.data() != null) {
+        final data = Map<String, dynamic>.from(docSnap.data() as Map);
+        final ownerId = (data['ownerId'] as String? ?? '').trim();
+        final ownerEmail = (data['ownerEmail'] as String? ?? '').trim();
+        final postTitle = (data['shortAddress'] as String? ?? '').isNotEmpty
+            ? data['shortAddress'] as String
+            : (data['houseType'] as String? ?? 'Property');
+
+        if (status == 'rejected') {
+          final rejectMsg = (reason != null && reason.trim().isNotEmpty)
+              ? reason.trim()
+              : 'Does not comply with community guidelines';
+          await NotificationFirestoreService().createNotification(
+            AppNotificationModel(
+              id: '',
+              recipientType: 'user',
+              recipientId: ownerId,
+              recipientEmail: ownerEmail,
+              title: 'Post Rejected by Admin',
+              titleBn: 'আপনার বিজ্ঞাপনটি প্রত্যাখ্যান করা হয়েছে',
+              message: 'Your property listing "$postTitle" was rejected. Reason: $rejectMsg. Please edit and resubmit.',
+              messageBn: 'আপনার বাড়িভাড়া বিজ্ঞাপন "$postTitle" অ্যাডমিন কর্তৃক প্রত্যাখ্যাত হয়েছে। কারণ: $rejectMsg। অনুগ্রহ করে বিজ্ঞাপনটি সংশোধন করে পুনরায় জমা দিন।',
+              type: 'post_rejected',
+              targetType: 'property',
+              targetId: propertyId,
+              data: {
+                'propertyId': propertyId,
+                'postTitle': postTitle,
+                'rejectionReason': rejectMsg,
+                'amount': data['amount'] ?? '',
+                'category': 'Listing',
+              },
+              createdAt: DateTime.now(),
+            ),
+          );
+        } else if (status == 'approved') {
+          await NotificationFirestoreService().createNotification(
+            AppNotificationModel(
+              id: '',
+              recipientType: 'user',
+              recipientId: ownerId,
+              recipientEmail: ownerEmail,
+              title: 'Property Listing Approved!',
+              titleBn: 'বাড়িভাড়া বিজ্ঞাপন অনুমোদিত হয়েছে!',
+              message: 'Your property listing "$postTitle" has been approved by admin and is now live.',
+              messageBn: 'আপনার বাড়িভাড়া বিজ্ঞাপন "$postTitle" অ্যাডমিন কর্তৃক অনুমোদিত হয়েছে এবং এটি এখন লাইভ।',
+              type: 'post_approved',
+              targetType: 'property',
+              targetId: propertyId,
+              data: {
+                'propertyId': propertyId,
+                'postTitle': postTitle,
+                'amount': data['amount'] ?? '',
+                'category': 'Listing',
+              },
+              createdAt: DateTime.now(),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error sending property notification: $e');
+    }
   }
 
   Future<void> deleteProperty(String propertyId) async {
     await _propertiesCollection.doc(propertyId).delete();
+  }
+
+  // ==========================================================================
+  // 2.1 TENANT DEMAND MANAGEMENT
+  // ==========================================================================
+
+  Stream<List<TenantDemandModel>> streamAllDemands() {
+    return _demandsCollection
+        .orderBy('postDate', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      final List<TenantDemandModel> list = [];
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          if (data is Map<String, dynamic>) {
+            list.add(TenantDemandModel.fromMap(data, doc.id));
+          } else if (data is Map) {
+            list.add(TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id));
+          }
+        } catch (e) {
+          debugPrint('Error parsing demand doc ${doc.id}: $e');
+        }
+      }
+      return list;
+    });
+  }
+
+  Future<void> updateDemandApproval(String demandId, String status, {String? reason}) async {
+    final bool isApproved = status == 'approved';
+    final Map<String, dynamic> updateData = {
+      'approvalStatus': status, // 'approved', 'pending', 'rejected'
+      'isApproved': isApproved,
+      'approvalDate': FieldValue.serverTimestamp(),
+      'approvedAt': isApproved ? DateTime.now().toIso8601String() : null,
+    };
+    if (reason != null && reason.isNotEmpty) {
+      updateData['rejectionReason'] = reason;
+    } else if (isApproved) {
+      updateData['rejectionReason'] = '';
+    }
+    await _demandsCollection.doc(demandId).set(updateData, SetOptions(merge: true));
+
+    // Send Notification to Tenant
+    try {
+      final docSnap = await _demandsCollection.doc(demandId).get();
+      if (docSnap.exists && docSnap.data() != null) {
+        final data = Map<String, dynamic>.from(docSnap.data() as Map);
+        final tenantId = (data['tenantId'] as String? ?? '').trim();
+        final tenantEmail = (data['tenantEmail'] as String? ?? '').trim();
+        final houseTypeName = (data['houseType'] as String? ?? 'Demand');
+        final monthName = (data['month'] as String? ?? '');
+        final postTitle = '$houseTypeName ($monthName)';
+
+        if (status == 'rejected') {
+          final rejectMsg = (reason != null && reason.trim().isNotEmpty)
+              ? reason.trim()
+              : 'Does not comply with community guidelines';
+          await NotificationFirestoreService().createNotification(
+            AppNotificationModel(
+              id: '',
+              recipientType: 'user',
+              recipientId: tenantId,
+              recipientEmail: tenantEmail,
+              title: 'Demand Post Rejected by Admin',
+              titleBn: 'আপনার চাহিদা পোস্টটি প্রত্যাখ্যান করা হয়েছে',
+              message: 'Your demand post "$postTitle" was rejected. Reason: $rejectMsg. Please edit and resubmit.',
+              messageBn: 'আপনার ভাড়াটিয়া চাহিদা পোস্ট "$postTitle" অ্যাডমিন কর্তৃক প্রত্যাখ্যাত হয়েছে। কারণ: $rejectMsg। অনুগ্রহ করে চাহিদাটি সংশোধন করে পুনরায় জমা দিন।',
+              type: 'post_rejected',
+              targetType: 'demand',
+              targetId: demandId,
+              data: {
+                'demandId': demandId,
+                'postTitle': postTitle,
+                'rejectionReason': rejectMsg,
+                'budget': data['budgetRange'] ?? '',
+                'category': 'Demand',
+              },
+              createdAt: DateTime.now(),
+            ),
+          );
+        } else if (status == 'approved') {
+          await NotificationFirestoreService().createNotification(
+            AppNotificationModel(
+              id: '',
+              recipientType: 'user',
+              recipientId: tenantId,
+              recipientEmail: tenantEmail,
+              title: 'Tenant Demand Approved!',
+              titleBn: 'ভাড়াটিয়া চাহিদা অনুমোদিত হয়েছে!',
+              message: 'Your demand post "$postTitle" has been approved by admin and is now visible to house owners.',
+              messageBn: 'আপনার ভাড়াটিয়া চাহিদা পোস্ট "$postTitle" অনুমোদিত হয়েছে এবং বাড়িওয়ালারা এটি এখন দেখতে পাবেন।',
+              type: 'post_approved',
+              targetType: 'demand',
+              targetId: demandId,
+              data: {
+                'demandId': demandId,
+                'postTitle': postTitle,
+                'budget': data['budgetRange'] ?? '',
+                'category': 'Demand',
+              },
+              createdAt: DateTime.now(),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error sending demand notification: $e');
+    }
+  }
+
+  Future<void> deleteDemand(String demandId) async {
+    await _demandsCollection.doc(demandId).delete();
   }
 
   // ==========================================================================
@@ -277,6 +510,34 @@ class AdminFirestoreService {
     });
   }
 
+  Stream<bool> streamAutoApprovalSetting() {
+    return _settingsDoc.snapshots().map((snapshot) {
+      if (!snapshot.exists || snapshot.data() == null) return true;
+      final data = snapshot.data() as Map<String, dynamic>;
+      return (data['autoApprovalEnabled'] as bool?) ?? true;
+    });
+  }
+
+  Future<bool> getAutoApprovalStatus() async {
+    try {
+      final doc = await _settingsDoc.get();
+      if (!doc.exists || doc.data() == null) return true;
+      final data = doc.data() as Map<String, dynamic>;
+      return (data['autoApprovalEnabled'] as bool?) ?? true;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  Future<void> toggleAutoApproval(bool enabled) async {
+    await _settingsDoc.set({
+      'autoApprovalEnabled': enabled,
+      'autoApproveProperties': enabled,
+      'autoApproveDemands': enabled,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   Future<void> saveSettings(Map<String, dynamic> data) async {
     data['updatedAt'] = FieldValue.serverTimestamp();
     await _settingsDoc.set(data, SetOptions(merge: true));
@@ -296,6 +557,9 @@ class AdminFirestoreService {
     'websiteUrl': 'https://bashabondhu.com',
     'termsAndConditions': 'BashaBondhu Terms & Conditions:\n1. All listings must be accurate and authentic.\n2. Users must respect privacy and security regulations.',
     'privacyPolicy': 'BashaBondhu Privacy Policy:\n1. We protect your personal information.\n2. NID verification data is encrypted and securely reviewed.',
+    'autoApprovalEnabled': true,
+    'autoApproveProperties': true,
+    'autoApproveDemands': true,
   };
 
   Future<void> _seedDefaultSettings() async {

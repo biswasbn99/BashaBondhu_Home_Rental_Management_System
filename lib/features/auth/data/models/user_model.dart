@@ -18,6 +18,16 @@ class UserModel {
   final String verificationStatus; // 'verified', 'pending', 'unverified', 'rejected'
   final String verificationFeedback; // Feedback reason if rejected / correction needed
 
+  // Block & Appeal Fields
+  final bool isBlocked;
+  final String blockReason;
+  final String blockedAt;
+  final String appealStatus; // 'none', 'pending', 'approved', 'rejected'
+  final String appealNote;
+  final String appealContact;
+  final String appealAt;
+  final String appealFeedback;
+
   // Subscription & Gating Fields
   final List<String> unlockedPropertyIds; // properties unlocked by tenant
   final List<String> unlockedDemandIds;   // demands unlocked by house owner
@@ -42,6 +52,14 @@ class UserModel {
     String? createdAt,
     this.verificationStatus = 'unverified',
     this.verificationFeedback = '',
+    this.isBlocked = false,
+    this.blockReason = '',
+    this.blockedAt = '',
+    this.appealStatus = 'none',
+    this.appealNote = '',
+    this.appealContact = '',
+    this.appealAt = '',
+    this.appealFeedback = '',
     this.unlockedPropertyIds = const [],
     this.unlockedDemandIds = const [],
     this.radiusSearchCount = 0,
@@ -153,6 +171,14 @@ class UserModel {
       'verificationStatus': verificationStatus,
       'verificationFeedback': verificationFeedback,
       'isVerified': isVerified,
+      'isBlocked': isBlocked,
+      'blockReason': blockReason,
+      'blockedAt': blockedAt,
+      'appealStatus': appealStatus,
+      'appealNote': appealNote,
+      'appealContact': appealContact,
+      'appealAt': appealAt,
+      'appealFeedback': appealFeedback,
       'unlockedPropertyIds': unlockedPropertyIds,
       'unlockedDemandIds': unlockedDemandIds,
       'radiusSearchCount': radiusSearchCount,
@@ -195,6 +221,14 @@ class UserModel {
       createdAt: map['createdAt'] ?? '',
       verificationStatus: status,
       verificationFeedback: feedback,
+      isBlocked: map['isBlocked'] == true,
+      blockReason: map['blockReason'] ?? '',
+      blockedAt: map['blockedAt'] ?? '',
+      appealStatus: map['appealStatus'] ?? 'none',
+      appealNote: map['appealNote'] ?? '',
+      appealContact: map['appealContact'] ?? '',
+      appealAt: map['appealAt'] ?? '',
+      appealFeedback: map['appealFeedback'] ?? '',
       unlockedPropertyIds: List<String>.from(map['unlockedPropertyIds'] ?? []),
       unlockedDemandIds: List<String>.from(map['unlockedDemandIds'] ?? []),
       radiusSearchCount: (map['radiusSearchCount'] as num?)?.toInt() ?? 0,
@@ -220,6 +254,14 @@ class UserModel {
     String? createdAt,
     String? verificationStatus,
     String? verificationFeedback,
+    bool? isBlocked,
+    String? blockReason,
+    String? blockedAt,
+    String? appealStatus,
+    String? appealNote,
+    String? appealContact,
+    String? appealAt,
+    String? appealFeedback,
     List<String>? unlockedPropertyIds,
     List<String>? unlockedDemandIds,
     int? radiusSearchCount,
@@ -243,6 +285,14 @@ class UserModel {
       createdAt: createdAt ?? this.createdAt,
       verificationStatus: verificationStatus ?? this.verificationStatus,
       verificationFeedback: verificationFeedback ?? this.verificationFeedback,
+      isBlocked: isBlocked ?? this.isBlocked,
+      blockReason: blockReason ?? this.blockReason,
+      blockedAt: blockedAt ?? this.blockedAt,
+      appealStatus: appealStatus ?? this.appealStatus,
+      appealNote: appealNote ?? this.appealNote,
+      appealContact: appealContact ?? this.appealContact,
+      appealAt: appealAt ?? this.appealAt,
+      appealFeedback: appealFeedback ?? this.appealFeedback,
       unlockedPropertyIds: unlockedPropertyIds ?? this.unlockedPropertyIds,
       unlockedDemandIds: unlockedDemandIds ?? this.unlockedDemandIds,
       radiusSearchCount: radiusSearchCount ?? this.radiusSearchCount,

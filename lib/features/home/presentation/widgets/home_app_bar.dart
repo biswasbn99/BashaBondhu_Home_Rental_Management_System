@@ -10,10 +10,8 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: const AppLogo(height: 40, width: 40),
       actions: [
         _buildIconButton(icon: Icons.person, onTap: () {}),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         _buildIconButton(icon: Icons.call, onTap: () {}),
-        SizedBox(width: 8),
-        _buildIconButton(icon: Icons.notifications, onTap: () {}),
       ],
          bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),

@@ -42,11 +42,17 @@ class PropertyModel {
   final String ownerVerificationStatus;
   final DateTime postDate;
   final bool isAvailable;
+  final String approvalStatus; // 'approved', 'pending', 'rejected'
+  final String? rejectionReason;
+  final DateTime? approvedAt;
 
   bool get isRentedOut => !isAvailable;
   bool get isOwnerVerified => ownerVerificationStatus.toLowerCase() == 'verified';
   bool get isOwnerPending => ownerVerificationStatus.toLowerCase() == 'pending';
   bool get isOwnerUnverified => !isOwnerVerified && !isOwnerPending;
+  bool get isApproved => approvalStatus == 'approved';
+  bool get isPendingApproval => approvalStatus == 'pending';
+  bool get isRejected => approvalStatus == 'rejected';
 
   PropertyModel({
     required this.id,
@@ -85,6 +91,9 @@ class PropertyModel {
     this.longitude,
     required this.postDate,
     this.isAvailable = true,
+    this.approvalStatus = 'approved',
+    this.rejectionReason,
+    this.approvedAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -124,6 +133,9 @@ class PropertyModel {
       'longitude': longitude,
       'postDate': postDate.toIso8601String(),
       'isAvailable': isAvailable,
+      'approvalStatus': approvalStatus,
+      'rejectionReason': rejectionReason,
+      'approvedAt': approvedAt?.toIso8601String(),
     };
   }
 
@@ -245,11 +257,13 @@ class PropertyModel {
       hasSecurityGuard: parseBool(map['hasSecurityGuard']),
       hasLift: parseBool(map['hasLift']),
       hasParking: parseBool(map['hasParking']),
-      marketDistance: map['marketDistance']?.toString(),
-      latitude: parseDouble(map['latitude']),
       longitude: parseDouble(map['longitude']),
       postDate: parseDate(map['postDate'] ?? map['createdAt'] ?? map['timestamp']),
       isAvailable: parseBool(map['isAvailable']) ?? true,
+      approvalStatus: map['approvalStatus']?.toString() ??
+          (map['isApproved'] == false ? 'pending' : (parseBool(map['isAvailable']) == false && map['approvalStatus'] == null ? 'approved' : 'approved')),
+      rejectionReason: map['rejectionReason']?.toString(),
+      approvedAt: map['approvedAt'] != null ? parseDate(map['approvedAt']) : null,
     );
   }
 
@@ -290,6 +304,9 @@ class PropertyModel {
     double? longitude,
     DateTime? postDate,
     bool? isAvailable,
+    String? approvalStatus,
+    String? rejectionReason,
+    DateTime? approvedAt,
   }) {
     return PropertyModel(
       id: id ?? this.id,
@@ -328,6 +345,9 @@ class PropertyModel {
       longitude: longitude ?? this.longitude,
       postDate: postDate ?? this.postDate,
       isAvailable: isAvailable ?? this.isAvailable,
+      approvalStatus: approvalStatus ?? this.approvalStatus,
+      rejectionReason: rejectionReason ?? this.rejectionReason,
+      approvedAt: approvedAt ?? this.approvedAt,
     );
   }
 }

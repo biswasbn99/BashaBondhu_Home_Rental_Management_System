@@ -252,14 +252,17 @@ class _EditDemandScreenState extends State<EditDemandScreen> {
         userWhatsApp: _userWhatsApp.trim(),
         shortAddress: _shortAddress.trim(),
         detailedDescription: _detailedDescription.trim(),
+        approvalStatus: 'pending',
+        rejectionReason: '',
       );
 
       await TenantDemandFirestoreService().updateDemand(updatedDemand);
 
       if (mounted) {
+        final isBn = Localizations.localeOf(context).languageCode == 'bn';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.localizations.demandUpdatedSuccess),
+            content: Text(isBn ? '🎉 চাহিদা পোস্টটি আপডেট করে পুনরায় পর্যালোচনার জন্য জমা দেওয়া হয়েছে!' : '🎉 Demand updated and submitted for admin review!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -517,7 +520,9 @@ class _EditDemandScreenState extends State<EditDemandScreen> {
                     ),
                   ),
                   onChanged: (val) => _userName = val,
-                  validator: Validators.validateName,
+                  validator: (!isGuest && user != null)
+                      ? (val) => (val == null || val.trim().isEmpty) ? l10n.enterName : null
+                      : (val) => Validators.validateName(val),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -554,14 +559,16 @@ class _EditDemandScreenState extends State<EditDemandScreen> {
                     ),
                   ),
                   onChanged: (val) => _userMobile = val,
-                  validator: Validators.validatePhoneNumber,
+                  validator: (!isGuest && user != null && user.mobile.isNotEmpty)
+                      ? (val) => (val == null || val.trim().isEmpty) ? l10n.enterMobile : null
+                      : (val) => Validators.validatePhoneNumber(val),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   initialValue: _userWhatsApp,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
-                    hintText: '${l10n.enterWhatsApp} (${l10n.optional})',
+                    hintText: isBn ? 'হোয়াটসঅ্যাপ নাম্বার (ঐচ্ছিক)' : 'WhatsApp Number (Optional)',
                     prefixIcon: const Icon(Icons.message_outlined),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),

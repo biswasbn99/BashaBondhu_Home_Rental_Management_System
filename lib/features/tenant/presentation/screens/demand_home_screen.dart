@@ -405,7 +405,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
 
                 _buildControlledTextField(
                   controller: _userWhatsAppController,
-                  hint: '${l10n.enterWhatsApp} (${l10n.optional})',
+                  hint: Localizations.localeOf(context).languageCode == 'bn' ? 'হোয়াটসঅ্যাপ নাম্বার (ঐচ্ছিক)' : 'WhatsApp Number (Optional)',
                   prefixIcon: Icons.message_outlined,
                   keyboardType: TextInputType.phone,
                   onChanged: provider.setUserWhatsApp,

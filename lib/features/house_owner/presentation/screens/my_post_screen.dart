@@ -433,6 +433,73 @@ class _MyPostCard extends StatelessWidget {
             ],
           ),
 
+          // --- Live Approval Status Banner (Pending Review / Rejected) ---
+          if (post.isPendingApproval)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              color: Colors.amber.withValues(alpha: isDark ? 0.25 : 0.12),
+              child: Row(
+                children: [
+                  Icon(Icons.hourglass_top_rounded, size: 16, color: isDark ? Colors.amberAccent : Colors.amber.shade900),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      languageCode == 'bn'
+                          ? '⏳ পর্যালোচনায় রয়েছে: অ্যাডমিন অনুমোদনের পর পোস্টটি সবার জন্য লাইভ হবে।'
+                          : '⏳ Under Review: This listing is awaiting admin approval before going live.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.amberAccent : Colors.amber.shade900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (post.isRejected)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              color: Colors.red.withValues(alpha: isDark ? 0.25 : 0.12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.cancel_rounded, size: 16, color: Colors.redAccent),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          languageCode == 'bn'
+                              ? '❌ বিজ্ঞাপনটি প্রত্যাখ্যান করা হয়েছে'
+                              : '❌ Listing has been rejected',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                        if (post.rejectionReason != null && post.rejectionReason!.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            '${languageCode == "bn" ? "কারণ" : "Reason"}: ${post.rejectionReason}',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.red[200] : Colors.red[900],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // --- Body Info ---
           Padding(
             padding: const EdgeInsets.all(16.0),

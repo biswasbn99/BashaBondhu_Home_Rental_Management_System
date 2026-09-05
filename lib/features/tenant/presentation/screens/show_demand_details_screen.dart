@@ -516,7 +516,7 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                       displayMobile,
                       style: TextStyle(
                         fontSize: 12.5,
-                        color: isUnlocked ? Colors.grey[700] : Colors.amber.shade800,
+                        color: isUnlocked ? (theme.brightness == Brightness.dark ? Colors.grey[300] : Colors.grey[700]) : Colors.amber.shade800,
                         fontWeight: isUnlocked ? FontWeight.normal : FontWeight.bold,
                       ),
                     ),
@@ -526,6 +526,23 @@ class ShowDemandDetailsScreen extends StatelessWidget {
                     ],
                   ],
                 ),
+                if (demand.userWhatsApp.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      const Icon(Icons.chat_outlined, size: 14, color: Color(0xFF25D366)),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${languageCode == "bn" ? "হোয়াটসঅ্যাপ" : "WhatsApp"}: $displayWhatsApp',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isUnlocked ? const Color(0xFF16A34A) : Colors.amber.shade800,
+                          fontWeight: isUnlocked ? FontWeight.w600 : FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   languageCode == 'bn'

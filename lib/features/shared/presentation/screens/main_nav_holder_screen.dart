@@ -1,5 +1,6 @@
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/screens/account_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/account/presentation/screens/account_suspended_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/demand_home_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/find_home/presentation/screens/find_home_screen.dart';
@@ -24,6 +25,11 @@ class MainNavHolderScreen extends StatelessWidget {
     final l10n = context.localizations;
     final userProvider = context.watch<UserProvider>();
     final navProvider = context.watch<MainNavHolderProvider>();
+
+    // 🔒 Gating: If account is suspended/blocked by admin, direct immediately to AccountSuspendedScreen
+    if (userProvider.user?.isBlocked == true) {
+      return const AccountSuspendedScreen();
+    }
 
     final bool isOwner = userProvider.user?.isHouseOwner ?? false;
 
