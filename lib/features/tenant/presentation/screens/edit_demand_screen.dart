@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/app/validators.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/area_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/district_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/models/division_model.dart';
@@ -218,6 +221,15 @@ class _EditDemandScreenState extends State<EditDemandScreen> {
 
     setState(() => _isSaving = true);
     try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final user = userProvider.user;
+      final finalName = (user != null && "${user.firstName} ${user.lastName}".trim().isNotEmpty)
+          ? "${user.firstName} ${user.lastName}".trim()
+          : _userName.trim();
+      final finalMobile = (user != null && user.mobile.isNotEmpty)
+          ? user.mobile.trim()
+          : _userMobile.trim();
+
       final updatedDemand = widget.demand.copyWith(
         month: _selectedMonth!,
         houseType: _selectedHouseType,
@@ -235,8 +247,8 @@ class _EditDemandScreenState extends State<EditDemandScreen> {
         hasLift: _hasLift,
         hasParking: _hasParking,
         hasGivenNotice: _hasGivenNotice,
-        userName: _userName.trim(),
-        userMobile: _userMobile.trim(),
+        userName: finalName,
+        userMobile: finalMobile,
         userWhatsApp: _userWhatsApp.trim(),
         shortAddress: _shortAddress.trim(),
         detailedDescription: _detailedDescription.trim(),
@@ -267,6 +279,11 @@ class _EditDemandScreenState extends State<EditDemandScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.localizations;
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
+    final bool isGuest = userProvider.isGuest;
 
     return Scaffold(
       appBar: MainAppBar(
@@ -468,23 +485,73 @@ class _EditDemandScreenState extends State<EditDemandScreen> {
                 DecoratedSectionHeader(title: l10n.contactPromptTitle),
                 const SizedBox(height: 10),
                 TextFormField(
-                  initialValue: _userName,
+                  key: ValueKey('edit_demand_name_${isGuest ? "guest" : "${user?.firstName ?? ""}_${user?.lastName ?? ""}"}'),
+                  initialValue: !isGuest && user != null
+                      ? "${user.firstName} ${user.lastName}".trim()
+                      : _userName,
+                  readOnly: !isGuest && user != null,
+                  style: TextStyle(
+                    fontWeight: (!isGuest && user != null) ? FontWeight.w600 : FontWeight.normal,
+                    color: (!isGuest && user != null) ? (isDark ? Colors.grey[200] : Colors.grey[800]) : null,
+                  ),
                   decoration: InputDecoration(
                     hintText: l10n.enterName,
+                    helperText: !isGuest && user != null
+                        ? (isBn ? '🔒 প্রোফাইল থেকে সংরক্ষিত' : '🔒 Fixed from profile')
+                        : null,
+                    helperStyle: const TextStyle(fontSize: 11.5, color: AppColors.themeColor, fontWeight: FontWeight.w500),
                     prefixIcon: const Icon(Icons.person_outline_rounded),
+                    suffixIcon: !isGuest && user != null
+                        ? const Icon(Icons.lock_outline_rounded, color: AppColors.themeColor, size: 18)
+                        : null,
+                    filled: !isGuest && user != null,
+                    fillColor: (!isGuest && user != null)
+                        ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.08))
+                        : null,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: (!isGuest && user != null) ? AppColors.themeColor.withValues(alpha: 0.35) : Colors.grey[300]!,
+                      ),
+                    ),
                   ),
                   onChanged: (val) => _userName = val,
                   validator: Validators.validateName,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
-                  initialValue: _userMobile,
+                  key: ValueKey('edit_demand_mobile_${isGuest ? "guest" : (user?.mobile ?? "")}'),
+                  initialValue: !isGuest && user != null && user.mobile.isNotEmpty
+                      ? user.mobile
+                      : _userMobile,
                   keyboardType: TextInputType.phone,
+                  readOnly: !isGuest && user != null && user.mobile.isNotEmpty,
+                  style: TextStyle(
+                    fontWeight: (!isGuest && user != null && user.mobile.isNotEmpty) ? FontWeight.w600 : FontWeight.normal,
+                    color: (!isGuest && user != null && user.mobile.isNotEmpty) ? (isDark ? Colors.grey[200] : Colors.grey[800]) : null,
+                  ),
                   decoration: InputDecoration(
                     hintText: l10n.enterMobile,
+                    helperText: !isGuest && user != null && user.mobile.isNotEmpty
+                        ? (isBn ? '🔒 প্রোফাইল থেকে সংরক্ষিত' : '🔒 Fixed from profile')
+                        : null,
+                    helperStyle: const TextStyle(fontSize: 11.5, color: AppColors.themeColor, fontWeight: FontWeight.w500),
                     prefixIcon: const Icon(Icons.phone_android_rounded),
+                    suffixIcon: !isGuest && user != null && user.mobile.isNotEmpty
+                        ? const Icon(Icons.lock_outline_rounded, color: AppColors.themeColor, size: 18)
+                        : null,
+                    filled: !isGuest && user != null && user.mobile.isNotEmpty,
+                    fillColor: (!isGuest && user != null && user.mobile.isNotEmpty)
+                        ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.08))
+                        : null,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: (!isGuest && user != null && user.mobile.isNotEmpty) ? AppColors.themeColor.withValues(alpha: 0.35) : Colors.grey[300]!,
+                      ),
+                    ),
                   ),
                   onChanged: (val) => _userMobile = val,
                   validator: Validators.validatePhoneNumber,

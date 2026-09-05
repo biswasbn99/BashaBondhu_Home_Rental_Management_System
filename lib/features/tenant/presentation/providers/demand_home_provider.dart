@@ -369,8 +369,8 @@ class DemandHomeProvider extends ChangeNotifier {
     final hasBudget = selectedBudgetRange != null && selectedBudgetRange!.isNotEmpty;
     final hasTenantType = selectedTenantType != null;
     final hasRoomOrSeat = selectedRoomOrSeat != null && selectedRoomOrSeat!.isNotEmpty;
-    final isNameValid = Validators.validateName(userName) == null;
-    final isPhoneValid = Validators.validatePhoneNumber(userMobile) == null;
+    final isNameValid = userName.trim().isNotEmpty && (Validators.validateName(userName) == null || userName.trim().length >= 2);
+    final isPhoneValid = userMobile.trim().isNotEmpty && (Validators.validatePhoneNumber(userMobile) == null || userMobile.trim().length >= 10);
     final isWhatsAppValid = Validators.validateWhatsAppNumber(userWhatsApp) == null;
 
     return hasMonth &&

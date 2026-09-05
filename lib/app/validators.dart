@@ -19,7 +19,18 @@ class Validators {
     if (value == null || value.trim().isEmpty) {
       return message ?? 'Enter your name';
     }
-    if (RegExp(r'^[a-zA-Z\u0980-\u09FF\s.]+$').hasMatch(value.trim()) == false) {
+    final trimmed = value.trim();
+    // Comprehensive Name Regex supporting:
+    // - English letters (a-zA-Z)
+    // - Bengali script (\u0980-\u09FF)
+    // - Bengali Zero-Width Joiner (\u200D) & Zero-Width Non-Joiner (\u200C)
+    // - Accented Latin characters (\u00C0-\u024F)
+    // - Spaces, dots (.), hyphens/dashes (-/–), apostrophes ('/’/`), commas (,), parentheses (), and visarga (ঃ)
+    final nameRegex = RegExp(
+      r"^[a-zA-Z\u0980-\u09FF\u200C\u200D\u00C0-\u024F\s.'’`\-–,()ঃ]+$",
+      unicode: true,
+    );
+    if (!nameRegex.hasMatch(trimmed)) {
       return 'Enter a valid name (only letters)';
     }
     return null;

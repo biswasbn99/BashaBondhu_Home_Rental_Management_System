@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../../app/validators.dart';
+import '../../../auth/data/providers/user_provider.dart';
 import '../../../home/data/models/property_model.dart';
 import '../../../home_rent_post/presentations/widgets/amenities_dropdown.dart';
 import '../../../home_rent_post/presentations/widgets/counter_dropdown.dart';
@@ -336,6 +337,8 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
       return;
     }
 
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     // Bilingual Save Confirmation Dialog
     final confirm = await showDialog<bool>(
       context: context,
@@ -368,6 +371,7 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
     );
 
     if (confirm != true) return;
+    if (!mounted) return;
 
     setState(() => _isSaving = true);
 
@@ -395,6 +399,15 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
       }
     }
 
+    final currentUser = userProvider.user;
+    final ownerFullName = (currentUser != null)
+        ? "${currentUser.firstName} ${currentUser.lastName}".trim()
+        : '';
+    final finalContactName = ownerFullName.isNotEmpty ? ownerFullName : _contactName.trim();
+    final finalUserMobile = (currentUser != null && currentUser.mobile.isNotEmpty)
+        ? currentUser.mobile.trim()
+        : _userMobile.trim();
+
     final updated = PropertyModel(
       id: widget.property.id,
       ownerId: widget.property.ownerId,
@@ -405,10 +418,10 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
       houseType: _selectedHouseType ?? widget.property.houseType,
       tenantType: _selectedTenantType,
       roomOrSeat: _selectedRoomOrSeat ?? widget.property.roomOrSeat,
-      contactName: _contactName.trim(),
+      contactName: finalContactName,
       amount: _amount.trim(),
-      userMobile: _userMobile.trim(),
-      userWhatsApp: _userWhatsApp.trim().isNotEmpty ? _userWhatsApp.trim() : _userMobile.trim(),
+      userMobile: finalUserMobile,
+      userWhatsApp: _userWhatsApp.trim().isNotEmpty ? _userWhatsApp.trim() : finalUserMobile,
       division: _selectedDivision ?? widget.property.division,
       district: _selectedDistrict ?? widget.property.district,
       area: _selectedArea ?? widget.property.area,
@@ -469,6 +482,10 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
     final l10n = context.localizations;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
+    final bool isGuest = userProvider.isGuest;
 
     return Scaffold(
       appBar: MainAppBar(
@@ -548,10 +565,22 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
               // --- Contact & Budget Section ---
               DecoratedSectionHeader(title: l10n.budgetTenantPromptTitle),
               const SizedBox(height: 12),
+
+              // Contact Person (Fixed & Auto-filled from Profile if logged in)
               _buildTextField(
+                key: ValueKey('edit_owner_contact_${isGuest ? "guest" : "${user?.firstName ?? ""}_${user?.lastName ?? ""}"}'),
                 hint: l10n.contactPerson,
                 prefixIcon: Icons.person_outline_rounded,
-                initialValue: _contactName,
+                initialValue: !isGuest && user != null
+                    ? "${user.firstName} ${user.lastName}".trim()
+                    : _contactName,
+                readOnly: !isGuest && user != null,
+                suffixIcon: !isGuest && user != null
+                    ? const Icon(Icons.lock_outline_rounded, color: AppColors.themeColor, size: 18)
+                    : null,
+                helperText: !isGuest && user != null
+                    ? (isBn ? '🔒 প্রোফাইল থেকে সংরক্ষিত' : '🔒 Fixed from profile')
+                    : null,
                 onChanged: (val) => _contactName = val,
                 validator: (val) => Validators.validateText(val),
               ),
@@ -565,11 +594,23 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
                 validator: (val) => Validators.validateNumber(val),
               ),
               const SizedBox(height: 12),
+
+              // Mobile Number (Fixed & Auto-filled from Profile if logged in)
               _buildTextField(
+                key: ValueKey('edit_owner_mobile_${isGuest ? "guest" : (user?.mobile ?? "")}'),
                 hint: l10n.enterMobile,
                 prefixIcon: Icons.phone_outlined,
-                initialValue: _userMobile,
+                initialValue: !isGuest && user != null && user.mobile.isNotEmpty
+                    ? user.mobile
+                    : _userMobile,
                 keyboardType: TextInputType.phone,
+                readOnly: !isGuest && user != null && user.mobile.isNotEmpty,
+                suffixIcon: !isGuest && user != null && user.mobile.isNotEmpty
+                    ? const Icon(Icons.lock_outline_rounded, color: AppColors.themeColor, size: 18)
+                    : null,
+                helperText: !isGuest && user != null && user.mobile.isNotEmpty
+                    ? (isBn ? '🔒 প্রোফাইল থেকে সংরক্ষিত' : '🔒 Fixed from profile')
+                    : null,
                 onChanged: (val) => _userMobile = val,
                 validator: (val) => Validators.validatePhoneNumber(val),
               ),
@@ -1120,22 +1161,55 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
   }
 
   Widget _buildTextField({
+    Key? key,
     required String hint,
     required String initialValue,
     required ValueChanged<String> onChanged,
     IconData? prefixIcon,
+    Widget? suffixIcon,
+    String? helperText,
+    bool readOnly = false,
     String? Function(String?)? validator,
     TextInputType? keyboardType,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
+      key: key,
       initialValue: initialValue,
+      readOnly: readOnly,
       onChanged: onChanged,
       validator: validator,
       keyboardType: keyboardType,
       autovalidateMode: AutovalidateMode.onUserInteraction,
+      style: TextStyle(
+        fontWeight: readOnly ? FontWeight.w600 : FontWeight.normal,
+        color: readOnly ? (isDark ? Colors.grey[200] : Colors.grey[800]) : null,
+      ),
       decoration: InputDecoration(
         hintText: hint,
+        helperText: helperText,
+        helperStyle: const TextStyle(fontSize: 11.5, color: AppColors.themeColor, fontWeight: FontWeight.w500),
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppColors.themeColor) : null,
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: readOnly
+            ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.08))
+            : null,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(
+            color: readOnly ? AppColors.themeColor.withValues(alpha: 0.35) : Colors.grey[300]!,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.themeColor, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.redAccent),
+        ),
       ),
     );
   }

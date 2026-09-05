@@ -420,6 +420,14 @@ class HomeRentPostProvider extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
+      final ownerFullName = (currentUser != null)
+          ? "${currentUser.firstName} ${currentUser.lastName}".trim()
+          : '';
+      final finalContactName = ownerFullName.isNotEmpty ? ownerFullName : contactName.trim();
+      final finalUserMobile = (currentUser != null && currentUser.mobile.isNotEmpty)
+          ? currentUser.mobile
+          : userMobile.trim();
+
       final newProperty = PropertyModel(
         id: '',
         ownerId: currentUser?.uid ?? 'guest_owner',
@@ -430,10 +438,10 @@ class HomeRentPostProvider extends ChangeNotifier {
         houseType: selectedHouseType!,
         tenantType: selectedTenantType,
         roomOrSeat: selectedRoomOrSeat!,
-        contactName: contactName.trim(),
+        contactName: finalContactName,
         amount: amount.trim(),
-        userMobile: userMobile.trim(),
-        userWhatsApp: userWhatsApp.trim().isNotEmpty ? userWhatsApp.trim() : userMobile.trim(),
+        userMobile: finalUserMobile,
+        userWhatsApp: userWhatsApp.trim().isNotEmpty ? userWhatsApp.trim() : finalUserMobile,
         division: selectedDivision!,
         district: selectedDistrict!,
         area: selectedUpazila!,

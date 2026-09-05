@@ -61,12 +61,52 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
   static const Color _grey = Color(0xFF7A8A88);
 
+  late final TextEditingController _userNameController;
+  late final TextEditingController _userMobileController;
+  late final TextEditingController _userWhatsAppController;
+
+  @override
+  void initState() {
+    super.initState();
+    _userNameController = TextEditingController();
+    _userMobileController = TextEditingController();
+    _userWhatsAppController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _userNameController.dispose();
+    _userMobileController.dispose();
+    _userWhatsAppController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<DemandHomeProvider>(context);
     final l10n = context.localizations;
     final userProvider = Provider.of<UserProvider>(context);
     final bool isGuest = userProvider.isGuest;
+    final user = userProvider.user;
+
+    // Reactively sync name and mobile from logged-in user profile
+    final profileFullName = (user != null)
+        ? (user.fullName.trim().isNotEmpty
+            ? user.fullName.trim()
+            : "${user.firstName} ${user.lastName}".trim())
+        : '';
+    final profileMobile = user?.mobile ?? '';
+
+    if (!isGuest && user != null) {
+      if (_userNameController.text != profileFullName) {
+        _userNameController.text = profileFullName;
+      }
+      if (_userMobileController.text != profileMobile) {
+        _userMobileController.text = profileMobile;
+      }
+      provider.userName = profileFullName;
+      provider.userMobile = profileMobile;
+    }
 
     return Scaffold(
       appBar: MainAppBar(
@@ -312,30 +352,60 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                 DecoratedSectionHeader(title: l10n.contactPromptTitle),
                 const SizedBox(height: 12),
 
-                _buildTextField(
+                // Name Field (Fixed & Auto-filled from Profile if logged in)
+                _buildControlledTextField(
+                  controller: _userNameController,
                   hint: l10n.enterName,
-                  initialValue: provider.userName,
                   prefixIcon: Icons.person_outline_rounded,
+                  readOnly: !isGuest && user != null,
+                  suffixIcon: !isGuest && user != null
+                      ? const Tooltip(
+                          message: 'Auto-filled from profile',
+                          child: Icon(Icons.lock_outline_rounded, color: AppColors.themeColor, size: 18),
+                        )
+                      : null,
+                  helperText: !isGuest && user != null
+                      ? (Localizations.localeOf(context).languageCode == 'bn'
+                          ? '🔒 প্রোফাইল থেকে সংরক্ষিত (পরিবর্তন করতে প্রোফাইল এডিট করুন)'
+                          : '🔒 Fixed from profile (edit profile to change)')
+                      : null,
                   onChanged: provider.setUserName,
-                  validator: Validators.validateName,
+                  validator: (!isGuest && user != null)
+                      ? (val) => (val == null || val.trim().isEmpty) ? l10n.enterName : null
+                      : Validators.validateName,
                 ),
 
                 const SizedBox(height: 12),
 
-                _buildTextField(
+                // Mobile Field (Fixed & Auto-filled from Profile if logged in)
+                _buildControlledTextField(
+                  controller: _userMobileController,
                   hint: l10n.enterMobile,
-                  initialValue: provider.userMobile,
                   prefixIcon: Icons.phone_android_rounded,
                   keyboardType: TextInputType.phone,
+                  readOnly: !isGuest && user != null && user.mobile.isNotEmpty,
+                  suffixIcon: !isGuest && user != null && user.mobile.isNotEmpty
+                      ? const Tooltip(
+                          message: 'Auto-filled from profile',
+                          child: Icon(Icons.lock_outline_rounded, color: AppColors.themeColor, size: 18),
+                        )
+                      : null,
+                  helperText: !isGuest && user != null && user.mobile.isNotEmpty
+                      ? (Localizations.localeOf(context).languageCode == 'bn'
+                          ? '🔒 প্রোফাইল থেকে সংরক্ষিত (পরিবর্তন করতে প্রোফাইল এডিট করুন)'
+                          : '🔒 Fixed from profile (edit profile to change)')
+                      : null,
                   onChanged: provider.setUserMobile,
-                  validator: Validators.validatePhoneNumber,
+                  validator: (!isGuest && user != null && user.mobile.isNotEmpty)
+                      ? (val) => (val == null || val.trim().isEmpty) ? l10n.enterMobile : null
+                      : Validators.validatePhoneNumber,
                 ),
 
                 const SizedBox(height: 12),
 
-                _buildTextField(
+                _buildControlledTextField(
+                  controller: _userWhatsAppController,
                   hint: '${l10n.enterWhatsApp} (${l10n.optional})',
-                  initialValue: provider.userWhatsApp,
                   prefixIcon: Icons.message_outlined,
                   keyboardType: TextInputType.phone,
                   onChanged: provider.setUserWhatsApp,
@@ -403,14 +473,29 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
     }
 
     try {
+      final user = userProvider.user!;
+      final fullName = user.fullName.trim().isNotEmpty ? user.fullName.trim() : "${user.firstName} ${user.lastName}".trim();
+      if (fullName.isNotEmpty) provider.userName = fullName;
+      if (user.mobile.isNotEmpty) provider.userMobile = user.mobile;
+
       await provider.submitDemand(
-        tenantId: userProvider.user!.uid,
-        tenantEmail: userProvider.user!.email,
-        tenantVerificationStatus: userProvider.user!.verificationStatus,
+        tenantId: user.uid,
+        tenantEmail: user.email,
+        tenantVerificationStatus: user.verificationStatus,
       );
 
       if (context.mounted) {
         provider.resetFilters();
+        _userWhatsAppController.clear();
+        if (userProvider.isGuest || userProvider.user == null) {
+          _userNameController.clear();
+          _userMobileController.clear();
+        } else {
+          _userNameController.text = fullName;
+          _userMobileController.text = user.mobile;
+          provider.userName = fullName;
+          provider.userMobile = user.mobile;
+        }
         setState(() => _autovalidateMode = AutovalidateMode.disabled);
 
         // Show the post-demand success popup dialog
@@ -646,31 +731,47 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildControlledTextField({
+    required TextEditingController controller,
     required String hint,
-    required String initialValue,
     required ValueChanged<String> onChanged,
     IconData? prefixIcon,
+    Widget? suffixIcon,
+    String? helperText,
+    bool readOnly = false,
     String? Function(String?)? validator,
     TextInputType keyboardType = TextInputType.text,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
-      initialValue: initialValue,
+      controller: controller,
+      readOnly: readOnly,
       onChanged: onChanged,
       validator: validator,
       keyboardType: keyboardType,
+      style: TextStyle(
+        fontWeight: readOnly ? FontWeight.w600 : FontWeight.normal,
+        color: readOnly ? (isDark ? Colors.grey[200] : Colors.grey[800]) : null,
+      ),
       decoration: InputDecoration(
         hintText: hint,
+        helperText: helperText,
+        helperStyle: const TextStyle(fontSize: 11.5, color: AppColors.themeColor, fontWeight: FontWeight.w500),
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: _grey, size: 20) : null,
+        suffixIcon: suffixIcon,
         filled: true,
-        fillColor: Colors.transparent,
+        fillColor: readOnly
+            ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.08))
+            : Colors.transparent,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: BorderSide(
+            color: readOnly ? AppColors.themeColor.withValues(alpha: 0.35) : Colors.grey[300]!,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),

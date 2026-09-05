@@ -152,6 +152,50 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     return fn && ln && phone && pImg && gen && dob && nidF && nidB;
   }
 
+  /// Returns true if any field or image has been edited/changed from the user's saved profile
+  bool get _hasUnsavedChanges {
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    if (user == null) {
+      return _firstNameController.text.trim().isNotEmpty ||
+          _middleNameController.text.trim().isNotEmpty ||
+          _lastNameController.text.trim().isNotEmpty ||
+          _phoneController.text.trim().isNotEmpty ||
+          _selectedGender != null ||
+          _selectedDob != null ||
+          _profileImage.isNotEmpty ||
+          _nidFrontImage.isNotEmpty ||
+          _nidBackImage.isNotEmpty;
+    }
+
+    final currentFn = _firstNameController.text.trim();
+    final currentMn = _middleNameController.text.trim();
+    final currentLn = _lastNameController.text.trim();
+    final currentPhone = _phoneController.text.trim();
+    final currentGender = _selectedGender?.trim() ?? '';
+
+    // Compare DOB by YYYY-MM-DD
+    final userDob = (user.dateOfBirth.isNotEmpty) ? DateTime.tryParse(user.dateOfBirth) : null;
+    final bool dobChanged = (_selectedDob == null && userDob != null) ||
+        (_selectedDob != null && userDob == null) ||
+        (_selectedDob != null &&
+            userDob != null &&
+            (_selectedDob!.year != userDob.year ||
+                _selectedDob!.month != userDob.month ||
+                _selectedDob!.day != userDob.day));
+
+    if (currentFn != user.firstName.trim()) return true;
+    if (currentMn != user.middleName.trim()) return true;
+    if (currentLn != user.lastName.trim()) return true;
+    if (currentPhone != user.mobile.trim()) return true;
+    if (currentGender != user.gender.trim()) return true;
+    if (dobChanged) return true;
+    if (_profileImage.trim() != user.profileImageUrl.trim()) return true;
+    if (_nidFrontImage.trim() != user.nidFrontImageUrl.trim()) return true;
+    if (_nidBackImage.trim() != user.nidBackImageUrl.trim()) return true;
+
+    return false;
+  }
+
   /// Returns missing profile fields list for user guidance
   List<String> _getMissingFields(bool isBn) {
     final user = Provider.of<UserProvider>(context, listen: false).user;
@@ -702,7 +746,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
                 // --- Action Buttons (Save Changes & Submit for Verification) ---
                 FilledButton(
-                  onPressed: _isSaving ? null : () => _saveProfile(showSuccessMessage: true),
+                  onPressed: (_hasUnsavedChanges && !_isSaving)
+                      ? () => _saveProfile(showSuccessMessage: true)
+                      : null,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                   child: _isSaving
                       ? const SizedBox(
                           height: 20,

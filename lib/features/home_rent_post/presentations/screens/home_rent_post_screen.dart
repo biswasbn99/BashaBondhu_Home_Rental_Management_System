@@ -42,6 +42,12 @@ class HomeRentPostScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (ctx) {
         final provider = HomeRentPostProvider();
+        final userProvider = Provider.of<UserProvider>(ctx, listen: false);
+        if (!userProvider.isGuest && userProvider.user != null) {
+          final fullName = "${userProvider.user!.firstName} ${userProvider.user!.lastName}".trim();
+          if (fullName.isNotEmpty) provider.contactName = fullName;
+          if (userProvider.user!.mobile.isNotEmpty) provider.userMobile = userProvider.user!.mobile;
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           provider.loadDivisions(ctx.localizations);
         });
@@ -62,6 +68,29 @@ class _HomeRentPostView extends StatefulWidget {
 class _HomeRentPostViewState extends State<_HomeRentPostView> {
   final _formKey = GlobalKey<FormState>();
 
+  late final TextEditingController _contactNameController;
+  late final TextEditingController _userMobileController;
+  late final TextEditingController _userWhatsAppController;
+  late final TextEditingController _amountController;
+
+  @override
+  void initState() {
+    super.initState();
+    _contactNameController = TextEditingController();
+    _userMobileController = TextEditingController();
+    _userWhatsAppController = TextEditingController();
+    _amountController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _contactNameController.dispose();
+    _userMobileController.dispose();
+    _userWhatsAppController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<HomeRentPostProvider>();
@@ -70,6 +99,26 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
     final isBn = languageCode == 'bn';
     final userProvider = Provider.of<UserProvider>(context);
     final bool isGuest = userProvider.isGuest;
+    final user = userProvider.user;
+
+    // Reactively sync name and mobile from logged-in user profile
+    final profileFullName = (user != null)
+        ? (user.fullName.trim().isNotEmpty
+            ? user.fullName.trim()
+            : "${user.firstName} ${user.lastName}".trim())
+        : '';
+    final profileMobile = user?.mobile ?? '';
+
+    if (!isGuest && user != null) {
+      if (_contactNameController.text != profileFullName) {
+        _contactNameController.text = profileFullName;
+      }
+      if (_userMobileController.text != profileMobile) {
+        _userMobileController.text = profileMobile;
+      }
+      provider.contactName = profileFullName;
+      provider.userMobile = profileMobile;
+    }
 
     return Scaffold(
       appBar: MainAppBar(
@@ -205,39 +254,71 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
               // --- Contact & Budget ---
               DecoratedSectionHeader(title: l10n.budgetTenantPromptTitle),
               const SizedBox(height: 12),
-              _buildTextField(
+
+              // Contact Person (Fixed & Auto-filled from Profile if logged in)
+              _buildControlledTextField(
+                controller: _contactNameController,
                 hint: l10n.contactPerson,
                 prefixIcon: Icons.person_outline_rounded,
-                initialValue: provider.contactName,
+                readOnly: !isGuest && user != null,
+                suffixIcon: !isGuest && user != null
+                    ? const Tooltip(
+                        message: 'Auto-filled from profile',
+                        child: Icon(Icons.lock_outline_rounded, color: AppColors.themeColor, size: 18),
+                      )
+                    : null,
+                helperText: !isGuest && user != null
+                    ? (isBn
+                        ? '🔒 প্রোফাইল থেকে সংরক্ষিত (পরিবর্তন করতে প্রোফাইল এডিট করুন)'
+                        : '🔒 Fixed from profile (edit profile to change)')
+                    : null,
                 onChanged: provider.setContactName,
-                validator: (val) => Validators.validateName(val),
+                validator: (!isGuest && user != null)
+                    ? (val) => (val == null || val.trim().isEmpty) ? l10n.contactPerson : null
+                    : (val) => Validators.validateName(val),
                 showErrors: provider.showValidationErrors,
               ),
               const SizedBox(height: 12),
-              _buildTextField(
+              _buildControlledTextField(
+                controller: _amountController,
                 hint: l10n.amount,
                 prefixIcon: Icons.payments_outlined,
-                initialValue: provider.amount,
                 keyboardType: TextInputType.number,
                 onChanged: provider.setAmount,
                 validator: (val) => Validators.validateNumber(val),
                 showErrors: provider.showValidationErrors,
               ),
               const SizedBox(height: 12),
-              _buildTextField(
+
+              // Mobile Number (Fixed & Auto-filled from Profile if logged in)
+              _buildControlledTextField(
+                controller: _userMobileController,
                 hint: l10n.enterMobile,
                 prefixIcon: Icons.phone_android_rounded,
-                initialValue: provider.userMobile,
                 keyboardType: TextInputType.phone,
+                readOnly: !isGuest && user != null && user.mobile.isNotEmpty,
+                suffixIcon: !isGuest && user != null && user.mobile.isNotEmpty
+                    ? const Tooltip(
+                        message: 'Auto-filled from profile',
+                        child: Icon(Icons.lock_outline_rounded, color: AppColors.themeColor, size: 18),
+                      )
+                    : null,
+                helperText: !isGuest && user != null && user.mobile.isNotEmpty
+                    ? (isBn
+                        ? '🔒 প্রোফাইল থেকে সংরক্ষিত (পরিবর্তন করতে প্রোফাইল এডিট করুন)'
+                        : '🔒 Fixed from profile (edit profile to change)')
+                    : null,
                 onChanged: provider.setUserMobile,
-                validator: (val) => Validators.validatePhoneNumber(val),
+                validator: (!isGuest && user != null && user.mobile.isNotEmpty)
+                    ? (val) => (val == null || val.trim().isEmpty) ? l10n.enterMobile : null
+                    : (val) => Validators.validatePhoneNumber(val),
                 showErrors: provider.showValidationErrors,
               ),
               const SizedBox(height: 12),
-              _buildTextField(
+              _buildControlledTextField(
+                controller: _userWhatsAppController,
                 hint: l10n.enterWhatsApp,
                 prefixIcon: Icons.message_outlined,
-                initialValue: provider.userWhatsApp,
                 keyboardType: TextInputType.phone,
                 onChanged: provider.setUserWhatsApp,
                 validator: (val) {
@@ -622,6 +703,21 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                           final success = await provider.publishPost(userProvider.user);
                           if (success) {
                             if (context.mounted) {
+                              _amountController.clear();
+                              _userWhatsAppController.clear();
+                              if (userProvider.isGuest || userProvider.user == null) {
+                                _contactNameController.clear();
+                                _userMobileController.clear();
+                              } else {
+                                final fullName = userProvider.user!.fullName.trim().isNotEmpty
+                                    ? userProvider.user!.fullName.trim()
+                                    : "${userProvider.user!.firstName} ${userProvider.user!.lastName}".trim();
+                                _contactNameController.text = fullName;
+                                _userMobileController.text = userProvider.user!.mobile;
+                                provider.contactName = fullName;
+                                provider.userMobile = userProvider.user!.mobile;
+                              }
+
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
@@ -671,24 +767,55 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildControlledTextField({
+    required TextEditingController controller,
     required String hint,
-    required String initialValue,
     required ValueChanged<String> onChanged,
     IconData? prefixIcon,
+    Widget? suffixIcon,
+    String? helperText,
+    bool readOnly = false,
     String? Function(String?)? validator,
     TextInputType? keyboardType,
     bool showErrors = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
-      initialValue: initialValue,
+      controller: controller,
+      readOnly: readOnly,
       onChanged: onChanged,
       validator: validator,
       keyboardType: keyboardType,
       autovalidateMode: showErrors ? AutovalidateMode.always : AutovalidateMode.onUserInteraction,
+      style: TextStyle(
+        fontWeight: readOnly ? FontWeight.w600 : FontWeight.normal,
+        color: readOnly ? (isDark ? Colors.grey[200] : Colors.grey[800]) : null,
+      ),
       decoration: InputDecoration(
         hintText: hint,
+        helperText: helperText,
+        helperStyle: const TextStyle(fontSize: 11.5, color: AppColors.themeColor, fontWeight: FontWeight.w500),
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppColors.themeColor) : null,
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: readOnly
+            ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.08))
+            : null,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(
+            color: readOnly ? AppColors.themeColor.withValues(alpha: 0.35) : Colors.grey[300]!,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: AppColors.themeColor, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.redAccent),
+        ),
       ),
     );
   }
