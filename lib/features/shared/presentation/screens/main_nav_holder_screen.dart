@@ -47,6 +47,7 @@ class MainNavHolderScreen extends StatelessWidget {
             const DemandHomeScreen(),
             const WishlistScreen(),
             AccountScreen(email: userProvider.user?.email ?? ''),
+           
           ];
 
     // Role-based Navigation Items
@@ -63,6 +64,7 @@ class MainNavHolderScreen extends StatelessWidget {
             BottomNavigationBarItem(icon: const Icon(Icons.domain_add), label: l10n.demand),
             BottomNavigationBarItem(icon: const Icon(Icons.favorite), label: l10n.wishlist),
             BottomNavigationBarItem(icon: const Icon(Icons.person), label: l10n.account),
+            
           ];
 
     // --- Index Safety Logic ---

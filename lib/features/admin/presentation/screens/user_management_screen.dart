@@ -106,7 +106,10 @@ class _UserManagementViewState extends State<UserManagementView> {
                   color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
+
+              // Verification Gating Control Panel (Tenant & House Owner Toggles)
+              _buildVerificationGatingControl(isBn, isDark),
 
               // Search and Filter Bar with Responsive LayoutBuilder
               Container(
@@ -2014,6 +2017,269 @@ class _UserManagementViewState extends State<UserManagementView> {
               }
             },
             child: Text(isBn ? 'ডিলিট' : 'Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerificationGatingControl(bool isBn, bool isDark) {
+    return StreamBuilder<Map<String, dynamic>>(
+      stream: _adminService.streamSettings(),
+      builder: (context, snapshot) {
+        final settings = snapshot.data ?? {};
+        final bool requireVerifiedTenant = (settings['requireVerifiedTenantForDemands'] as bool?) ?? false;
+        final bool requireVerifiedOwner = (settings['requireVerifiedOwnerForProperties'] as bool?) ?? false;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F201D) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark ? const Color(0xFF1E3A34) : const Color(0xFFE2E8F0),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.themeColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.verified_user_rounded,
+                      color: AppColors.themeColor,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isBn ? 'পোস্ট দৃশ্যমানতা ও ভেরিফিকেশন নিয়ন্ত্রণ' : 'Post Visibility & Verification Gating Control',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: AppColors.themeColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          isBn
+                              ? 'ভেরিফিকেশন ফিল্টারিং চালু থাকলে শুধুমাত্র ভেরিফাইড ইউজারদের পোস্ট অন্যদের স্ক্রিনে প্রদর্শিত হবে।'
+                              : 'When enabled, only verified users will have their posts visible to other users.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth > 700;
+                  final tenantCard = _buildGatingCard(
+                    isBn: isBn,
+                    isDark: isDark,
+                    title: isBn ? 'ভাড়াটিয়া চাহিদা ফিল্টারিং (Tenant)' : 'Tenant Demands Gating',
+                    subtitle: requireVerifiedTenant
+                        ? (isBn
+                            ? 'অন (ON): শুধু ভেরিফাইড ভাড়াটিয়াদের চাহিদা বাড়িওয়ালাদের স্ক্রিনে দৃশ্যমান। আনভেরিফাইড ভাড়াটিয়া ভেরিফাই হলে স্বয়ংক্রিয়ভাবে দেখাবে।'
+                            : 'ON: Only verified tenants\' demand posts appear to house owners. Automatically visible upon NID approval.')
+                        : (isBn
+                            ? 'অফ (OFF): সকল ভাড়াটিয়ার (ভেরিফাইড ও আনভেরিফাইড) চাহিদা বাড়িওয়ালারা দেখতে পাচ্ছেন।'
+                            : 'OFF: All tenant demands (verified & unverified) are currently visible to house owners.'),
+                    icon: Icons.assignment_ind_rounded,
+                    isActive: requireVerifiedTenant,
+                    onChanged: (val) async {
+                      await _adminService.toggleTenantVerificationGating(val);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              val
+                                  ? (isBn ? 'ভাড়াটিয়া চাহিদা ফিল্টারিং চালু করা হয়েছে (শুধুমাত্র ভেরিফাইড পোস্ট দৃশ্যমান)' : 'Tenant Demand Gating Enabled (Only verified demands visible)')
+                                  : (isBn ? 'ভাড়াটিয়া চাহিদা ফিল্টারিং বন্ধ করা হয়েছে (সকল পোস্ট দৃশ্যমান)' : 'Tenant Demand Gating Disabled (All demands visible)'),
+                            ),
+                            backgroundColor: val ? Colors.green.shade700 : Colors.blueGrey,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                  );
+
+                  final ownerCard = _buildGatingCard(
+                    isBn: isBn,
+                    isDark: isDark,
+                    title: isBn ? 'বাড়িওয়ালা প্রোপার্টি ফিল্টারিং (House Owner)' : 'House Owner Properties Gating',
+                    subtitle: requireVerifiedOwner
+                        ? (isBn
+                            ? 'অন (ON): শুধু ভেরিফাইড বাড়িওয়ালাদের বাসাভাড়ার পোস্ট ভাড়াটিয়াদের স্ক্রিনে দৃশ্যমান। আনভেরিফাইড বাড়িওয়ালা ভেরিফাই হলে স্বয়ংক্রিয়ভাবে দেখাবে।'
+                            : 'ON: Only verified owners\' rental posts appear on Tenant Home & Search. Automatically visible upon NID approval.')
+                        : (isBn
+                            ? 'অফ (OFF): সকল বাড়িওয়ালার (ভেরিফাইড ও আনভেরিফাইড) বাসাভাড়ার বিজ্ঞাপন ভাড়াটিয়ারা দেখতে পাচ্ছেন।'
+                            : 'OFF: All rental posts (verified & unverified) are currently visible to tenants.'),
+                    icon: Icons.home_work_rounded,
+                    isActive: requireVerifiedOwner,
+                    onChanged: (val) async {
+                      await _adminService.toggleOwnerVerificationGating(val);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              val
+                                  ? (isBn ? 'বাড়িওয়ালা প্রোপার্টি ফিল্টারিং চালু করা হয়েছে (শুধুমাত্র ভেরিফাইড বিজ্ঞাপন দৃশ্যমান)' : 'House Owner Property Gating Enabled (Only verified properties visible)')
+                                  : (isBn ? 'বাড়িওয়ালা প্রোপার্টি ফিল্টারিং বন্ধ করা হয়েছে (সকল বিজ্ঞাপন দৃশ্যমান)' : 'House Owner Property Gating Disabled (All properties visible)'),
+                            ),
+                            backgroundColor: val ? Colors.green.shade700 : Colors.blueGrey,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                  );
+
+                  if (isWide) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: tenantCard),
+                        const SizedBox(width: 14),
+                        Expanded(child: ownerCard),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        tenantCard,
+                        const SizedBox(height: 12),
+                        ownerCard,
+                      ],
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGatingCard({
+    required bool isBn,
+    required bool isDark,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool isActive,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isActive
+            ? (isDark ? const Color(0xFF064E3B).withValues(alpha: 0.3) : const Color(0xFFECFDF5))
+            : (isDark ? const Color(0xFF1E293B).withValues(alpha: 0.4) : const Color(0xFFF8FAFC)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isActive
+              ? (isDark ? const Color(0xFF059669) : const Color(0xFFA7F3D0))
+              : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+          width: isActive ? 1.5 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: (isActive ? const Color(0xFF10B981) : Colors.grey.shade500).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 18,
+                  color: isActive ? const Color(0xFF10B981) : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13.5,
+                    color: isActive
+                        ? (isDark ? const Color(0xFF6EE7B7) : const Color(0xFF065F46))
+                        : (isDark ? Colors.white70 : const Color(0xFF334155)),
+                  ),
+                ),
+              ),
+              Switch.adaptive(
+                value: isActive,
+                activeTrackColor: const Color(0xFF10B981),
+                onChanged: onChanged,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? const Color(0xFF10B981).withValues(alpha: 0.18)
+                      : Colors.grey.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  isActive
+                      ? (isBn ? 'সক্রিয় (Active)' : 'ENABLED')
+                      : (isBn ? 'নিষ্ক্রিয় (Off)' : 'DISABLED'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isActive ? const Color(0xFF10B981) : (isDark ? Colors.grey[400] : Colors.grey[700]),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.35,
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

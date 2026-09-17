@@ -7,10 +7,14 @@ class ElectricityBillDropdown extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
+    this.isRequired = false,
+    this.showErrors = false,
   });
 
   final String? value;
   final ValueChanged<String?> onChanged;
+  final bool isRequired;
+  final bool showErrors;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +22,8 @@ class ElectricityBillDropdown extends StatelessWidget {
     return FilterDropdown<String>(
       hint: l10n.electricityBill,
       value: value,
-      isRequired: false,
+      isRequired: isRequired,
+      showErrors: showErrors,
       items: [
         DropdownMenuItem(value: null, child: Text(l10n.electricityBill)),
         DropdownMenuItem(value: 'owner', child: Text(l10n.owner)),

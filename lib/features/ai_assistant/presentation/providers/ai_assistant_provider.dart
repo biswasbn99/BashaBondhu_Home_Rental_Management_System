@@ -707,8 +707,8 @@ class AIAssistantProvider extends ChangeNotifier {
                 : '🏠 **What type of property are you looking for?** (Step 2/12)\nSelect or type:',
             sender: AIMessageSender.ai,
             interactiveChips: isBn
-                ? ['🔍 এখনই সার্চ করব', 'ফ্ল্যাট (Flat)', 'রুম (Room)', 'খালি সিট (Empty Seat)', 'ইউনিট (Unit)']
-                : ['🔍 Search Now', 'Flat', 'Room', 'Empty Seat', 'Unit'],
+                ? ['🔍 এখনই সার্চ করব', 'ফ্ল্যাট (Flat)', 'রুম (Room)', 'খালি সিট (Empty Seat)']
+                : ['🔍 Search Now', 'Flat', 'Room', 'Empty Seat'],
           ),
         );
         break;
@@ -965,7 +965,7 @@ class AIAssistantProvider extends ChangeNotifier {
             id: 'dp2_${DateTime.now().millisecondsSinceEpoch}',
             text: isBn ? '🏠 **বাসার ধরণ (House Type) কী হবে?** (ধাপ ২/১৭)' : '🏠 **House Type?** (Step 2/17)',
             sender: AIMessageSender.ai,
-            interactiveChips: isBn ? ['ফ্ল্যাট (Flat)', 'রুম (Room)', 'খালি সিট (Empty Seat)', 'ইউনিট (Unit)'] : ['Flat', 'Room', 'Empty Seat', 'Unit'],
+            interactiveChips: isBn ? ['ফ্ল্যাট (Flat)', 'রুম (Room)', 'খালি সিট (Empty Seat)'] : ['Flat', 'Room', 'Empty Seat'],
           ),
         );
         break;

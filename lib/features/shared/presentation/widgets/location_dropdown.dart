@@ -15,12 +15,14 @@ class DivisionDropdown extends StatelessWidget {
     required this.divisions,
     required this.onChanged,
     this.isLoading = false,
+    this.showErrors = false,
   });
 
   final DivisionModel? value;
   final List<DivisionModel> divisions;
   final ValueChanged<DivisionModel?> onChanged;
   final bool isLoading;
+  final bool showErrors;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +31,7 @@ class DivisionDropdown extends StatelessWidget {
       hint: context.localizations.division,
       value: value,
       isLoading: isLoading,
+      showErrors: showErrors,
       items: divisions
           .map(
             (division) => DropdownMenuItem(
@@ -50,6 +53,8 @@ class DistrictDropdown extends StatelessWidget {
     required this.onChanged,
     required this.enabled,
     this.isLoading = false,
+    this.showErrors = false,
+    this.validator,
   });
 
   final DistrictModel? value;
@@ -57,6 +62,8 @@ class DistrictDropdown extends StatelessWidget {
   final ValueChanged<DistrictModel?> onChanged;
   final bool enabled;
   final bool isLoading;
+  final bool showErrors;
+  final String? Function(DistrictModel?)? validator;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +73,21 @@ class DistrictDropdown extends StatelessWidget {
       value: value,
       enabled: enabled,
       isLoading: isLoading,
+      showErrors: showErrors,
+      validator: validator ??
+          (val) {
+            if (val == null) {
+              if (!enabled) {
+                return languageCode == 'bn'
+                    ? 'প্রথমে বিভাগ নির্বাচন করুন'
+                    : 'Please select division first';
+              }
+              return languageCode == 'bn'
+                  ? 'দয়া করে জেলা নির্বাচন করুন'
+                  : 'Please select district';
+            }
+            return null;
+          },
       items: districts
           .map(
             (district) => DropdownMenuItem(
@@ -88,6 +110,8 @@ class UpazilaDropdown extends StatelessWidget {
     required this.onChanged,
     required this.enabled,
     this.isLoading = false,
+    this.showErrors = false,
+    this.validator,
   });
 
   final UpazilaModel? value;
@@ -95,6 +119,8 @@ class UpazilaDropdown extends StatelessWidget {
   final ValueChanged<UpazilaModel?> onChanged;
   final bool enabled;
   final bool isLoading;
+  final bool showErrors;
+  final String? Function(UpazilaModel?)? validator;
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +130,21 @@ class UpazilaDropdown extends StatelessWidget {
       value: value,
       enabled: enabled,
       isLoading: isLoading,
+      showErrors: showErrors,
+      validator: validator ??
+          (val) {
+            if (val == null) {
+              if (!enabled) {
+                return languageCode == 'bn'
+                    ? 'প্রথমে জেলা নির্বাচন করুন'
+                    : 'Please select district first';
+              }
+              return languageCode == 'bn'
+                  ? 'দয়া করে এলাকা নির্বাচন করুন'
+                  : 'Please select area';
+            }
+            return null;
+          },
       items: upazilas
           .map(
             (upazila) => DropdownMenuItem(
@@ -125,6 +166,9 @@ class AreaDropdown extends StatelessWidget {
     required this.onChanged,
     required this.enabled,
     this.isLoading = false,
+    this.isRequired = false,
+    this.showErrors = false,
+    this.validator,
   });
 
   final UnionModel? value;
@@ -132,6 +176,9 @@ class AreaDropdown extends StatelessWidget {
   final ValueChanged<UnionModel?> onChanged;
   final bool enabled;
   final bool isLoading;
+  final bool isRequired;
+  final bool showErrors;
+  final String? Function(UnionModel?)? validator;
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +188,22 @@ class AreaDropdown extends StatelessWidget {
       value: value,
       enabled: enabled,
       isLoading: isLoading,
+      isRequired: isRequired,
+      showErrors: showErrors,
+      validator: validator ??
+          (val) {
+            if (isRequired && val == null) {
+              if (!enabled) {
+                return languageCode == 'bn'
+                    ? 'প্রথমে এলাকা নির্বাচন করুন'
+                    : 'Please select area first';
+              }
+              return languageCode == 'bn'
+                  ? 'দয়া করে উপ-এলাকা নির্বাচন করুন'
+                  : 'Please select sub-area';
+            }
+            return null;
+          },
       items: areas
           .map(
             (area) => DropdownMenuItem(

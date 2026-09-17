@@ -59,13 +59,29 @@ class AppTheme {
   static const InputDecorationTheme _inputDecorationTheme = InputDecorationTheme(
     contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     border: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(10)),
       borderSide: BorderSide(color: AppColors.themeColor),
     ),
     enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(10)),
       borderSide: BorderSide(color: Color(0xFFB5D0CB)),
     ),
     focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(10)),
       borderSide: BorderSide(color: AppColors.themeColor, width: 2),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(10)),
+      borderSide: BorderSide(color: Colors.redAccent, width: 1.5),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(10)),
+      borderSide: BorderSide(color: Colors.redAccent, width: 2),
+    ),
+    errorStyle: TextStyle(
+      color: Colors.redAccent,
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
     ),
   );
 

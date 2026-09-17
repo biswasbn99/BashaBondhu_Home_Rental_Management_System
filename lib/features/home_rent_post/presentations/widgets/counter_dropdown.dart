@@ -8,19 +8,24 @@ class CounterDropdown extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.maxCount = 10,
+    this.isRequired = false,
+    this.showErrors = false,
   });
 
   final String hint;
   final int? value;
   final ValueChanged<int?> onChanged;
   final int maxCount;
+  final bool isRequired;
+  final bool showErrors;
 
   @override
   Widget build(BuildContext context) {
     return FilterDropdown<int>(
       hint: hint,
       value: value,
-      isRequired: false,
+      isRequired: isRequired,
+      showErrors: showErrors,
       items: [
         DropdownMenuItem(value: null, child: Text(hint)),
         ...List.generate(maxCount + 1, (i) => i).map(

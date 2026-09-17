@@ -8,11 +8,13 @@ class MonthDropdown extends StatelessWidget {
     required this.value,
     required this.months,
     required this.onChanged,
+    this.showErrors = false,
   });
 
   final String? value;
   final List<String> months;
   final ValueChanged<String?> onChanged;
+  final bool showErrors;
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +23,7 @@ class MonthDropdown extends StatelessWidget {
     return FilterDropdown<String>(
       hint: l10n.month,
       value: value,
+      showErrors: showErrors,
       items: months
           .map((m) => DropdownMenuItem(
                 value: m,

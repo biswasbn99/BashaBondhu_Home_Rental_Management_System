@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/data/models/tenant_demand_model.dart';
@@ -12,6 +13,8 @@ class TenantDemandFirestoreService {
 
   final CollectionReference _demandsCollection =
       FirebaseFirestore.instance.collection('tenant_demands');
+  final DocumentReference _settingsDoc =
+      FirebaseFirestore.instance.collection('app_settings').doc('general');
 
   /// Create a new tenant demand document in Firestore
   Future<String> createDemand(TenantDemandModel demand) async {
@@ -251,25 +254,39 @@ class TenantDemandFirestoreService {
     });
   }
 
-  /// Stream all tenant demands for House Owners (only approved and active by default)
+  /// Stream all tenant demands for House Owners (only approved and active by default, respecting verification gating)
   Stream<List<TenantDemandModel>> streamAllDemands({bool onlyActive = true}) {
-    return _demandsCollection.snapshots().map((snapshot) {
+    StreamSubscription? demandSub;
+    StreamSubscription? settSub;
+    QuerySnapshot? lastDemands;
+    DocumentSnapshot? lastSettings;
+
+    late StreamController<List<TenantDemandModel>> controller;
+
+    void emit() {
+      if (lastDemands == null) return;
+      bool requireVerified = false;
+      if (lastSettings != null && lastSettings!.exists && lastSettings!.data() != null) {
+        final data = lastSettings!.data() as Map<String, dynamic>;
+        requireVerified = (data['requireVerifiedTenantForDemands'] as bool?) ?? false;
+      }
+
       final List<TenantDemandModel> list = [];
-      for (final doc in snapshot.docs) {
+      for (final doc in lastDemands!.docs) {
         try {
           final data = doc.data();
           if (data is Map<String, dynamic>) {
             final d = TenantDemandModel.fromMap(data, doc.id);
             final bool isLive = !d.isFulfilled && d.approvalStatus == 'approved';
-            if (!onlyActive || isLive) {
-              list.add(d);
-            }
+            if (onlyActive && !isLive) continue;
+            if (requireVerified && !d.isTenantVerified) continue;
+            list.add(d);
           } else if (data is Map) {
             final d = TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id);
             final bool isLive = !d.isFulfilled && d.approvalStatus == 'approved';
-            if (!onlyActive || isLive) {
-              list.add(d);
-            }
+            if (onlyActive && !isLive) continue;
+            if (requireVerified && !d.isTenantVerified) continue;
+            list.add(d);
           }
         } catch (e) {
           debugPrint('Error parsing tenant demand doc ${doc.id}: $e');
@@ -277,8 +294,37 @@ class TenantDemandFirestoreService {
       }
 
       list.sort((a, b) => b.postDate.compareTo(a.postDate));
-      return list;
-    });
+      if (!controller.isClosed) {
+        controller.add(list);
+      }
+    }
+
+    controller = StreamController<List<TenantDemandModel>>.broadcast(
+      onListen: () {
+        settSub = _settingsDoc.snapshots().listen(
+          (snap) {
+            lastSettings = snap;
+            emit();
+          },
+          onError: (e) => debugPrint('Error in settings stream: $e'),
+        );
+        demandSub = _demandsCollection.snapshots().listen(
+          (snap) {
+            lastDemands = snap;
+            emit();
+          },
+          onError: (e) {
+            if (!controller.isClosed) controller.addError(e);
+          },
+        );
+      },
+      onCancel: () {
+        demandSub?.cancel();
+        settSub?.cancel();
+      },
+    );
+
+    return controller.stream;
   }
 
   /// Toggle demand fulfilled status (isFulfilled = true/false)

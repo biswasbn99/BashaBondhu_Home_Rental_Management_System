@@ -117,6 +117,99 @@ class AdminFirestoreService {
       updateData['verificationFeedback'] = '';
     }
     await _usersCollection.doc(uid).set(updateData, SetOptions(merge: true));
+
+    // Batch update existing properties and demands for this user so verification state syncs instantly
+    try {
+      final userDoc = await _usersCollection.doc(uid).get();
+      final userData = userDoc.data() as Map<String, dynamic>?;
+      final userEmail = (userData?['email'] as String?) ?? '';
+
+      // Update Properties
+      final propQuery = await _propertiesCollection.where('ownerId', isEqualTo: uid).get();
+      final batch = _firestore.batch();
+      for (final doc in propQuery.docs) {
+        batch.update(doc.reference, {
+          'ownerVerificationStatus': status,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      if (userEmail.isNotEmpty) {
+        final propEmailQuery = await _propertiesCollection.where('ownerEmail', isEqualTo: userEmail).get();
+        for (final doc in propEmailQuery.docs) {
+          batch.update(doc.reference, {
+            'ownerVerificationStatus': status,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+
+      // Update Tenant Demands
+      final demandQuery = await _demandsCollection.where('tenantId', isEqualTo: uid).get();
+      for (final doc in demandQuery.docs) {
+        batch.update(doc.reference, {
+          'tenantVerificationStatus': status,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      if (userEmail.isNotEmpty) {
+        final demandEmailQuery = await _demandsCollection.where('tenantEmail', isEqualTo: userEmail).get();
+        for (final doc in demandEmailQuery.docs) {
+          batch.update(doc.reference, {
+            'tenantVerificationStatus': status,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+      await batch.commit();
+    } catch (e) {
+      debugPrint('Error syncing verification status to user posts: $e');
+    }
+
+    // Send notification to user
+    try {
+      final userDoc = await _usersCollection.doc(uid).get();
+      final userData = userDoc.data() as Map<String, dynamic>?;
+      final userRole = (userData?['userType'] as String?) ?? 'User';
+      final userEmail = (userData?['email'] as String?) ?? '';
+
+      if (isVerified) {
+        await NotificationFirestoreService().createNotification(
+          AppNotificationModel(
+            id: '',
+            recipientType: userRole.toLowerCase().contains('owner') ? 'owner' : 'tenant',
+            recipientId: uid,
+            recipientEmail: userEmail,
+            title: 'NID Verification Approved! 🎉',
+            titleBn: 'এনআইডি ভেরিফিকেশন সফল হয়েছে! 🎉',
+            message: 'Congratulations! Your NID verification has been reviewed and approved by Admin. Your profile is now Verified.',
+            messageBn: 'অভিনন্দন! আপনার এনআইডি তথ্য অ্যাডমিন কর্তৃক যাচাই ও ভেরিফাইড করা হয়েছে। আপনার প্রোফাইল এখন শতভাগ ভেরিফাইড।',
+            type: 'verification_approved',
+            targetType: 'user',
+            targetId: uid,
+            createdAt: DateTime.now(),
+          ),
+        );
+      } else if (status.toLowerCase() == 'rejected') {
+        await NotificationFirestoreService().createNotification(
+          AppNotificationModel(
+            id: '',
+            recipientType: userRole.toLowerCase().contains('owner') ? 'owner' : 'tenant',
+            recipientId: uid,
+            recipientEmail: userEmail,
+            title: 'NID Verification Rejected',
+            titleBn: 'এনআইডি ভেরিফিকেশন প্রত্যাখ্যাত হয়েছে',
+            message: 'Your NID verification could not be approved. Reason: ${reason ?? "Document unclear or invalid"}. Please resubmit from My Profile.',
+            messageBn: 'আপনার এনআইডি ভেরিফিকেশন গ্রহণ করা সম্ভব হয়নি। কারণ: ${reason ?? "অস্পষ্ট বা ভুল তথ্য"}। অনুগ্রহ করে প্রোফাইল থেকে পুনরায় জমা দিন।',
+            type: 'verification_rejected',
+            targetType: 'user',
+            targetId: uid,
+            createdAt: DateTime.now(),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error sending verification notification to user: $e');
+    }
   }
 
   Future<void> deleteUser(String uid) async {
@@ -529,6 +622,36 @@ class AdminFirestoreService {
     }
   }
 
+  Stream<bool> streamRequireVerifiedTenantSetting() {
+    return _settingsDoc.snapshots().map((snapshot) {
+      if (!snapshot.exists || snapshot.data() == null) return false;
+      final data = snapshot.data() as Map<String, dynamic>;
+      return (data['requireVerifiedTenantForDemands'] as bool?) ?? false;
+    });
+  }
+
+  Stream<bool> streamRequireVerifiedOwnerSetting() {
+    return _settingsDoc.snapshots().map((snapshot) {
+      if (!snapshot.exists || snapshot.data() == null) return false;
+      final data = snapshot.data() as Map<String, dynamic>;
+      return (data['requireVerifiedOwnerForProperties'] as bool?) ?? false;
+    });
+  }
+
+  Future<void> toggleTenantVerificationGating(bool enabled) async {
+    await _settingsDoc.set({
+      'requireVerifiedTenantForDemands': enabled,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> toggleOwnerVerificationGating(bool enabled) async {
+    await _settingsDoc.set({
+      'requireVerifiedOwnerForProperties': enabled,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   Future<void> toggleAutoApproval(bool enabled) async {
     await _settingsDoc.set({
       'autoApprovalEnabled': enabled,
@@ -558,6 +681,8 @@ class AdminFirestoreService {
     'autoApprovalEnabled': true,
     'autoApproveProperties': true,
     'autoApproveDemands': true,
+    'requireVerifiedTenantForDemands': false,
+    'requireVerifiedOwnerForProperties': false,
   };
 
   Future<void> _seedDefaultSettings() async {

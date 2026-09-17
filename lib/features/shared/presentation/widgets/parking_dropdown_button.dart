@@ -7,10 +7,14 @@ class ParkingDropdown extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
+    this.isRequired = false,
+    this.showErrors = false,
   });
 
   final bool? value;
   final ValueChanged<bool?> onChanged;
+  final bool isRequired;
+  final bool showErrors;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +22,8 @@ class ParkingDropdown extends StatelessWidget {
     return FilterDropdown<bool>(
       hint: l10n.parking,
       value: value,
-      isRequired: false,
+      isRequired: isRequired,
+      showErrors: showErrors,
       items: [
         DropdownMenuItem(value: null, child: Text(l10n.parking)),
         DropdownMenuItem(value: true, child: Text(l10n.available)),

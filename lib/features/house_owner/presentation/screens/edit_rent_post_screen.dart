@@ -178,7 +178,6 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
       case HouseType.seat:
         return List.generate(8, (i) => "${l10n.emptySeat} - ${i + 1}");
       case HouseType.unit:
-        return List.generate(8, (i) => "${l10n.unit} - ${i + 1}");
       case null:
         return const [];
     }
@@ -348,7 +347,12 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
           children: [
             const Icon(Icons.edit_note_rounded, color: AppColors.themeColor),
             const SizedBox(width: 8),
-            Text(isBn ? 'পরিবর্তন সংরক্ষণ' : 'Confirm Save Changes'),
+            Expanded(
+              child: Text(
+                isBn ? 'পরিবর্তন সংরক্ষণ' : 'Confirm Save Changes',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
         content: Text(
@@ -531,7 +535,11 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
                   Expanded(
                     child: HouseTypeDropdown(
                       value: _selectedHouseType,
-                      houseTypes: HouseType.values,
+                      houseTypes: const [
+                        HouseType.flat,
+                        HouseType.room,
+                        HouseType.seat,
+                      ],
                       onChanged: (val) {
                         setState(() {
                           _selectedHouseType = val;
@@ -592,9 +600,9 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
                 hint: l10n.amount,
                 prefixIcon: Icons.attach_money_rounded,
                 initialValue: _amount,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false),
                 onChanged: (val) => _amount = val,
-                validator: (val) => Validators.validateNumber(val),
+                validator: (val) => Validators.validatePositiveAmount(val, isBn: isBn),
               ),
               const SizedBox(height: 12),
 
@@ -981,15 +989,18 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
               const SizedBox(height: 24),
 
               // --- Save Changes Button ---
-              FilledButton(
-                onPressed: _isSaving ? null : _saveChanges,
-                child: _isSaving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : Text(l10n.saveChanges),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _isSaving ? null : _saveChanges,
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text(l10n.saveChanges),
+                ),
               ),
               const SizedBox(height: 32),
             ],

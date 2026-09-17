@@ -9,11 +9,13 @@ class TenantTypeDropdown extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.isRequired = false,
+    this.showErrors = false,
   });
 
   final TenantType? value;
   final ValueChanged<TenantType?> onChanged;
   final bool isRequired;
+  final bool showErrors;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,7 @@ class TenantTypeDropdown extends StatelessWidget {
       hint: l10n.tenantType,
       value: value,
       isRequired: isRequired,
+      showErrors: showErrors,
       items: [
         if (!isRequired) DropdownMenuItem(value: null, child: Text(l10n.tenantType)),
         ...TenantType.values.map(

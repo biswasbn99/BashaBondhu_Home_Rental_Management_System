@@ -47,7 +47,11 @@ class HomeRentPostProvider extends ChangeNotifier {
     'December'
   ];
 
-  static const List<HouseType> houseTypes = HouseType.values;
+  static const List<HouseType> houseTypes = [
+    HouseType.flat,
+    HouseType.room,
+    HouseType.seat,
+  ];
 
   List<String> roomOrSeatOptions(AppLocalizations localizations) {
     switch (selectedHouseType) {
@@ -58,7 +62,6 @@ class HomeRentPostProvider extends ChangeNotifier {
       case HouseType.seat:
         return List.generate(8, (i) => "${localizations.emptySeat} - ${i + 1}");
       case HouseType.unit:
-        return List.generate(8, (i) => "${localizations.unit} - ${i + 1}");
       case null:
         return const [];
     }
@@ -73,7 +76,6 @@ class HomeRentPostProvider extends ChangeNotifier {
       case HouseType.seat:
         return localizations.emptySeatNo;
       case HouseType.unit:
-        return localizations.unitNo;
       case null:
         return localizations.roomOrSeatNo;
     }
@@ -374,6 +376,14 @@ class HomeRentPostProvider extends ChangeNotifier {
   bool get hasThumbnail => _images.isNotEmpty;
 
   bool get isFormValid {
+    const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    const enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    var normalizedAmount = amount.trim();
+    for (int i = 0; i < 10; i++) {
+      normalizedAmount = normalizedAmount.replaceAll(bnDigits[i], enDigits[i]);
+    }
+    final parsedAmount = double.tryParse(normalizedAmount);
+
     return hasThumbnail &&
         selectedMonth != null &&
         selectedHouseType != null &&
@@ -381,10 +391,33 @@ class HomeRentPostProvider extends ChangeNotifier {
         selectedDistrict != null &&
         selectedUpazila != null &&
         selectedRoomOrSeat != null &&
+        selectedTenantType != null &&
         contactName.trim().isNotEmpty &&
         amount.trim().isNotEmpty &&
+        !amount.contains('-') &&
+        parsedAmount != null &&
+        parsedAmount > 0 &&
         userMobile.trim().isNotEmpty &&
+        selectedDivision != null &&
+        selectedDistrict != null &&
+        selectedUpazila != null &&
+        selectedArea != null &&
         shortAddress.trim().isNotEmpty &&
+        commonBathrooms != null &&
+        attachedBathrooms != null &&
+        kitchenCount != null &&
+        balconies != null &&
+        floorNumber != null &&
+        electricityBillType != null &&
+        electricityBillType!.isNotEmpty &&
+        hasCctv != null &&
+        hasWifi != null &&
+        hasGenerator != null &&
+        hasSecurityGuard != null &&
+        hasParking != null &&
+        hasLift != null &&
+        marketDistance != null &&
+        marketDistance!.isNotEmpty &&
         detailedDescription.trim().isNotEmpty;
   }
 

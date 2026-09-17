@@ -1,3 +1,4 @@
+import 'package:bashabondhu_home_rental_management_system/features/account/presentation/screens/my_record_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/admin/presentation/screens/admin_main_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_in_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_up_screen.dart';
@@ -57,6 +58,9 @@ class AppRoutes {
       MyDemandScreen.name => const MyDemandScreen(),
       EditDemandScreen.name => EditDemandScreen(demand: settings.arguments as TenantDemandModel),
       MyProfileScreen.name => const MyProfileScreen(),
+      MyRecordScreen.name => MyRecordScreen(
+          initialTab: args?['initialTab'] as int? ?? 0,
+        ),
       TenantSubscriptionScreen.name => const TenantSubscriptionScreen(),
       HouseOwnerSubscriptionScreen.name => const HouseOwnerSubscriptionScreen(),
       SubscriptionHistoryScreen.name => const SubscriptionHistoryScreen(),

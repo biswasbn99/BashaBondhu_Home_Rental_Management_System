@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/screens/account_profile_header.dart';
+import 'package:bashabondhu_home_rental_management_system/features/account/presentation/screens/my_record_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/widgets/account_action_tile.dart';
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/widgets/account_footer.dart';
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/widgets/account_logout_button.dart';
@@ -123,6 +124,36 @@ class TenantAccountScreen extends StatelessWidget {
           },
         ),
 
+        // 0.5 My Records (আমার রেকর্ডসমূহ)
+        AccountActionTile(
+          icon: Icons.inventory_2_rounded,
+          title: l10n.localeName == 'bn' ? 'আমার রেকর্ডসমূহ' : 'My Records',
+          subtitle: l10n.localeName == 'bn'
+              ? 'চাহিদা পোস্ট, সাবস্ক্রিপশন রসিদ ও সংরক্ষিত বাসার বিস্তারিত রেকর্ড'
+              : 'Detailed records of demands, subscription receipts & saved houses',
+          trailing: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.themeColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.analytics_outlined, size: 13, color: AppColors.themeColor),
+                const SizedBox(width: 4),
+                Text(
+                  l10n.localeName == 'bn' ? 'রেকর্ড' : 'Records',
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.themeColor),
+                ),
+              ],
+            ),
+          ),
+          onTap: () {
+            Navigator.pushNamed(context, MyRecordScreen.name);
+          },
+        ),
+
         // 1. My Subscription Packages Button
         AccountActionTile(
           icon: Icons.card_membership_rounded,
@@ -171,7 +202,7 @@ class TenantAccountScreen extends StatelessWidget {
           title: l10n.subscriptionHistory,
           subtitle: l10n.localeName == 'bn'
               ? 'অতীতের সকল সাবস্ক্রিপশন প্যাকেজ ও পেমেন্ট হিস্ট্রি দেখুন'
-              : 'View all past subscription packages and bKash payment records',
+              : 'View all past subscription packages and payment records',
           onTap: () {
             Navigator.push(
               context,

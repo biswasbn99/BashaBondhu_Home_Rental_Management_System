@@ -196,7 +196,7 @@ class _EditDemandScreenState extends State<EditDemandScreen> {
       case HouseType.seat:
         return List.generate(8, (i) => "${l10n.emptySeat} - ${i + 1}");
       case HouseType.unit:
-        return List.generate(8, (i) => "${l10n.unit} - ${i + 1}");
+        return const [];
     }
   }
 
@@ -598,15 +598,18 @@ class _EditDemandScreenState extends State<EditDemandScreen> {
                 const SizedBox(height: 24),
 
                 // Save Changes Button
-                FilledButton(
-                  onPressed: _isSaving ? null : _saveDemand,
-                  child: _isSaving
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                        )
-                      : Text(l10n.saveChanges),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _isSaving ? null : _saveDemand,
+                    child: _isSaving
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                          )
+                        : Text(l10n.saveChanges),
+                  ),
                 ),
               ],
             ),

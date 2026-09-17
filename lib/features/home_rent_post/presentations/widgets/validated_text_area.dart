@@ -1,3 +1,4 @@
+import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class ValidatedTextArea extends StatefulWidget {
@@ -11,6 +12,7 @@ class ValidatedTextArea extends StatefulWidget {
     this.focusNode,
     this.minLines = 4,
     this.maxLines,
+    this.showErrors = false,
   });
 
   final String hint;
@@ -21,6 +23,7 @@ class ValidatedTextArea extends StatefulWidget {
   final FocusNode? focusNode;
   final int minLines;
   final int? maxLines;
+  final bool showErrors;
 
   @override
   State<ValidatedTextArea> createState() => _ValidatedTextAreaState();
@@ -88,17 +91,58 @@ class _ValidatedTextAreaState extends State<ValidatedTextArea> {
             widget.onChanged(val);
           },
           validator: (val) {
-            if (_countWords(val ?? '') > widget.maxWords) {
+            if (val == null || val.trim().isEmpty) {
+              return isBn
+                  ? 'দয়া করে ${widget.hint} লিখুন'
+                  : 'Please enter ${widget.hint}';
+            }
+            if (_countWords(val) > widget.maxWords) {
               return isBn
                   ? 'সর্বোচ্চ ${widget.maxWords} শব্দ লেখা যাবে'
                   : 'Max ${widget.maxWords} words allowed';
             }
             return widget.validator?.call(val);
           },
-          autovalidateMode: AutovalidateMode.onUserInteraction,
+          autovalidateMode: widget.showErrors
+              ? AutovalidateMode.always
+              : AutovalidateMode.onUserInteraction,
           decoration: InputDecoration(
             hintText: widget.hint,
             alignLabelWithHint: true,
+            filled: true,
+            fillColor: theme.brightness == Brightness.dark
+                ? Colors.white.withValues(alpha: 0.04)
+                : Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(
+                color: theme.brightness == Brightness.dark ? Colors.grey[700]! : Colors.grey[300]!,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(
+                color: theme.brightness == Brightness.dark ? Colors.grey[700]! : Colors.grey[300]!,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppColors.themeColor, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+            ),
+            errorStyle: const TextStyle(
+              color: Colors.redAccent,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
         const SizedBox(height: 4),

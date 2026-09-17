@@ -37,12 +37,18 @@ class HouseOwnerSubscriptionScreen extends StatelessWidget {
     return Scaffold(
       appBar: MainAppBar(
         automaticallyImplyLeading: true,
-        title: Text(
-          l10n.subscriptionPackages,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+        titleSpacing: 0,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            l10n.subscriptionPackages,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
           ),
         ),
         actions: [

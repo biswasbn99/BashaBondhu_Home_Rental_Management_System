@@ -9,11 +9,13 @@ class HouseTypeDropdown extends StatelessWidget {
     required this.value,
     required this.houseTypes,
     required this.onChanged,
+    this.showErrors = false,
   });
 
   final HouseType? value;
   final List<HouseType> houseTypes;
   final ValueChanged<HouseType?> onChanged;
+  final bool showErrors;
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +23,7 @@ class HouseTypeDropdown extends StatelessWidget {
     return FilterDropdown<HouseType>(
       hint: l10n.houseType,
       value: value,
+      showErrors: showErrors,
       items: houseTypes
           .map(
             (t) => DropdownMenuItem(

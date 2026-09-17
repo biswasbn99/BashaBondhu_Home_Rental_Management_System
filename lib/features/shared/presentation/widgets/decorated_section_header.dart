@@ -20,9 +20,10 @@ class DecoratedSectionHeader extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
+              margin: const EdgeInsets.only(top: 2),
               width: 4,
               height: 18,
               decoration: BoxDecoration(
@@ -31,12 +32,10 @@ class DecoratedSectionHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Flexible(
-              fit: FlexFit.loose,
+            Expanded(
               child: Text(
                 title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                softWrap: true,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onSurface,
@@ -51,6 +50,7 @@ class DecoratedSectionHeader extends StatelessWidget {
             padding: const EdgeInsets.only(left: 12),
             child: Text(
               subtitle!,
+              softWrap: true,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

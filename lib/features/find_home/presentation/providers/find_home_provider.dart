@@ -171,7 +171,11 @@ class FindHomeProvider extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
-  static const List<HouseType> houseTypes = HouseType.values;
+  static const List<HouseType> houseTypes = [
+    HouseType.flat,
+    HouseType.room,
+    HouseType.seat,
+  ];
 
   HouseType? selectedHouseType;
 
@@ -190,7 +194,6 @@ class FindHomeProvider extends ChangeNotifier {
       case HouseType.seat:
         return List.generate(8, (i) => "${localizations.emptySeat} - ${i + 1}");
       case HouseType.unit:
-        return List.generate(8, (i) => "${localizations.unit} - ${i + 1}");
       case null:
         return const [];
     }
@@ -205,7 +208,6 @@ class FindHomeProvider extends ChangeNotifier {
       case HouseType.seat:
         return localizations.emptySeatNo;
       case HouseType.unit:
-        return localizations.unitNo;
       case null:
         return localizations.roomOrSeatNo;
     }

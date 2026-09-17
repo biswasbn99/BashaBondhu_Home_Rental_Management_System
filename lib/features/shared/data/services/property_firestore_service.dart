@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,6 +16,8 @@ class PropertyFirestoreService {
       FirebaseFirestore.instance.collection('properties');
   final CollectionReference _usersCollection =
       FirebaseFirestore.instance.collection('users');
+  final DocumentReference _settingsDoc =
+      FirebaseFirestore.instance.collection('app_settings').doc('general');
 
   /// Create a new property document in Firestore
   Future<String> createProperty({
@@ -109,35 +112,76 @@ class PropertyFirestoreService {
     }
   }
 
-  /// Stream all active properties for HomeScreen / FindHomeScreen (only approved & available by default)
+  /// Stream all active properties for HomeScreen / FindHomeScreen (only approved & available by default, respecting verification gating)
   Stream<List<PropertyModel>> streamAllProperties({bool onlyAvailable = true}) {
-    return _propertiesCollection
-        .snapshots()
-        .map((snapshot) {
+    StreamSubscription? propSub;
+    StreamSubscription? settSub;
+    QuerySnapshot? lastProps;
+    DocumentSnapshot? lastSettings;
+
+    late StreamController<List<PropertyModel>> controller;
+
+    void emit() {
+      if (lastProps == null) return;
+      bool requireVerified = false;
+      if (lastSettings != null && lastSettings!.exists && lastSettings!.data() != null) {
+        final data = lastSettings!.data() as Map<String, dynamic>;
+        requireVerified = (data['requireVerifiedOwnerForProperties'] as bool?) ?? false;
+      }
+
       final List<PropertyModel> list = [];
-      for (final doc in snapshot.docs) {
+      for (final doc in lastProps!.docs) {
         try {
           final data = doc.data();
           if (data is Map<String, dynamic>) {
             final p = PropertyModel.fromMap(data, doc.id);
             final bool isLive = p.isAvailable && p.approvalStatus == 'approved';
-            if (!onlyAvailable || isLive) {
-              list.add(p);
-            }
+            if (onlyAvailable && !isLive) continue;
+            if (requireVerified && !p.isOwnerVerified) continue;
+            list.add(p);
           } else if (data is Map) {
             final p = PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id);
             final bool isLive = p.isAvailable && p.approvalStatus == 'approved';
-            if (!onlyAvailable || isLive) {
-              list.add(p);
-            }
+            if (onlyAvailable && !isLive) continue;
+            if (requireVerified && !p.isOwnerVerified) continue;
+            list.add(p);
           }
         } catch (e) {
           debugPrint('Error parsing property doc ${doc.id}: $e');
         }
       }
       list.sort((a, b) => b.postDate.compareTo(a.postDate));
-      return list;
-    });
+      if (!controller.isClosed) {
+        controller.add(list);
+      }
+    }
+
+    controller = StreamController<List<PropertyModel>>.broadcast(
+      onListen: () {
+        settSub = _settingsDoc.snapshots().listen(
+          (snap) {
+            lastSettings = snap;
+            emit();
+          },
+          onError: (e) => debugPrint('Error in settings stream: $e'),
+        );
+        propSub = _propertiesCollection.snapshots().listen(
+          (snap) {
+            lastProps = snap;
+            emit();
+          },
+          onError: (e) {
+            if (!controller.isClosed) controller.addError(e);
+          },
+        );
+      },
+      onCancel: () {
+        propSub?.cancel();
+        settSub?.cancel();
+      },
+    );
+
+    return controller.stream;
   }
 
   /// Stream properties owned by a specific house owner
@@ -361,6 +405,11 @@ class PropertyFirestoreService {
       debugPrint('❌ Error toggling property rented status: $e');
       rethrow;
     }
+  }
+
+  /// Toggle property availability status (isAvailable = true/false)
+  Future<void> togglePropertyAvailability(String propertyId, bool isAvailable) async {
+    await togglePropertyRentedStatus(propertyId, !isAvailable);
   }
 
   /// Toggle property favorite status in user's wishlist sub-collection

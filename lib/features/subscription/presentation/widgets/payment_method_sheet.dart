@@ -3,7 +3,6 @@ import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../data/models/subscription_model.dart';
-import '../screens/payment_gateway_screen.dart';
 import '../screens/sslcommerz_webview_screen.dart';
 
 class PaymentMethodBottomSheet {
@@ -161,68 +160,6 @@ class PaymentMethodBottomSheet {
                             isBn
                                 ? 'bKash, Nagad, Rocket, Visa, Mastercard, DBBL ও অন্যান্য'
                                 : 'bKash, Nagad, Rocket, Visa, Mastercard, DBBL & more',
-                            style: TextStyle(fontSize: 11.5, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Option 2: Direct bKash Personal (01746300498)
-            InkWell(
-              onTap: () {
-                Navigator.pop(ctx);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => PaymentGatewayScreen(
-                      plan: plan,
-                      user: user,
-                    ),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2A1526) : const Color(0xFFFDF2F8),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFFE2136E).withValues(alpha: 0.35),
-                    width: 1.2,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE2136E).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFFE2136E), size: 26),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Direct bKash (01746300498)',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            isBn
-                                ? 'বিকাশ নম্বর ➔ ওটিপি (OTP) ➔ পিন দিয়ে সরাসরি পরিশোধ'
-                                : 'Pay directly via bKash Number ➔ OTP ➔ PIN',
                             style: TextStyle(fontSize: 11.5, color: isDark ? Colors.grey[400] : Colors.grey[600]),
                           ),
                         ],

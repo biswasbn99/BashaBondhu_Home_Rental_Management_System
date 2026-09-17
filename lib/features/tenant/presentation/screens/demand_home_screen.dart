@@ -58,7 +58,9 @@ class _DemandHomeView extends StatefulWidget {
 
 class _DemandHomeViewState extends State<_DemandHomeView> {
   final _formKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+  bool _showValidationErrors = false;
   static const Color _grey = Color(0xFF7A8A88);
 
   late final TextEditingController _userNameController;
@@ -75,6 +77,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _userNameController.dispose();
     _userMobileController.dispose();
     _userWhatsAppController.dispose();
@@ -126,6 +129,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
           key: _formKey,
           autovalidateMode: _autovalidateMode,
           child: SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -149,6 +153,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                           MonthDropdown(
                             value: provider.selectedMonth,
                             months: DemandHomeProvider.months,
+                            showErrors: _showValidationErrors,
                             onChanged: provider.setMonth,
                           ),
                         ],
@@ -164,6 +169,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                           HouseTypeDropdown(
                             value: provider.selectedHouseType,
                             houseTypes: DemandHomeProvider.houseTypes,
+                            showErrors: _showValidationErrors,
                             onChanged: provider.setHouseType,
                           ),
                         ],
@@ -185,6 +191,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                         value: provider.selectedDivision,
                         divisions: provider.divisions,
                         isLoading: provider.isLoadingDivisions,
+                        showErrors: _showValidationErrors,
                         onChanged: (div) => provider.selectDivision(div, l10n),
                       ),
                     ),
@@ -195,6 +202,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                         districts: provider.districts,
                         enabled: provider.selectedDivision != null,
                         isLoading: provider.isLoadingDistricts,
+                        showErrors: _showValidationErrors,
                         onChanged: (dist) => provider.selectDistrict(dist, l10n),
                       ),
                     ),
@@ -209,6 +217,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                         upazilas: provider.upazilas,
                         enabled: provider.selectedDistrict != null,
                         isLoading: provider.isLoadingUpazilas,
+                        showErrors: _showValidationErrors,
                         onChanged: (upazila) => provider.selectUpazila(upazila, l10n),
                       ),
                     ),
@@ -219,6 +228,8 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                         areas: provider.areas,
                         enabled: provider.selectedUpazila != null,
                         isLoading: provider.isLoadingAreas,
+                        isRequired: true,
+                        showErrors: _showValidationErrors,
                         onChanged: provider.selectArea,
                       ),
                     ),
@@ -238,6 +249,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                         value: provider.selectedBudgetRange,
                         ranges: DemandHomeProvider.budgetRanges,
                         isRequired: true,
+                        showErrors: _showValidationErrors,
                         onChanged: provider.setBudgetRange,
                       ),
                     ),
@@ -246,6 +258,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                       child: TenantTypeDropdown(
                         value: provider.selectedTenantType,
                         isRequired: true,
+                        showErrors: _showValidationErrors,
                         onChanged: provider.setTenantType,
                       ),
                     ),
@@ -263,6 +276,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                   value: provider.selectedRoomOrSeat,
                   enabled: provider.selectedHouseType != null,
                   options: provider.roomOrSeatOptions,
+                  showErrors: _showValidationErrors,
                   onChanged: provider.setRoomOrSeat,
                 ),
 
@@ -320,6 +334,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                 const SizedBox(height: 20),
 
                 // Notice Status (Optional)
+                // Notice Status (Required)
                 DecoratedSectionHeader(title: l10n.noticeQuestion),
                 const SizedBox(height: 12),
 
@@ -328,7 +343,8 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                 FilterDropdown<bool>(
                   hint: l10n.noticeHint,
                   value: provider.hasGivenNotice,
-                  isRequired: false,
+                  isRequired: true,
+                  showErrors: _showValidationErrors,
                   items: [
                     DropdownMenuItem(
                       value: null,
@@ -358,6 +374,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                   hint: l10n.enterName,
                   prefixIcon: Icons.person_outline_rounded,
                   readOnly: !isGuest && user != null,
+                  showErrors: _showValidationErrors,
                   suffixIcon: !isGuest && user != null
                       ? const Tooltip(
                           message: 'Auto-filled from profile',
@@ -372,7 +389,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                   onChanged: provider.setUserName,
                   validator: (!isGuest && user != null)
                       ? (val) => (val == null || val.trim().isEmpty) ? l10n.enterName : null
-                      : Validators.validateName,
+                      : (val) => Validators.validateName(val, isBn: Localizations.localeOf(context).languageCode == 'bn'),
                 ),
 
                 const SizedBox(height: 12),
@@ -384,6 +401,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                   prefixIcon: Icons.phone_android_rounded,
                   keyboardType: TextInputType.phone,
                   readOnly: !isGuest && user != null && user.mobile.isNotEmpty,
+                  showErrors: _showValidationErrors,
                   suffixIcon: !isGuest && user != null && user.mobile.isNotEmpty
                       ? const Tooltip(
                           message: 'Auto-filled from profile',
@@ -398,7 +416,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                   onChanged: provider.setUserMobile,
                   validator: (!isGuest && user != null && user.mobile.isNotEmpty)
                       ? (val) => (val == null || val.trim().isEmpty) ? l10n.enterMobile : null
-                      : Validators.validatePhoneNumber,
+                      : (val) => Validators.validatePhoneNumber(val, isBn: Localizations.localeOf(context).languageCode == 'bn'),
                 ),
 
                 const SizedBox(height: 12),
@@ -408,6 +426,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                   hint: Localizations.localeOf(context).languageCode == 'bn' ? 'হোয়াটসঅ্যাপ নাম্বার (ঐচ্ছিক)' : 'WhatsApp Number (Optional)',
                   prefixIcon: Icons.message_outlined,
                   keyboardType: TextInputType.phone,
+                  showErrors: _showValidationErrors,
                   onChanged: provider.setUserWhatsApp,
                   validator: Validators.validateWhatsAppNumber,
                 ),
@@ -422,18 +441,28 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
                   onPressed: provider.isPosting
                       ? null
                       : () {
-                          setState(() => _autovalidateMode = AutovalidateMode.onUserInteraction);
+                          setState(() {
+                            _showValidationErrors = true;
+                            _autovalidateMode = AutovalidateMode.always;
+                          });
                           final isFormValid = _formKey.currentState?.validate() ?? false;
                           if (isFormValid && provider.isDemandValid) {
                             _postDemand(context, provider);
                           } else {
+                            if (_scrollController.hasClients) {
+                              _scrollController.animateTo(
+                                0,
+                                duration: const Duration(milliseconds: 400),
+                                curve: Curves.easeInOut,
+                              );
+                            }
                             final isBn = Localizations.localeOf(context).languageCode == 'bn';
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
                                   isBn
-                                      ? 'অনুগ্রহ করে সকল আবশ্যকীয় তথ্য (বিভাগ, জেলা, এলাকা, মাস, বাসার ধরন, বাজেট, ভাড়াটিয়ার ধরন, রুম/সিট, যোগাযোগের নাম ও সঠিক মোবাইল নম্বর) সঠিকভাবে পূরণ করুন।'
-                                      : 'Please fill in all required fields (Division, District, Area, Month, House Type, Budget, Tenant Type, Room/Seat, Name & valid Mobile) properly.',
+                                      ? 'অনুগ্রহ করে লাল দাগ চিহ্নিত সব প্রয়োজনীয় তথ্য (বিভাগ, জেলা, এলাকা, উপ-এলাকা, মাস, বাসার ধরন, বাজেট, ভাড়াটিয়ার ধরন, রুম/সিট, নোটিশের অবস্থা, নাম ও সঠিক মোবাইল নম্বর) সঠিকভাবে পূরণ করুন।'
+                                      : 'Please fill in all highlighted fields (Division, District, Area, Sub-area, Month, House Type, Budget, Tenant Type, Room/Seat, Notice, Name & valid Mobile) properly.',
                                 ),
                                 backgroundColor: Colors.redAccent,
                                 duration: const Duration(seconds: 4),
@@ -739,6 +768,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
     Widget? suffixIcon,
     String? helperText,
     bool readOnly = false,
+    bool showErrors = false,
     String? Function(String?)? validator,
     TextInputType keyboardType = TextInputType.text,
   }) {
@@ -746,6 +776,7 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
     return TextFormField(
       controller: controller,
       readOnly: readOnly,
+      autovalidateMode: showErrors ? AutovalidateMode.always : AutovalidateMode.onUserInteraction,
       onChanged: onChanged,
       validator: validator,
       keyboardType: keyboardType,
@@ -779,7 +810,16 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.redAccent),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+        ),
+        errorStyle: const TextStyle(
+          color: Colors.redAccent,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

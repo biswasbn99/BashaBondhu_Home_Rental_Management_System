@@ -7,10 +7,14 @@ class DistanceDropdown extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
+    this.isRequired = false,
+    this.showErrors = false,
   });
 
   final String? value;
   final ValueChanged<String?> onChanged;
+  final bool isRequired;
+  final bool showErrors;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +31,8 @@ class DistanceDropdown extends StatelessWidget {
     return FilterDropdown<String>(
       hint: l10n.marketDistance,
       value: value,
-      isRequired: false,
+      isRequired: isRequired,
+      showErrors: showErrors,
       items: [
         DropdownMenuItem(value: null, child: Text(l10n.marketDistance)),
         ...options.map((o) => DropdownMenuItem(value: o, child: Text(o))),

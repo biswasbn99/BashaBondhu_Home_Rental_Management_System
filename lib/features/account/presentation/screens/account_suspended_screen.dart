@@ -154,9 +154,11 @@ class _AccountSuspendedScreenState extends State<AccountSuspendedScreen> {
               child: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 22),
             ),
             const SizedBox(width: 12),
-            Text(
-              isBn ? 'লগআউট নিশ্চিত করুন' : 'Confirm Sign Out',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+            Expanded(
+              child: Text(
+                isBn ? 'লগআউট নিশ্চিত করুন' : 'Confirm Sign Out',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+              ),
             ),
           ],
         ),

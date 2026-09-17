@@ -86,7 +86,6 @@ class DemandHomeProvider extends ChangeNotifier {
     HouseType.flat,
     HouseType.room,
     HouseType.seat,
-    HouseType.unit,
   ];
 
   static const List<String> budgetRanges = [
@@ -124,7 +123,7 @@ class DemandHomeProvider extends ChangeNotifier {
       case HouseType.seat:
         return List.generate(8, (i) => "Empty Seat - ${i + 1}");
       case HouseType.unit:
-        return List.generate(8, (i) => "Unit - ${i + 1}");
+        return [];
     }
   }
 
@@ -366,9 +365,11 @@ class DemandHomeProvider extends ChangeNotifier {
     final hasDivision = selectedDivision != null;
     final hasDistrict = selectedDistrict != null;
     final hasUpazila = selectedUpazila != null;
+    final hasSubArea = selectedArea != null;
     final hasBudget = selectedBudgetRange != null && selectedBudgetRange!.isNotEmpty;
     final hasTenantType = selectedTenantType != null;
     final hasRoomOrSeat = selectedRoomOrSeat != null && selectedRoomOrSeat!.isNotEmpty;
+    final hasNotice = hasGivenNotice != null;
     final isNameValid = userName.trim().isNotEmpty && (Validators.validateName(userName) == null || userName.trim().length >= 2);
     final isPhoneValid = userMobile.trim().isNotEmpty && (Validators.validatePhoneNumber(userMobile) == null || userMobile.trim().length >= 10);
     final isWhatsAppValid = Validators.validateWhatsAppNumber(userWhatsApp) == null;
@@ -378,9 +379,11 @@ class DemandHomeProvider extends ChangeNotifier {
         hasDivision &&
         hasDistrict &&
         hasUpazila &&
+        hasSubArea &&
         hasBudget &&
         hasTenantType &&
         hasRoomOrSeat &&
+        hasNotice &&
         isNameValid &&
         isPhoneValid &&
         isWhatsAppValid;

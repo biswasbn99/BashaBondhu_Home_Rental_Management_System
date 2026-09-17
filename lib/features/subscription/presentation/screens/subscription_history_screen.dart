@@ -41,14 +41,14 @@ class SubscriptionHistoryScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2136E).withValues(alpha: 0.12),
+                  color: AppColors.themeColor.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.receipt_long_rounded, color: Color(0xFFE2136E), size: 36),
+                child: const Icon(Icons.receipt_long_rounded, color: AppColors.themeColor, size: 36),
               ),
               const SizedBox(height: 12),
               Text(
-                isBn ? 'বিকাশ ডিজিটাল পেমেন্ট রসিদ' : 'bKash Digital Payment Receipt',
+                isBn ? 'ডিজিটাল পেমেন্ট রসিদ' : 'Digital Payment Receipt',
                 style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
               ),
               const Text(
@@ -59,7 +59,7 @@ class SubscriptionHistoryScreen extends StatelessWidget {
               const Divider(),
               const SizedBox(height: 10),
 
-              _buildDialogRow(isBn ? 'রিসিভার একাউন্ট:' : 'Receiver Account:', '01746300498'),
+              _buildDialogRow(isBn ? 'পেমেন্ট গেটওয়ে:' : 'Payment Gateway:', 'SSLCOMMERZ / Online'),
               const SizedBox(height: 8),
               _buildDialogRow(isBn ? 'প্রেরক নম্বর:' : 'Sender Phone:', tx.senderPhone),
               const SizedBox(height: 8),
@@ -281,15 +281,15 @@ class SubscriptionHistoryScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE2136E).withValues(alpha: 0.12),
+                            color: AppColors.themeColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
-                            'bKash',
-                            style: TextStyle(
+                          child: Text(
+                            item.paymentMethod.isNotEmpty ? item.paymentMethod : 'Online',
+                            style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFE2136E),
+                              color: AppColors.themeColor,
                             ),
                           ),
                         ),
@@ -298,7 +298,7 @@ class SubscriptionHistoryScreen extends StatelessWidget {
                     const Divider(height: 16),
 
                     // TrxID and Sender Phone
-                    _buildRow('bKash TrxID:', item.transactionId, isHighlight: true),
+                    _buildRow(isBn ? 'লেনদেন আইডি:' : 'Trx ID:', item.transactionId, isHighlight: true),
                     const SizedBox(height: 4),
                     _buildRow(isBn ? 'প্রেরক নম্বর:' : 'Sender Phone:', item.senderPhone),
                     const SizedBox(height: 4),

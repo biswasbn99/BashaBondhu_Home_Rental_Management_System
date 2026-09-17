@@ -7,10 +7,14 @@ class BalconyDropdown extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
+    this.isRequired = false,
+    this.showErrors = false,
   });
 
   final int? value;
   final ValueChanged<int?> onChanged;
+  final bool isRequired;
+  final bool showErrors;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +22,8 @@ class BalconyDropdown extends StatelessWidget {
     return FilterDropdown<int>(
       hint: l10n.balcony,
       value: value,
-      isRequired: false,
+      isRequired: isRequired,
+      showErrors: showErrors,
       items: [
         DropdownMenuItem(value: null, child: Text(l10n.balcony)),
         ...List.generate(5, (i) => i + 1).map(

@@ -67,6 +67,7 @@ class _HomeRentPostView extends StatefulWidget {
 
 class _HomeRentPostViewState extends State<_HomeRentPostView> {
   final _formKey = GlobalKey<FormState>();
+  final _scrollController = ScrollController();
 
   late final TextEditingController _contactNameController;
   late final TextEditingController _userMobileController;
@@ -84,6 +85,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _contactNameController.dispose();
     _userMobileController.dispose();
     _userWhatsAppController.dispose();
@@ -135,9 +137,13 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
       ),
       floatingActionButton: const AIFloatingButton(),
       body: SingleChildScrollView(
+        controller: _scrollController,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Form(
           key: _formKey,
+          autovalidateMode: provider.showValidationErrors
+              ? AutovalidateMode.always
+              : AutovalidateMode.disabled,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -215,6 +221,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     child: MonthDropdown(
                       value: provider.selectedMonth,
                       months: HomeRentPostProvider.months,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectMonth,
                     ),
                   ),
@@ -223,6 +230,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     child: HouseTypeDropdown(
                       value: provider.selectedHouseType,
                       houseTypes: HomeRentPostProvider.houseTypes,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectHouseType,
                     ),
                   ),
@@ -236,6 +244,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                       hint: provider.roomOrSeatHint(l10n),
                       value: provider.selectedRoomOrSeat,
                       enabled: provider.selectedHouseType != null,
+                      showErrors: provider.showValidationErrors,
                       options: provider.roomOrSeatOptions(l10n),
                       onChanged: provider.selectRoomOrSeat,
                     ),
@@ -244,6 +253,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                   Expanded(
                     child: TenantTypeDropdown(
                       value: provider.selectedTenantType,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectTenantType,
                     ),
                   ),
@@ -275,7 +286,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                 onChanged: provider.setContactName,
                 validator: (!isGuest && user != null)
                     ? (val) => (val == null || val.trim().isEmpty) ? l10n.contactPerson : null
-                    : (val) => Validators.validateName(val),
+                    : (val) => Validators.validateName(val, isBn: isBn),
                 showErrors: provider.showValidationErrors,
               ),
               const SizedBox(height: 12),
@@ -283,9 +294,9 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                 controller: _amountController,
                 hint: l10n.amount,
                 prefixIcon: Icons.payments_outlined,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(signed: false, decimal: false),
                 onChanged: provider.setAmount,
-                validator: (val) => Validators.validateNumber(val),
+                validator: (val) => Validators.validatePositiveAmount(val, isBn: isBn),
                 showErrors: provider.showValidationErrors,
               ),
               const SizedBox(height: 12),
@@ -311,7 +322,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                 onChanged: provider.setUserMobile,
                 validator: (!isGuest && user != null && user.mobile.isNotEmpty)
                     ? (val) => (val == null || val.trim().isEmpty) ? l10n.enterMobile : null
-                    : (val) => Validators.validatePhoneNumber(val),
+                    : (val) => Validators.validatePhoneNumber(val, isBn: isBn),
                 showErrors: provider.showValidationErrors,
               ),
               const SizedBox(height: 12),
@@ -341,6 +352,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                       value: provider.selectedDivision,
                       divisions: provider.divisions,
                       isLoading: provider.isLoadingDivisions,
+                      showErrors: provider.showValidationErrors,
                       onChanged: (val) => provider.selectDivision(val, l10n),
                     ),
                   ),
@@ -351,6 +363,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                       districts: provider.districts,
                       enabled: provider.selectedDivision != null,
                       isLoading: provider.isLoadingDistricts,
+                      showErrors: provider.showValidationErrors,
                       onChanged: (val) => provider.selectDistrict(val, l10n),
                     ),
                   ),
@@ -365,6 +378,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                       upazilas: provider.upazilas,
                       enabled: provider.selectedDistrict != null,
                       isLoading: provider.isLoadingUpazilas,
+                      showErrors: provider.showValidationErrors,
                       onChanged: (val) => provider.selectUpazila(val, l10n),
                     ),
                   ),
@@ -375,6 +389,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                       areas: provider.areas,
                       enabled: provider.selectedUpazila != null,
                       isLoading: provider.isLoadingAreas,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectArea,
                     ),
                   ),
@@ -386,7 +402,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                 maxWords: 200,
                 initialValue: provider.shortAddress,
                 onChanged: provider.setShortAddress,
-                validator: (val) => Validators.validateText(val),
+                showErrors: provider.showValidationErrors,
+                validator: (val) => Validators.validateText(val, message: isBn ? 'সংক্ষিপ্ত ঠিকানা লিখুন' : 'Please enter short address'),
               ),
               const SizedBox(height: 16),
 
@@ -405,6 +422,7 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
               const SizedBox(height: 24),
 
               // --- Amenities Section ---
+              // --- Amenities Section (Required) ---
               DecoratedSectionHeader(title: l10n.amenitiesPromptTitle),
               const SizedBox(height: 12),
               Row(
@@ -413,6 +431,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     child: CounterDropdown(
                       hint: l10n.commonBathroom,
                       value: provider.commonBathrooms,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectCommonBathrooms,
                     ),
                   ),
@@ -421,6 +441,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     child: CounterDropdown(
                       hint: l10n.attachedBathroom,
                       value: provider.attachedBathrooms,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectAttachedBathrooms,
                     ),
                   ),
@@ -433,6 +455,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     child: CounterDropdown(
                       hint: l10n.kitchen,
                       value: provider.kitchenCount,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectKitchenCount,
                     ),
                   ),
@@ -440,6 +464,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                   Expanded(
                     child: BalconyDropdown(
                       value: provider.balconies,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectBalconies,
                     ),
                   ),
@@ -451,6 +477,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                   Expanded(
                     child: FloorNumberDropdown(
                       value: provider.floorNumber,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectFloor,
                     ),
                   ),
@@ -458,6 +486,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                   Expanded(
                     child: ElectricityBillDropdown(
                       value: provider.electricityBillType,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectElectricityBillType,
                     ),
                   ),
@@ -470,6 +500,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     child: AmenitiesDropdown(
                       hint: l10n.cctv,
                       value: provider.hasCctv,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectCctv,
                     ),
                   ),
@@ -478,6 +510,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     child: AmenitiesDropdown(
                       hint: l10n.wifi,
                       value: provider.hasWifi,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectWifi,
                     ),
                   ),
@@ -490,6 +524,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     child: AmenitiesDropdown(
                       hint: l10n.generator,
                       value: provider.hasGenerator,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectGenerator,
                     ),
                   ),
@@ -498,6 +534,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     child: AmenitiesDropdown(
                       hint: l10n.securityGuard,
                       value: provider.hasSecurityGuard,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectSecurityGuard,
                     ),
                   ),
@@ -509,6 +547,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                   Expanded(
                     child: ParkingDropdown(
                       value: provider.hasParking,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectParking,
                     ),
                   ),
@@ -516,6 +556,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                   Expanded(
                     child: LiftDropdown(
                       value: provider.hasLift,
+                      isRequired: true,
+                      showErrors: provider.showValidationErrors,
                       onChanged: provider.selectLift,
                     ),
                   ),
@@ -524,6 +566,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
               const SizedBox(height: 12),
               DistanceDropdown(
                 value: provider.marketDistance,
+                isRequired: true,
+                showErrors: provider.showValidationErrors,
                 onChanged: provider.selectMarketDistance,
               ),
               const SizedBox(height: 24),
@@ -633,7 +677,8 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                 maxWords: 999,
                 initialValue: provider.detailedDescription,
                 onChanged: provider.setDetailedDescription,
-                validator: (val) => Validators.validateText(val),
+                showErrors: provider.showValidationErrors,
+                validator: (val) => Validators.validateText(val, message: isBn ? 'বিস্তারিত বিবরণ লিখুন' : 'Please enter detailed description'),
               ),
               const SizedBox(height: 24),
 
@@ -652,17 +697,33 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                             return;
                           }
 
-                          if (!provider.isFormValid) {
-                            provider.triggerValidation();
+                          provider.triggerValidation();
+                          final isFormValid = _formKey.currentState?.validate() ?? false;
+                          if (!isFormValid || !provider.isFormValid) {
+                            if (_scrollController.hasClients) {
+                              _scrollController.animateTo(
+                                0,
+                                duration: const Duration(milliseconds: 400),
+                                curve: Curves.easeInOut,
+                              );
+                            }
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
                                   isBn
-                                      ? 'অনুগ্রহ করে থাম্বনেইল ছবি ও প্রয়োজনীয় সব তথ্য সঠিকভাবে পূরণ করুন।'
-                                      : 'Please provide thumbnail image and fill all required fields correctly.',
+                                      ? 'অনুগ্রহ করে লাল দাগ চিহ্নিত সব প্রয়োজনীয় ফিল্ড ও ড্রপডাউন সঠিকভাবে পূরণ করুন।'
+                                      : 'Please fill in all highlighted fields and dropdowns correctly.',
                                 ),
                                 backgroundColor: Colors.redAccent,
                               ),
+                            );
+                            return;
+                          }
+
+                          if (userProvider.isGuest || userProvider.user == null) {
+                            AuthPromptDialog.show(
+                              context,
+                              requiredRole: 'House Owner',
                             );
                             return;
                           }
@@ -672,13 +733,18 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                             context: context,
                             builder: (ctx) => AlertDialog(
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              title: Row(
-                                children: [
-                                  const Icon(Icons.help_outline_rounded, color: AppColors.themeColor),
-                                  const SizedBox(width: 8),
-                                  Text(isBn ? 'পোস্ট নিশ্চিতকরণ' : 'Confirm Post'),
-                                ],
-                              ),
+                                title: Row(
+                                  children: [
+                                    const Icon(Icons.help_outline_rounded, color: AppColors.themeColor),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        isBn ? 'পোস্ট নিশ্চিতকরণ' : 'Confirm Post',
+                                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               content: Text(
                                 isBn
                                     ? 'আপনি কি এই বাসাভাড়া বিজ্ঞাপনটি প্রকাশ করতে চান?'
@@ -814,7 +880,16 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.redAccent),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+        ),
+        errorStyle: const TextStyle(
+          color: Colors.redAccent,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
