@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -29,12 +30,25 @@ class AdminLayout extends StatefulWidget {
 class _AdminLayoutState extends State<AdminLayout> {
   late final Stream<List<UserModel>> _usersStream;
   late final Stream<List<AppNotificationModel>> _notificationsStream;
+  StreamSubscription<List<PropertyModel>>? _propertiesSub;
+  StreamSubscription<List<TenantDemandModel>>? _demandsSub;
 
   @override
   void initState() {
     super.initState();
-    _usersStream = AdminFirestoreService().streamAllUsers();
+    final adminService = AdminFirestoreService();
+    _usersStream = adminService.streamAllUsers();
     _notificationsStream = NotificationFirestoreService().streamAdminNotifications();
+    // Pre-warm properties and demands cache so switching between modules is instant
+    _propertiesSub = adminService.streamAllProperties().listen((_) {}, onError: (_) {});
+    _demandsSub = adminService.streamAllDemands().listen((_) {}, onError: (_) {});
+  }
+
+  @override
+  void dispose() {
+    _propertiesSub?.cancel();
+    _demandsSub?.cancel();
+    super.dispose();
   }
 
   @override
@@ -42,8 +56,9 @@ class _AdminLayoutState extends State<AdminLayout> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final themeProvider = context.watch<ThemeProvider>();
-    final adminProvider = context.watch<AdminProvider>();
-    final isBn = adminProvider.isBangla;
+    final isBn = context.select<AdminProvider, bool>((p) => p.isBangla);
+    final currentModule = context.select<AdminProvider, AdminModule>((p) => p.currentModule);
+    final adminName = context.select<AdminProvider, String?>((p) => p.adminName);
     final bool isDesktop = MediaQuery.of(context).size.width > 900;
 
     final Color scaffoldBg = isDark ? const Color(0xFF081210) : const Color(0xFFF1F5F9);
@@ -106,11 +121,11 @@ class _AdminLayoutState extends State<AdminLayout> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(_getModuleIcon(adminProvider.currentModule), size: 18, color: AppColors.themeColor),
+                                      Icon(_getModuleIcon(currentModule), size: 18, color: AppColors.themeColor),
                                       const SizedBox(width: 8),
                                       Flexible(
                                         child: Text(
-                                          _getModuleTitle(adminProvider.currentModule, isBn),
+                                          _getModuleTitle(currentModule, isBn),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
@@ -177,7 +192,7 @@ class _AdminLayoutState extends State<AdminLayout> {
                                             pendingVerifications: pendingVerifications,
                                             isBn: isBn,
                                             isDark: isDark,
-                                            adminProvider: adminProvider,
+                                            adminProvider: context.read<AdminProvider>(),
                                           ),
                                         ),
                                         if (count > 0)
@@ -268,7 +283,7 @@ class _AdminLayoutState extends State<AdminLayout> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          adminProvider.adminName ?? 'Super Admin',
+                                          adminName ?? 'Super Admin',
                                           style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w800,

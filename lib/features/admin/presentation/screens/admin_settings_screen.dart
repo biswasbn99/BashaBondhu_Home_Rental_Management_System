@@ -109,8 +109,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final adminProvider = context.watch<AdminProvider>();
-    final isBn = adminProvider.isBangla;
+    final isBn = context.select<AdminProvider, bool>((p) => p.isBangla);
 
     return StreamBuilder<Map<String, dynamic>>(
       stream: _settingsStream,

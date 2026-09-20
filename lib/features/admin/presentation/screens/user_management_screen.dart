@@ -27,6 +27,10 @@ class _UserManagementViewState extends State<UserManagementView> {
   final _searchController = TextEditingController();
   final AdminFirestoreService _adminService = AdminFirestoreService();
 
+  int _currentPage = 1;
+  int _rowsPerPage = 10;
+  static final Map<String, Uint8List> _base64Cache = {};
+
   late final Stream<List<UserModel>> _usersStream;
 
   @override
@@ -45,22 +49,17 @@ class _UserManagementViewState extends State<UserManagementView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final adminProvider = context.watch<AdminProvider>();
-    final isBn = adminProvider.isBangla;
-    _selectedFilter = adminProvider.userManagementFilter;
+    final isBn = context.select<AdminProvider, bool>((p) => p.isBangla);
+    _selectedFilter = context.select<AdminProvider, String>((p) => p.userManagementFilter);
 
     return StreamBuilder<List<UserModel>>(
       stream: _usersStream,
+      initialData: _adminService.cachedUsers,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 60),
-              child: CircularProgressIndicator(color: AppColors.themeColor),
-            ),
-          );
-        }
-        if (snapshot.hasError) {
+        final bool isWaitingForInitialData = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+        final bool isSyncing = snapshot.connectionState == ConnectionState.waiting;
+
+        if (snapshot.hasError && !snapshot.hasData) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 60),
@@ -120,6 +119,15 @@ class _UserManagementViewState extends State<UserManagementView> {
           }
         }).toList();
 
+        final totalFiltered = filteredUsers.length;
+        final totalPages = (totalFiltered / _rowsPerPage).ceil().clamp(1, 99999);
+        if (_currentPage > totalPages) {
+          _currentPage = totalPages;
+        }
+        final startIndex = totalFiltered == 0 ? 0 : (_currentPage - 1) * _rowsPerPage;
+        final endIndex = (startIndex + _rowsPerPage > totalFiltered) ? totalFiltered : startIndex + _rowsPerPage;
+        final paginatedUsers = totalFiltered == 0 ? <UserModel>[] : filteredUsers.sublist(startIndex, endIndex);
+
         return SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           child: Column(
@@ -134,15 +142,45 @@ class _UserManagementViewState extends State<UserManagementView> {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                isBn
-                    ? 'বাড়িওয়ালা, ভাড়াটিয়া ও রিয়েল-টাইম প্রোফাইল ভেরিফিকেশন নিয়ন্ত্রণ করুন (${filteredUsers.length} জন ইউজার)'
-                    : 'Manage House Owners, Tenants, and live user verification statuses (${filteredUsers.length} users)',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      isBn
+                          ? 'বাড়িওয়ালা, ভাড়াটিয়া ও রিয়েল-টাইম প্রোফাইল ভেরিফিকেশন নিয়ন্ত্রণ করুন (${filteredUsers.length} জন ইউজার)'
+                          : 'Manage House Owners, Tenants, and live user verification statuses (${filteredUsers.length} users)',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                  if (isSyncing)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.themeColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.themeColor.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.themeColor),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            isBn ? 'সিঙ্ক হচ্ছে...' : 'Syncing...',
+                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.themeColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 18),
 
@@ -172,7 +210,10 @@ class _UserManagementViewState extends State<UserManagementView> {
                           Expanded(
                             child: TextField(
                               controller: _searchController,
-                              onChanged: (val) => setState(() => _searchQuery = val),
+                              onChanged: (val) => setState(() {
+                                _searchQuery = val;
+                                _currentPage = 1;
+                              }),
                               decoration: InputDecoration(
                                 hintText: isBn
                                     ? 'নাম, ইমেইল, মোবাইল দিয়ে খুঁজুন...'
@@ -192,14 +233,15 @@ class _UserManagementViewState extends State<UserManagementView> {
                         children: [
                           TextField(
                             controller: _searchController,
-                            onChanged: (val) => setState(() => _searchQuery = val),
+                            onChanged: (val) => setState(() {
+                              _searchQuery = val;
+                              _currentPage = 1;
+                            }),
                             decoration: InputDecoration(
                               hintText: isBn
                                   ? 'নাম, ইমেইল, মোবাইল দিয়ে খুঁজুন...'
                                   : 'Search by Name, Email, Phone...',
                               prefixIcon: const Icon(Icons.search_rounded),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -213,6 +255,18 @@ class _UserManagementViewState extends State<UserManagementView> {
                   },
                 ),
               ),
+              if (isSyncing)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: const LinearProgressIndicator(
+                      minHeight: 2.5,
+                      color: AppColors.themeColor,
+                      backgroundColor: Colors.transparent,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 20),
 
               // Users DataTable
@@ -230,7 +284,32 @@ class _UserManagementViewState extends State<UserManagementView> {
                     ),
                   ],
                 ),
-                child: filteredUsers.isEmpty
+                child: isWaitingForInitialData
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 20),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(
+                                width: 36,
+                                height: 36,
+                                child: CircularProgressIndicator(color: AppColors.themeColor, strokeWidth: 3),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                isBn ? 'Firebase থেকে ইউজার তালিকা লোড হচ্ছে...' : 'Loading users from Firebase...',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : filteredUsers.isEmpty
                     ? Padding(
                         padding: const EdgeInsets.all(40),
                         child: Center(
@@ -246,8 +325,11 @@ class _UserManagementViewState extends State<UserManagementView> {
                           ),
                         ),
                       )
-                    : SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
                         child: DataTable(
                           columnSpacing: 20,
                           horizontalMargin: 16,
@@ -261,7 +343,7 @@ class _UserManagementViewState extends State<UserManagementView> {
                             DataColumn(label: Text(isBn ? 'প্রোফাইল' : 'Profile %', style: const TextStyle(fontWeight: FontWeight.bold))),
                             DataColumn(label: Text(isBn ? 'অ্যাকশন' : 'Actions', style: const TextStyle(fontWeight: FontWeight.bold))),
                           ],
-                          rows: filteredUsers.map((user) {
+                          rows: paginatedUsers.map((user) {
                             final name = user.fullName.isNotEmpty ? user.fullName : "${user.firstName} ${user.lastName}".trim();
 
                             return DataRow(
@@ -422,7 +504,22 @@ class _UserManagementViewState extends State<UserManagementView> {
                           }).toList(),
                         ),
                       ),
-              ),
+                      _buildPaginationBar(
+                        totalItems: totalFiltered,
+                        totalPages: totalPages,
+                        currentPage: _currentPage,
+                        rowsPerPage: _rowsPerPage,
+                        isBn: isBn,
+                        isDark: isDark,
+                        onPageChanged: (newPage) => setState(() => _currentPage = newPage),
+                        onRowsPerPageChanged: (newSize) => setState(() {
+                          _rowsPerPage = newSize;
+                          _currentPage = 1;
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         );
@@ -570,7 +667,10 @@ class _UserManagementViewState extends State<UserManagementView> {
           ],
           onChanged: (val) {
             if (val != null) {
-              setState(() => _selectedFilter = val);
+              setState(() {
+                _selectedFilter = val;
+                _currentPage = 1;
+              });
               adminProvider.setUserManagementFilter(val);
             }
           },
@@ -2330,20 +2430,176 @@ class _UserManagementViewState extends State<UserManagementView> {
     }
     if (src.startsWith('data:image') || src.startsWith('/9j/') || src.startsWith('iVBOR') || src.length > 255) {
       try {
-        final base64Str = src.contains(',') ? src.split(',').last : src;
-        return Image.memory(base64Decode(base64Str.trim()), width: width, height: height, fit: BoxFit.cover);
+        Uint8List? bytes = _base64Cache[src];
+        if (bytes == null) {
+          final base64Str = src.contains(',') ? src.split(',').last : src;
+          bytes = base64Decode(base64Str.trim());
+          if (_base64Cache.length > 300) {
+            _base64Cache.clear();
+          }
+          _base64Cache[src] = bytes;
+        }
+        return Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+          cacheWidth: 100,
+          cacheHeight: 100,
+          gaplessPlayback: true,
+        );
       } catch (_) {
         return const Icon(Icons.broken_image, size: 20);
       }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
-      return Image.network(src, width: width, height: height, fit: BoxFit.cover);
+      return Image.network(
+        src,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        cacheWidth: 100,
+        cacheHeight: 100,
+        gaplessPlayback: true,
+      );
     } else {
       try {
         if (!kIsWeb && File(src).existsSync()) {
-          return Image.file(File(src), width: width, height: height, fit: BoxFit.cover);
+          return Image.file(
+            File(src),
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+            cacheWidth: 100,
+            cacheHeight: 100,
+            gaplessPlayback: true,
+          );
         }
       } catch (_) {}
       return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image, size: 20));
     }
+  }
+
+  Widget _buildPaginationBar({
+    required int totalItems,
+    required int totalPages,
+    required int currentPage,
+    required int rowsPerPage,
+    required bool isBn,
+    required bool isDark,
+    required ValueChanged<int> onPageChanged,
+    required ValueChanged<int> onRowsPerPageChanged,
+  }) {
+    final startIndex = totalItems == 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+    final endIndex = (currentPage * rowsPerPage > totalItems) ? totalItems : currentPage * rowsPerPage;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: isDark ? const Color(0xFF1E3A34) : const Color(0xFFE2E8F0),
+            width: 1,
+          ),
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 600;
+          final counterText = isBn
+              ? 'মোট $totalItems জনের মধ্যে $startIndex - $endIndex দেখাচ্ছে'
+              : 'Showing $startIndex - $endIndex of $totalItems users';
+
+          final rowsSelector = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                isBn ? 'প্রতি পৃষ্ঠায়:' : 'Rows per page:',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(width: 8),
+              DropdownButtonHideUnderline(
+                child: DropdownButton<int>(
+                  value: rowsPerPage,
+                  icon: const Icon(Icons.arrow_drop_down, size: 18),
+                  items: const [
+                    DropdownMenuItem(value: 10, child: Text('10')),
+                    DropdownMenuItem(value: 25, child: Text('25')),
+                    DropdownMenuItem(value: 50, child: Text('50')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) onRowsPerPageChanged(val);
+                  },
+                ),
+              ),
+            ],
+          );
+
+          final pageNavigation = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left_rounded, size: 22),
+                tooltip: isBn ? 'পূর্ববর্তী' : 'Previous',
+                onPressed: currentPage > 1 ? () => onPageChanged(currentPage - 1) : null,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  isBn ? 'পৃষ্ঠা $currentPage / $totalPages' : 'Page $currentPage of $totalPages',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right_rounded, size: 22),
+                tooltip: isBn ? 'পরবর্তী' : 'Next',
+                onPressed: currentPage < totalPages ? () => onPageChanged(currentPage + 1) : null,
+              ),
+            ],
+          );
+
+          if (isCompact) {
+            return Column(
+              children: [
+                Text(counterText, style: const TextStyle(fontSize: 12)),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [rowsSelector, pageNavigation],
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                counterText,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  rowsSelector,
+                  const SizedBox(width: 16),
+                  pageNavigation,
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 }

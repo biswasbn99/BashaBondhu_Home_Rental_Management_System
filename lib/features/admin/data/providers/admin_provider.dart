@@ -38,11 +38,13 @@ class AdminProvider extends ChangeNotifier {
   String? get lastErrorMessage => _lastErrorMessage;
 
   void changeModule(AdminModule module) {
+    if (_currentModule == module) return;
     _currentModule = module;
     notifyListeners();
   }
 
   void setUserManagementFilter(String filter) {
+    if (_userManagementFilter == filter) return;
     _userManagementFilter = filter;
     notifyListeners();
   }

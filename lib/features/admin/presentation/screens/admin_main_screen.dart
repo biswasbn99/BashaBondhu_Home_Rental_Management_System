@@ -15,24 +15,37 @@ import 'property_management_screen.dart';
 import 'reports_management_screen.dart';
 import 'user_management_screen.dart';
 
-class AdminMainScreen extends StatelessWidget {
+class AdminMainScreen extends StatefulWidget {
   const AdminMainScreen({super.key});
   static const String name = '/admin';
 
   @override
-  Widget build(BuildContext context) {
-    final adminProvider = context.watch<AdminProvider>();
+  State<AdminMainScreen> createState() => _AdminMainScreenState();
+}
 
-    if (!adminProvider.isLoggedIn) {
-      return const AdminLoginScreen();
-    }
+class _AdminMainScreenState extends State<AdminMainScreen> {
+  final Set<AdminModule> _loadedModules = {AdminModule.dashboard};
 
-    return AdminLayout(
-      child: _buildBody(adminProvider.currentModule),
-    );
+  @override
+  void initState() {
+    super.initState();
+    // Warm up high-frequency modules in the background idle window right after Dashboard renders
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 150), () {
+        if (mounted) {
+          setState(() {
+            _loadedModules.addAll([
+              AdminModule.users,
+              AdminModule.properties,
+              AdminModule.subscriptions,
+            ]);
+          });
+        }
+      });
+    });
   }
 
-  Widget _buildBody(AdminModule module) {
+  Widget _buildModuleView(AdminModule module) {
     switch (module) {
       case AdminModule.dashboard:
         return const AdminDashboardView();
@@ -55,5 +68,30 @@ class AdminMainScreen extends StatelessWidget {
       case AdminModule.settings:
         return const AdminSettingsView();
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLoggedIn = context.select<AdminProvider, bool>((p) => p.isLoggedIn);
+
+    if (!isLoggedIn) {
+      return const AdminLoginScreen();
+    }
+
+    final currentModule = context.select<AdminProvider, AdminModule>((p) => p.currentModule);
+    _loadedModules.add(currentModule);
+
+    return AdminLayout(
+      child: IndexedStack(
+        index: AdminModule.values.indexOf(currentModule),
+        children: AdminModule.values.map((module) {
+          if (_loadedModules.contains(module)) {
+            return _buildModuleView(module);
+          } else {
+            return const SizedBox.shrink();
+          }
+        }).toList(),
+      ),
+    );
   }
 }

@@ -25,9 +25,9 @@ class _AdminSidebarState extends State<AdminSidebar> {
 
   @override
   Widget build(BuildContext context) {
-    final adminProvider = context.watch<AdminProvider>();
+    final isBn = context.select<AdminProvider, bool>((p) => p.isBangla);
+    final currentModule = context.select<AdminProvider, AdminModule>((p) => p.currentModule);
     final themeProvider = context.watch<ThemeProvider>();
-    final isBn = adminProvider.isBangla;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -115,14 +115,14 @@ class _AdminSidebarState extends State<AdminSidebar> {
                         icon: Icons.dashboard_rounded,
                         label: isBn ? 'ড্যাশবোর্ড' : 'Dashboard',
                         module: AdminModule.dashboard,
-                        isSelected: adminProvider.currentModule == AdminModule.dashboard,
+                        isSelected: currentModule == AdminModule.dashboard,
                         isDark: isDark,
                       ),
                       _SidebarItem(
                         icon: Icons.people_alt_rounded,
                         label: isBn ? 'ইউজার ম্যানেজমেন্ট' : 'Users',
                         module: AdminModule.users,
-                        isSelected: adminProvider.currentModule == AdminModule.users,
+                        isSelected: currentModule == AdminModule.users,
                         isDark: isDark,
                         badge: pendingCount > 0
                             ? Container(
@@ -146,117 +146,117 @@ class _AdminSidebarState extends State<AdminSidebar> {
                         icon: Icons.home_work_rounded,
                         label: isBn ? 'বাসাভাড়া বিজ্ঞাপন' : 'Properties',
                         module: AdminModule.properties,
-                        isSelected: adminProvider.currentModule == AdminModule.properties,
+                        isSelected: currentModule == AdminModule.properties,
                         isDark: isDark,
                       ),
-                  _SidebarItem(
-                    icon: Icons.card_membership_rounded,
-                    label: isBn ? 'সাবস্ক্রিপশন ও প্যাকেজ' : 'Subscriptions',
-                    module: AdminModule.subscriptions,
-                    isSelected: adminProvider.currentModule == AdminModule.subscriptions,
-                    isDark: isDark,
-                  ),
-                  _SidebarItem(
-                    icon: Icons.location_on_rounded,
-                    label: isBn ? 'লোকেশন' : 'Locations',
-                    module: AdminModule.locations,
-                    isSelected: adminProvider.currentModule == AdminModule.locations,
-                    isDark: isDark,
-                  ),
-                  _SidebarItem(
-                    icon: Icons.report_problem_rounded,
-                    label: isBn ? 'অভিযোগ / রিপোর্ট' : 'Reports',
-                    module: AdminModule.reports,
-                    isSelected: adminProvider.currentModule == AdminModule.reports,
-                    isDark: isDark,
-                  ),
-                  _SidebarItem(
-                    icon: Icons.policy_rounded,
-                    label: isBn ? 'আইনি পলিসি ও শর্তাবলী' : 'Legal Policies',
-                    module: AdminModule.policies,
-                    isSelected: adminProvider.currentModule == AdminModule.policies,
-                    isDark: isDark,
-                  ),
-                  _SidebarItem(
-                    icon: Icons.question_answer_rounded,
-                    label: isBn ? 'প্রশ্নোত্তর (FAQ)' : 'FAQs',
-                    module: AdminModule.faq,
-                    isSelected: adminProvider.currentModule == AdminModule.faq,
-                    isDark: isDark,
-                  ),
-                  _SidebarItem(
-                    icon: Icons.settings_rounded,
-                    label: isBn ? 'সেটিংস' : 'Settings',
-                    module: AdminModule.settings,
-                    isSelected: adminProvider.currentModule == AdminModule.settings,
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-
-            // Bottom Actions (Theme Switcher & Logout)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: borderColor, width: 1.4)),
-              ),
-              child: Column(
-                children: [
-                  // Theme Mode Switcher Tile
-                  Material(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      dense: true,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      leading: Icon(
-                        isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                        color: isDark ? Colors.amber : AppColors.themeColor,
-                        size: 20,
+                      _SidebarItem(
+                        icon: Icons.card_membership_rounded,
+                        label: isBn ? 'সাবস্ক্রিপশন ও প্যাকেজ' : 'Subscriptions',
+                        module: AdminModule.subscriptions,
+                        isSelected: currentModule == AdminModule.subscriptions,
+                        isDark: isDark,
                       ),
-                      title: Text(
-                        isDark ? (isBn ? 'লাইট মোড' : 'Light Mode') : (isBn ? 'ডার্ক মোড' : 'Dark Mode'),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+                      _SidebarItem(
+                        icon: Icons.location_on_rounded,
+                        label: isBn ? 'লোকেশন' : 'Locations',
+                        module: AdminModule.locations,
+                        isSelected: currentModule == AdminModule.locations,
+                        isDark: isDark,
+                      ),
+                      _SidebarItem(
+                        icon: Icons.report_problem_rounded,
+                        label: isBn ? 'অভিযোগ / রিপোর্ট' : 'Reports',
+                        module: AdminModule.reports,
+                        isSelected: currentModule == AdminModule.reports,
+                        isDark: isDark,
+                      ),
+                      _SidebarItem(
+                        icon: Icons.policy_rounded,
+                        label: isBn ? 'আইনি পলিসি ও শর্তাবলী' : 'Legal Policies',
+                        module: AdminModule.policies,
+                        isSelected: currentModule == AdminModule.policies,
+                        isDark: isDark,
+                      ),
+                      _SidebarItem(
+                        icon: Icons.question_answer_rounded,
+                        label: isBn ? 'প্রশ্নোত্তর (FAQ)' : 'FAQs',
+                        module: AdminModule.faq,
+                        isSelected: currentModule == AdminModule.faq,
+                        isDark: isDark,
+                      ),
+                      _SidebarItem(
+                        icon: Icons.settings_rounded,
+                        label: isBn ? 'সেটিংস' : 'Settings',
+                        module: AdminModule.settings,
+                        isSelected: currentModule == AdminModule.settings,
+                        isDark: isDark,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Bottom Actions (Theme Switcher & Logout)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: borderColor, width: 1.4)),
+                  ),
+                  child: Column(
+                    children: [
+                      // Theme Mode Switcher Tile
+                      Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          dense: true,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          leading: Icon(
+                            isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                            color: isDark ? Colors.amber : AppColors.themeColor,
+                            size: 20,
+                          ),
+                          title: Text(
+                            isDark ? (isBn ? 'লাইট মোড' : 'Light Mode') : (isBn ? 'ডার্ক মোড' : 'Dark Mode'),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B),
+                            ),
+                          ),
+                          onTap: () {
+                            final newMode = isDark ? ThemeMode.light : ThemeMode.dark;
+                            themeProvider.changeThemeMode(newMode);
+                          },
                         ),
                       ),
-                      onTap: () {
-                        final newMode = isDark ? ThemeMode.light : ThemeMode.dark;
-                        themeProvider.changeThemeMode(newMode);
-                      },
-                    ),
-                  ),
 
-                  // Logout Tile
-                  Material(
-                    color: Colors.transparent,
-                    child: ListTile(
-                      dense: true,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      leading: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
-                      title: Text(
-                        isBn ? 'লগআউট' : 'Logout',
-                        style: const TextStyle(
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
+                      // Logout Tile
+                      Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          dense: true,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          leading: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                          title: Text(
+                            isBn ? 'লগআউট' : 'Logout',
+                            style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                            ),
+                          ),
+                          onTap: () => context.read<AdminProvider>().logout(),
                         ),
                       ),
-                      onTap: () => adminProvider.logout(),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
-  },
-);
-}
+  }
 }
 
 class _SidebarItem extends StatelessWidget {

@@ -305,8 +305,7 @@ class _AdminPolicyManagementViewState extends State<AdminPolicyManagementView> w
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final adminProvider = context.watch<AdminProvider>();
-    final isBn = adminProvider.isBangla;
+    final isBn = context.select<AdminProvider, bool>((p) => p.isBangla);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),

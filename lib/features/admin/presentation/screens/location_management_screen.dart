@@ -921,8 +921,7 @@ class _LocationManagementViewState extends State<LocationManagementView> {
 
   @override
   Widget build(BuildContext context) {
-    final adminProvider = context.watch<AdminProvider>();
-    final isBn = adminProvider.isBangla;
+    final isBn = context.select<AdminProvider, bool>((p) => p.isBangla);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 

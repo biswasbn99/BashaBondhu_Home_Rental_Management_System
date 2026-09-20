@@ -13,8 +13,21 @@ class AdminFirestoreService {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  List<UserModel>? _cachedUsers;
+  List<PropertyModel>? _cachedProperties;
+  List<TenantDemandModel>? _cachedDemands;
+  Map<String, dynamic>? _cachedSettings;
+
+  List<UserModel>? get cachedUsers => _cachedUsers;
+  List<PropertyModel>? get cachedProperties => _cachedProperties;
+  List<TenantDemandModel>? get cachedDemands => _cachedDemands;
+  Map<String, dynamic>? get cachedSettings => _cachedSettings;
+
   void invalidateCache() {
-    // Retained for API compatibility
+    _cachedUsers = null;
+    _cachedProperties = null;
+    _cachedDemands = null;
+    _cachedSettings = null;
   }
 
   // Collection References
@@ -47,10 +60,11 @@ class AdminFirestoreService {
           debugPrint('Error parsing user doc ${doc.id}: $e');
         }
       }
+      _cachedUsers = list;
       return list;
     }).handleError((e) {
       debugPrint('ℹ️ Handled users stream error: $e');
-      return <UserModel>[];
+      return _cachedUsers ?? <UserModel>[];
     });
   }
 
@@ -218,6 +232,7 @@ class AdminFirestoreService {
   }
 
   Future<void> deleteUser(String uid) async {
+    _cachedUsers?.removeWhere((u) => u.uid == uid);
     await _usersCollection.doc(uid).delete();
   }
 
@@ -239,10 +254,11 @@ class AdminFirestoreService {
         }
       }
       list.sort((a, b) => b.postDate.compareTo(a.postDate));
+      _cachedProperties = list;
       return list;
     }).handleError((e) {
       debugPrint('ℹ️ Handled properties stream error: $e');
-      return <PropertyModel>[];
+      return _cachedProperties ?? <PropertyModel>[];
     });
   }
 
@@ -331,6 +347,7 @@ class AdminFirestoreService {
   }
 
   Future<void> deleteProperty(String propertyId) async {
+    _cachedProperties?.removeWhere((p) => p.id == propertyId);
     await _propertiesCollection.doc(propertyId).delete();
   }
 
@@ -352,10 +369,11 @@ class AdminFirestoreService {
         }
       }
       list.sort((a, b) => b.postDate.compareTo(a.postDate));
+      _cachedDemands = list;
       return list;
     }).handleError((e) {
       debugPrint('ℹ️ Handled demands stream error: $e');
-      return <TenantDemandModel>[];
+      return _cachedDemands ?? <TenantDemandModel>[];
     });
   }
 
@@ -443,6 +461,7 @@ class AdminFirestoreService {
   }
 
   Future<void> deleteDemand(String demandId) async {
+    _cachedDemands?.removeWhere((d) => d.id == demandId);
     await _demandsCollection.doc(demandId).delete();
   }
 
@@ -609,12 +628,16 @@ class AdminFirestoreService {
     return _settingsDoc.snapshots().map((snapshot) {
       if (!snapshot.exists || snapshot.data() == null) {
         _seedDefaultSettings();
+        _cachedSettings = _defaultSettingsMap;
         return _defaultSettingsMap;
       }
       final raw = snapshot.data();
       if (raw is Map) {
-        return Map<String, dynamic>.from(raw);
+        final data = Map<String, dynamic>.from(raw);
+        _cachedSettings = data;
+        return data;
       }
+      _cachedSettings = _defaultSettingsMap;
       return _defaultSettingsMap;
     });
   }

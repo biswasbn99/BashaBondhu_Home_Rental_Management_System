@@ -52,8 +52,7 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final adminProv = context.watch<AdminProvider>();
-    final isBn = adminProv.isBangla;
+    final isBn = context.select<AdminProvider, bool>((p) => p.isBangla);
 
     return Scaffold(
       backgroundColor: Colors.transparent,

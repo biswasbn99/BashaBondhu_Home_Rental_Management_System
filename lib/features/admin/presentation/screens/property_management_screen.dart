@@ -58,6 +58,10 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
   final _searchController = TextEditingController();
   final AdminFirestoreService _adminService = AdminFirestoreService();
 
+  int _currentPage = 1;
+  int _rowsPerPage = 10;
+  static final Map<String, Uint8List> _base64Cache = {};
+
   late final Stream<bool> _autoApprovalStream;
   late final Stream<List<PropertyModel>> _propertiesStream;
   late final Stream<List<TenantDemandModel>> _demandsStream;
@@ -80,8 +84,7 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final adminProvider = context.watch<AdminProvider>();
-    final isBn = adminProvider.isBangla;
+    final isBn = context.select<AdminProvider, bool>((p) => p.isBangla);
 
     final cardBg = isDark ? const Color(0xFF0F201D) : Colors.white;
     final borderColor = isDark ? const Color(0xFF1E3A34) : const Color(0xFFE2E8F0);
@@ -96,18 +99,40 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
 
         return StreamBuilder<List<PropertyModel>>(
           stream: _propertiesStream,
+          initialData: _adminService.cachedProperties,
           builder: (_, propSnapshot) {
             return StreamBuilder<List<TenantDemandModel>>(
               stream: _demandsStream,
+              initialData: _adminService.cachedDemands,
               builder: (_, demandSnapshot) {
-                if (!propSnapshot.hasData &&
-                    !demandSnapshot.hasData &&
-                    propSnapshot.connectionState == ConnectionState.waiting &&
-                    demandSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
+                final bool isPropertiesWaiting =
+                    propSnapshot.connectionState == ConnectionState.waiting && !propSnapshot.hasData;
+                final bool isDemandsWaiting =
+                    demandSnapshot.connectionState == ConnectionState.waiting && !demandSnapshot.hasData;
+                final bool isSyncing = propSnapshot.connectionState == ConnectionState.waiting ||
+                    demandSnapshot.connectionState == ConnectionState.waiting;
+
+                if (propSnapshot.hasError &&
+                    demandSnapshot.hasError &&
+                    !propSnapshot.hasData &&
+                    !demandSnapshot.hasData) {
+                  return Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 60),
-                      child: CircularProgressIndicator(color: AppColors.themeColor),
+                      padding: const EdgeInsets.symmetric(vertical: 60),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.error_outline_rounded, size: 48, color: Colors.redAccent),
+                          const SizedBox(height: 12),
+                          Text(isBn ? 'ডেটা লোড করতে সমস্যা হয়েছে' : 'Error loading data from Firebase'),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: () => setState(() {}),
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: Text(isBn ? 'পুনরায় চেষ্টা করুন' : 'Retry'),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
@@ -181,7 +206,18 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                 }
 
                 final totalResults = combinedPosts.length;
+                final totalPages = (totalResults / _rowsPerPage).ceil().clamp(1, 99999);
+                if (_currentPage > totalPages) {
+                  _currentPage = totalPages;
+                }
+                final startIndex = totalResults == 0 ? 0 : (_currentPage - 1) * _rowsPerPage;
+                final endIndex = (startIndex + _rowsPerPage > totalResults) ? totalResults : startIndex + _rowsPerPage;
+                final paginatedPosts = totalResults == 0 ? <_AdminPostEntry>[] : combinedPosts.sublist(startIndex, endIndex);
+
                 final isDateFilterActive = _filterDate != null || _filterMonth != null || _filterYear != null;
+                final bool isWaitingForActiveData = (_selectedFilter == 'Properties' && isPropertiesWaiting) ||
+                    (_selectedFilter == 'Demands' && isDemandsWaiting) ||
+                    (combinedPosts.isEmpty && (isPropertiesWaiting || isDemandsWaiting));
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -192,28 +228,68 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                isBn ? 'পোস্ট ও বিজ্ঞাপন ম্যানেজমেন্ট' : 'Post & Property Management',
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.themeColor,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isBn ? 'পোস্ট ও বিজ্ঞাপন ম্যানেজমেন্ট' : 'Post & Property Management',
+                                  style: theme.textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.themeColor,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                isBn
-                                    ? 'বাড়িভাড়া ও চাহিদা পোস্ট অনুমোদন, প্রত্যাখ্যান ও ইউজার পোস্ট দেখুন ($totalResults টি পোস্ট)'
-                                    : 'Review, Approve, Reject and manage listings & demands ($totalResults items)',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: subtitleColor,
+                                const SizedBox(height: 4),
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  children: [
+                                    Text(
+                                      isBn
+                                          ? 'বাড়িভাড়া ও চাহিদা পোস্ট অনুমোদন, প্রত্যাখ্যান ও ইউজার পোস্ট দেখুন ($totalResults টি পোস্ট)'
+                                          : 'Review, Approve, Reject and manage listings & demands ($totalResults items)',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: subtitleColor,
+                                      ),
+                                    ),
+                                    if (isSyncing)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.themeColor.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: AppColors.themeColor.withValues(alpha: 0.3)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const SizedBox(
+                                              width: 12,
+                                              height: 12,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: AppColors.themeColor,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              isBn ? 'সিঙ্ক হচ্ছে...' : 'Syncing...',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.themeColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -371,7 +447,10 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                                       Expanded(
                                         child: TextField(
                                           controller: _searchController,
-                                          onChanged: (val) => setState(() => _searchQuery = val),
+                                          onChanged: (val) => setState(() {
+                                            _searchQuery = val;
+                                            _currentPage = 1;
+                                          }),
                                           decoration: InputDecoration(
                                             hintText: isBn
                                                 ? 'লোকেশন, ইমেইল, তারিখ (দিন/মাস/বছর) দিয়ে খুঁজুন...'
@@ -394,7 +473,10 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                                     children: [
                                       TextField(
                                         controller: _searchController,
-                                        onChanged: (val) => setState(() => _searchQuery = val),
+                                        onChanged: (val) => setState(() {
+                                          _searchQuery = val;
+                                          _currentPage = 1;
+                                        }),
                                         decoration: InputDecoration(
                                           hintText: isBn
                                               ? 'লোকেশন, ইমেইল, তারিখ দিয়ে খুঁজুন...'
@@ -461,7 +543,18 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      if (isSyncing) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: const LinearProgressIndicator(
+                            minHeight: 3,
+                            backgroundColor: Colors.transparent,
+                            color: AppColors.themeColor,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      const SizedBox(height: 12),
 
                       // Posts DataTable
                       Container(
@@ -478,7 +571,32 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                             ),
                           ],
                         ),
-                        child: totalResults == 0
+                        child: isWaitingForActiveData
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 20),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const SizedBox(
+                                        width: 36,
+                                        height: 36,
+                                        child: CircularProgressIndicator(color: AppColors.themeColor, strokeWidth: 3),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        isBn ? 'Firebase থেকে বিজ্ঞাপন ও চাহিদাসমূহ লোড হচ্ছে...' : 'Loading listings & demands from Firebase...',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: subtitleColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : totalResults == 0
                             ? Padding(
                                 padding: const EdgeInsets.all(40),
                                 child: Center(
@@ -494,30 +612,48 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
                                   ),
                                 ),
                               )
-                            : SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: DataTable(
-                                  dataRowMinHeight: 64,
-                                  dataRowMaxHeight: 74,
-                                  columnSpacing: 20,
-                                  horizontalMargin: 16,
-                                  columns: [
-                                    DataColumn(label: Text(isBn ? 'পোস্ট ও শিরোনাম' : 'Post / Title', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
-                                    DataColumn(label: Text(isBn ? 'পোস্টের ধরন' : 'Category', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
-                                    DataColumn(label: Text(isBn ? 'পোস্টকারী' : 'Poster', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
-                                    DataColumn(label: Text(isBn ? 'ভাড়া / বাজেট' : 'Rent / Budget', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
-                                    DataColumn(label: Text(isBn ? 'লোকেশন' : 'Location', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
-                                    DataColumn(label: Text(isBn ? 'স্ট্যাটাস' : 'Status', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
-                                    DataColumn(label: Text(isBn ? 'অ্যাকশন' : 'Actions', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
-                                  ],
-                                  rows: combinedPosts.map((entry) {
-                                    if (entry.isProperty) {
-                                      return _buildPropertyDataRow(entry.property!, isBn, isDark, titleColor, subtitleColor);
-                                    } else {
-                                      return _buildDemandDataRow(entry.demand!, isBn, isDark, titleColor, subtitleColor);
-                                    }
-                                  }).toList(),
-                                ),
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: DataTable(
+                                      dataRowMinHeight: 64,
+                                      dataRowMaxHeight: 74,
+                                      columnSpacing: 20,
+                                      horizontalMargin: 16,
+                                      columns: [
+                                        DataColumn(label: Text(isBn ? 'পোস্ট ও শিরোনাম' : 'Post / Title', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
+                                        DataColumn(label: Text(isBn ? 'পোস্টের ধরন' : 'Category', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
+                                        DataColumn(label: Text(isBn ? 'পোস্টকারী' : 'Poster', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
+                                        DataColumn(label: Text(isBn ? 'ভাড়া / বাজেট' : 'Rent / Budget', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
+                                        DataColumn(label: Text(isBn ? 'লোকেশন' : 'Location', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
+                                        DataColumn(label: Text(isBn ? 'স্ট্যাটাস' : 'Status', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
+                                        DataColumn(label: Text(isBn ? 'অ্যাকশন' : 'Actions', style: TextStyle(fontWeight: FontWeight.bold, color: titleColor))),
+                                      ],
+                                      rows: paginatedPosts.map((entry) {
+                                        if (entry.isProperty) {
+                                          return _buildPropertyDataRow(entry.property!, isBn, isDark, titleColor, subtitleColor);
+                                        } else {
+                                          return _buildDemandDataRow(entry.demand!, isBn, isDark, titleColor, subtitleColor);
+                                        }
+                                      }).toList(),
+                                    ),
+                                  ),
+                                  _buildPaginationBar(
+                                    totalItems: totalResults,
+                                    totalPages: totalPages,
+                                    currentPage: _currentPage,
+                                    rowsPerPage: _rowsPerPage,
+                                    isBn: isBn,
+                                    isDark: isDark,
+                                    onPageChanged: (newPage) => setState(() => _currentPage = newPage),
+                                    onRowsPerPageChanged: (newSize) => setState(() {
+                                      _rowsPerPage = newSize;
+                                      _currentPage = 1;
+                                    }),
+                                  ),
+                                ],
                               ),
                       ),
                     ],
@@ -1055,7 +1191,14 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
             DropdownMenuItem(value: 'Approved', child: Text(isBn ? '✅ অনুমোদিত (Approved)' : '✅ Approved')),
             DropdownMenuItem(value: 'Rejected', child: Text(isBn ? '❌ প্রত্যাখ্যাত (Rejected)' : '❌ Rejected')),
           ],
-          onChanged: (val) => setState(() => _selectedFilter = val!),
+          onChanged: (val) {
+            if (val != null) {
+              setState(() {
+                _selectedFilter = val;
+                _currentPage = 1;
+              });
+            }
+          },
         ),
       ),
     );
@@ -1129,6 +1272,7 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
             } else {
               setState(() {
                 _selectedSort = val;
+                _currentPage = 1;
                 // If user switches back to 'newest' or 'oldest', clear specific date filter
                 _filterDate = null;
                 _filterMonth = null;
@@ -1730,20 +1874,176 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
     }
     if (src.startsWith('data:image') || src.startsWith('/9j/') || src.startsWith('iVBOR') || src.length > 255) {
       try {
-        final base64Str = src.contains(',') ? src.split(',').last : src;
-        return Image.memory(base64Decode(base64Str.trim()), width: width, height: height, fit: BoxFit.cover);
+        Uint8List? bytes = _base64Cache[src];
+        if (bytes == null) {
+          final base64Str = src.contains(',') ? src.split(',').last : src;
+          bytes = base64Decode(base64Str.trim());
+          if (_base64Cache.length > 300) {
+            _base64Cache.clear();
+          }
+          _base64Cache[src] = bytes;
+        }
+        return Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+          cacheWidth: 80,
+          cacheHeight: 80,
+          gaplessPlayback: true,
+        );
       } catch (_) {
         return const Icon(Icons.broken_image, size: 20);
       }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
-      return Image.network(src, width: width, height: height, fit: BoxFit.cover);
+      return Image.network(
+        src,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        cacheWidth: 80,
+        cacheHeight: 80,
+        gaplessPlayback: true,
+      );
     } else {
       try {
         if (!kIsWeb && File(src).existsSync()) {
-          return Image.file(File(src), width: width, height: height, fit: BoxFit.cover);
+          return Image.file(
+            File(src),
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+            cacheWidth: 80,
+            cacheHeight: 80,
+            gaplessPlayback: true,
+          );
         }
       } catch (_) {}
       return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image, size: 20));
     }
+  }
+
+  Widget _buildPaginationBar({
+    required int totalItems,
+    required int totalPages,
+    required int currentPage,
+    required int rowsPerPage,
+    required bool isBn,
+    required bool isDark,
+    required ValueChanged<int> onPageChanged,
+    required ValueChanged<int> onRowsPerPageChanged,
+  }) {
+    final startIndex = totalItems == 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+    final endIndex = (currentPage * rowsPerPage > totalItems) ? totalItems : currentPage * rowsPerPage;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: isDark ? const Color(0xFF1E3A34) : const Color(0xFFE2E8F0),
+            width: 1,
+          ),
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isCompact = constraints.maxWidth < 600;
+          final counterText = isBn
+              ? 'মোট $totalItems টির মধ্যে $startIndex - $endIndex দেখাচ্ছে'
+              : 'Showing $startIndex - $endIndex of $totalItems items';
+
+          final rowsSelector = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                isBn ? 'প্রতি পৃষ্ঠায়:' : 'Rows per page:',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(width: 8),
+              DropdownButtonHideUnderline(
+                child: DropdownButton<int>(
+                  value: rowsPerPage,
+                  icon: const Icon(Icons.arrow_drop_down, size: 18),
+                  items: const [
+                    DropdownMenuItem(value: 10, child: Text('10')),
+                    DropdownMenuItem(value: 25, child: Text('25')),
+                    DropdownMenuItem(value: 50, child: Text('50')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) onRowsPerPageChanged(val);
+                  },
+                ),
+              ),
+            ],
+          );
+
+          final pageNavigation = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left_rounded, size: 22),
+                tooltip: isBn ? 'পূর্ববর্তী' : 'Previous',
+                onPressed: currentPage > 1 ? () => onPageChanged(currentPage - 1) : null,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  isBn ? 'পৃষ্ঠা $currentPage / $totalPages' : 'Page $currentPage of $totalPages',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right_rounded, size: 22),
+                tooltip: isBn ? 'পরবর্তী' : 'Next',
+                onPressed: currentPage < totalPages ? () => onPageChanged(currentPage + 1) : null,
+              ),
+            ],
+          );
+
+          if (isCompact) {
+            return Column(
+              children: [
+                Text(counterText, style: const TextStyle(fontSize: 12)),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [rowsSelector, pageNavigation],
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                counterText,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  rowsSelector,
+                  const SizedBox(width: 16),
+                  pageNavigation,
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 }
