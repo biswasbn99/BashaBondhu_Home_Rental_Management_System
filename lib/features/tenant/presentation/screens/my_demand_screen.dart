@@ -5,7 +5,9 @@ import 'package:bashabondhu_home_rental_management_system/app/app_colors.dart';
 import 'package:bashabondhu_home_rental_management_system/app/extensions/utility_extension.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/presentation/screens/sign_in_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/data/providers/app_settings_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/tenant_demand_firestore_service.dart';
+import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/my_profile_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/app_bar.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/language_action_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/data/models/tenant_demand_model.dart';
@@ -171,6 +173,14 @@ class _MyDemandCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final languageCode = Localizations.localeOf(context).languageCode;
+    final isBn = languageCode == 'bn';
+    final user = context.watch<UserProvider>().user;
+    final appSettings = context.watch<AppSettingsProvider>();
+
+    final bool isGatingActive = appSettings.requireVerifiedTenantForDemands;
+    final bool isUserVerified = (user?.isVerified ?? false) || demand.isTenantVerified;
+    final bool isHiddenByGating = isGatingActive && !isUserVerified && demand.isApproved && !demand.isFulfilled;
+    final bool isNidPending = (user?.isVerificationPending ?? false) || demand.isTenantPending;
 
     final locationText = [
       if (demand.subArea != null) demand.subArea!.getLocalizedName(languageCode),
@@ -358,6 +368,15 @@ class _MyDemandCard extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+
+          // --- Verification Gating Alert Banner (Hidden from House Owners) ---
+          if (isHiddenByGating)
+            _buildGatingHiddenBanner(
+              context: context,
+              isBn: isBn,
+              isDark: isDark,
+              isNidPending: isNidPending,
             ),
 
           // Details Body
@@ -690,6 +709,125 @@ class _MyDemandCard extends StatelessWidget {
           ? '${diff.inDays.toString().toLocalizedDigits("bn")} দিন আগে'
           : '${diff.inDays} days ago';
     }
+  }
+
+  Widget _buildGatingHiddenBanner({
+    required BuildContext context,
+    required bool isBn,
+    required bool isDark,
+    required bool isNidPending,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A1B0A) : const Color(0xFFFFF7ED),
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.deepOrange.withValues(alpha: isDark ? 0.4 : 0.25),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: Colors.deepOrange.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.visibility_off_rounded,
+                  size: 16,
+                  color: Colors.deepOrange,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isBn ? 'আপনার এই পোস্টটি বর্তমানে লুকানো (হাইড) রয়েছে' : 'Your post is currently hidden',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      isBn
+                          ? 'ভাড়াটিয়া চাহিদা ফিল্টারিং চালু রয়েছে: শুধুমাত্র ভেরিফাইড ভাড়াটিয়াদের চাহিদা বাড়িওয়ালাদের স্ক্রিনে দৃশ্যমান হয়। আপনার NID অনুমোদন হওয়ামাত্রই এটি স্বয়ংক্রিয়ভাবে সবার জন্য দৃশ্যমান হবে। অনুগ্রহ করে আপনার প্রোফাইল ভেরিফাই করুন।'
+                          : 'Tenant Demands Gating is active: Only verified tenants\' demand posts appear to house owners. Automatically visible upon NID approval. Please verify your profile.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.35,
+                        color: isDark ? const Color(0xFFFDBA74) : const Color(0xFF9A3412),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (isNidPending)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: isDark ? 0.25 : 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.amber.shade700, width: 0.8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.hourglass_top_rounded, size: 13, color: isDark ? Colors.amberAccent : Colors.amber.shade900),
+                      const SizedBox(width: 4),
+                      Text(
+                        isBn ? 'NID ভেরিফিকেশন পর্যালোচনায় রয়েছে' : 'NID Verification Under Review',
+                        style: TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.amberAccent : Colors.amber.shade900,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.deepOrange,
+                    foregroundColor: Colors.white,
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.verified_user_outlined, size: 14),
+                  label: Text(
+                    isBn ? 'প্রোফাইল ভেরিফাই করুন' : 'Verify Profile',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, MyProfileScreen.name);
+                  },
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 

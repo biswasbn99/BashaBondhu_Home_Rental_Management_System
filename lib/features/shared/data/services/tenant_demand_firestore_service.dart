@@ -254,109 +254,138 @@ class TenantDemandFirestoreService {
     });
   }
 
-  Stream<List<TenantDemandModel>>? _cachedDemandsOnlyActive;
-  Stream<List<TenantDemandModel>>? _cachedDemandsAll;
+  StreamSubscription? _demandSub;
+  StreamSubscription? _settSub;
+  QuerySnapshot? _lastDemands;
+  DocumentSnapshot? _lastSettings;
+
+  List<TenantDemandModel>? _cachedDemandsOnlyActive;
+  List<TenantDemandModel>? _cachedDemandsAll;
+
+  final Set<StreamController<List<TenantDemandModel>>> _onlyActiveControllers = {};
+  final Set<StreamController<List<TenantDemandModel>>> _allControllers = {};
+
+  /// Synchronously retrieve latest cached demands (if already fetched)
+  List<TenantDemandModel>? get latestActiveDemands => _cachedDemandsOnlyActive;
+  List<TenantDemandModel>? get latestAllDemands => _cachedDemandsAll;
 
   void invalidateCache() {
     _cachedDemandsOnlyActive = null;
     _cachedDemandsAll = null;
+    _emit();
   }
 
-  /// Stream all tenant demands for House Owners (only approved and active by default, respecting verification gating)
-  Stream<List<TenantDemandModel>> streamAllDemands({bool onlyActive = true}) {
-    if (onlyActive && _cachedDemandsOnlyActive != null) {
-      return _cachedDemandsOnlyActive!;
-    }
-    if (!onlyActive && _cachedDemandsAll != null) {
-      return _cachedDemandsAll!;
-    }
-
-    StreamSubscription? demandSub;
-    StreamSubscription? settSub;
-    QuerySnapshot? lastDemands;
-    DocumentSnapshot? lastSettings;
-
-    late StreamController<List<TenantDemandModel>> controller;
-
-    void emit() {
-      if (lastDemands == null) return;
-      bool requireVerified = false;
-      if (lastSettings != null && lastSettings!.exists && lastSettings!.data() != null) {
-        final rawSettings = lastSettings!.data();
-        if (rawSettings is Map) {
-          requireVerified = (rawSettings['requireVerifiedTenantForDemands'] as bool?) ?? false;
-        }
-      }
-
-      final List<TenantDemandModel> list = [];
-      for (final doc in lastDemands!.docs) {
+  void _ensureInitialized() {
+    _settSub ??= _settingsDoc.snapshots().listen(
+      (snap) {
         try {
-          final data = doc.data();
-          if (data is Map<String, dynamic>) {
-            final d = TenantDemandModel.fromMap(data, doc.id);
-            final bool isLive = !d.isFulfilled && d.approvalStatus == 'approved';
-            if (onlyActive && !isLive) continue;
-            if (requireVerified && !d.isTenantVerified) continue;
-            list.add(d);
-          } else if (data is Map) {
-            final d = TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id);
-            final bool isLive = !d.isFulfilled && d.approvalStatus == 'approved';
-            if (onlyActive && !isLive) continue;
-            if (requireVerified && !d.isTenantVerified) continue;
-            list.add(d);
-          }
+          _lastSettings = snap;
+          _emit();
         } catch (e) {
-          debugPrint('Error parsing tenant demand doc ${doc.id}: $e');
+          debugPrint('⚠️ Error processing settings in demands stream: $e');
         }
-      }
-
-      list.sort((a, b) => b.postDate.compareTo(a.postDate));
-      if (!controller.isClosed) {
-        controller.add(list);
-      }
-    }
-
-    controller = StreamController<List<TenantDemandModel>>.broadcast(
-      onListen: () {
-        if (lastDemands != null) {
-          emit();
-        }
-        settSub ??= _settingsDoc.snapshots().listen(
-          (snap) {
-            try {
-              lastSettings = snap;
-              emit();
-            } catch (e) {
-              debugPrint('⚠️ Error processing settings in demands stream: $e');
-            }
-          },
-          onError: (e) {
-            debugPrint('⚠️ Settings stream error in demands (using defaults): $e');
-            emit();
-          },
-        );
-        demandSub ??= _demandsCollection.snapshots().listen(
-          (snap) {
-            lastDemands = snap;
-            emit();
-          },
-          onError: (e) {
-            if (!controller.isClosed) controller.addError(e);
-          },
-        );
       },
-      onCancel: () {
-        // Cached broadcast stream retains listeners for responsiveness
+      onError: (e) {
+        debugPrint('⚠️ Settings stream error in demands (using defaults): $e');
+        _emit();
       },
     );
 
-    final stream = controller.stream;
-    if (onlyActive) {
-      _cachedDemandsOnlyActive = stream;
-    } else {
-      _cachedDemandsAll = stream;
+    _demandSub ??= _demandsCollection.snapshots().listen(
+      (snap) {
+        _lastDemands = snap;
+        _emit();
+      },
+      onError: (e) {
+        debugPrint('⚠️ Demands stream error: $e');
+        for (final c in List.of(_onlyActiveControllers)) {
+          if (!c.isClosed) c.addError(e);
+        }
+        for (final c in List.of(_allControllers)) {
+          if (!c.isClosed) c.addError(e);
+        }
+      },
+    );
+  }
+
+  void _emit() {
+    if (_lastDemands == null) return;
+    bool requireVerified = false;
+    if (_lastSettings != null && _lastSettings!.exists && _lastSettings!.data() != null) {
+      final rawSettings = _lastSettings!.data();
+      if (rawSettings is Map) {
+        requireVerified = (rawSettings['requireVerifiedTenantForDemands'] as bool?) ?? false;
+      }
     }
-    return stream;
+
+    final List<TenantDemandModel> activeList = [];
+    final List<TenantDemandModel> allList = [];
+
+    for (final doc in _lastDemands!.docs) {
+      try {
+        final data = doc.data();
+        if (data is Map) {
+          final d = TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id);
+          final bool isLive = !d.isFulfilled && d.approvalStatus == 'approved';
+          allList.add(d);
+
+          if (isLive && (!requireVerified || d.isTenantVerified)) {
+            activeList.add(d);
+          }
+        }
+      } catch (e) {
+        debugPrint('Error parsing tenant demand doc ${doc.id}: $e');
+      }
+    }
+
+    activeList.sort((a, b) => b.postDate.compareTo(a.postDate));
+    allList.sort((a, b) => b.postDate.compareTo(a.postDate));
+
+    _cachedDemandsOnlyActive = activeList;
+    _cachedDemandsAll = allList;
+
+    for (final c in List.of(_onlyActiveControllers)) {
+      if (!c.isClosed) {
+        c.add(activeList);
+      }
+    }
+    for (final c in List.of(_allControllers)) {
+      if (!c.isClosed) {
+        c.add(allList);
+      }
+    }
+  }
+
+  /// Stream all tenant demands for House Owners (only approved and active by default, respecting verification gating).
+  /// Every listener immediately receives the latest cached data upon subscription (replay behavior).
+  Stream<List<TenantDemandModel>> streamAllDemands({bool onlyActive = true}) {
+    _ensureInitialized();
+
+    late StreamController<List<TenantDemandModel>> controller;
+    controller = StreamController<List<TenantDemandModel>>(
+      onListen: () {
+        if (onlyActive) {
+          _onlyActiveControllers.add(controller);
+          if (_cachedDemandsOnlyActive != null) {
+            controller.add(_cachedDemandsOnlyActive!);
+          }
+        } else {
+          _allControllers.add(controller);
+          if (_cachedDemandsAll != null) {
+            controller.add(_cachedDemandsAll!);
+          }
+        }
+      },
+      onCancel: () {
+        if (onlyActive) {
+          _onlyActiveControllers.remove(controller);
+        } else {
+          _allControllers.remove(controller);
+        }
+      },
+    );
+
+    return controller.stream;
   }
 
   /// Toggle demand fulfilled status (isFulfilled = true/false)
