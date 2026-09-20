@@ -29,12 +29,14 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
   bool _isMapView = false;
   PropertyModel? _selectedMapProperty;
   late final MapController _mapController;
+  late final Stream<List<PropertyModel>> _propertiesStream;
 
   @override
   void initState() {
     super.initState();
     _activeFilter = widget.filter;
     _mapController = MapController();
+    _propertiesStream = _service.streamAllProperties();
   }
 
   int? _parseDigits(String input) {
@@ -109,13 +111,17 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
   }
 
   bool _matchesRadius(PropertyModel property, SearchFilterModel filter) {
-    final searchLat = filter.searchLatitude ?? 23.8103;
-    final searchLng = filter.searchLongitude ?? 90.4125;
+    final searchLat = filter.searchLatitude;
+    final searchLng = filter.searchLongitude;
+    if (searchLat == null || searchLng == null || (searchLat == 0 && searchLng == 0)) {
+      return false;
+    }
+
     final propLat = property.effectiveLatitude;
     final propLng = property.effectiveLongitude;
 
     // Check geographic distance if coordinates are available
-    if (propLat != null && propLng != null) {
+    if (propLat != null && propLng != null && propLat != 0 && propLng != 0) {
       final distanceKm = _distanceCalc.as(
         LengthUnit.Kilometer,
         LatLng(searchLat, searchLng),
@@ -160,39 +166,69 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
 
   bool _matchesTraditionalFilter(PropertyModel property, SearchFilterModel filter) {
     // 1. Division check
-    if (filter.division != null && property.division.id.isNotEmpty && filter.division!.id.isNotEmpty) {
-      if (property.division.id.toLowerCase() != filter.division!.id.toLowerCase()) {
-        return false;
-      }
+    if (filter.division != null && filter.division!.id.isNotEmpty) {
+      final divIdMatch = property.division.id.isNotEmpty &&
+          property.division.id.toLowerCase() == filter.division!.id.toLowerCase();
+      final divNameMatch = property.division.name.isNotEmpty &&
+          property.division.name.toLowerCase() == filter.division!.name.toLowerCase();
+      final divBnMatch = (property.division.bnName.isNotEmpty && filter.division!.bnName.isNotEmpty &&
+              property.division.bnName == filter.division!.bnName) ||
+          (property.division.bnName.isNotEmpty &&
+              property.division.bnName.toLowerCase() == filter.division!.name.toLowerCase()) ||
+          (filter.division!.bnName.isNotEmpty &&
+              property.division.name.toLowerCase() == filter.division!.bnName.toLowerCase());
+      if (!divIdMatch && !divNameMatch && !divBnMatch) return false;
     }
 
     // 2. District check
-    if (filter.district != null && property.district.id.isNotEmpty && filter.district!.id.isNotEmpty) {
-      if (property.district.id.toLowerCase() != filter.district!.id.toLowerCase()) {
-        return false;
-      }
+    if (filter.district != null && filter.district!.id.isNotEmpty) {
+      final distIdMatch = property.district.id.isNotEmpty &&
+          property.district.id.toLowerCase() == filter.district!.id.toLowerCase();
+      final distNameMatch = property.district.name.isNotEmpty &&
+          property.district.name.toLowerCase() == filter.district!.name.toLowerCase();
+      final distBnMatch = (property.district.bnName.isNotEmpty && filter.district!.bnName.isNotEmpty &&
+              property.district.bnName == filter.district!.bnName) ||
+          (property.district.bnName.isNotEmpty &&
+              property.district.bnName.toLowerCase() == filter.district!.name.toLowerCase()) ||
+          (filter.district!.bnName.isNotEmpty &&
+              property.district.name.toLowerCase() == filter.district!.bnName.toLowerCase());
+      if (!distIdMatch && !distNameMatch && !distBnMatch) return false;
     }
 
     // 3. Upazila/Area check
-    if (filter.upazila != null && property.area.id.isNotEmpty && filter.upazila!.id.isNotEmpty) {
-      if (property.area.id.toLowerCase() != filter.upazila!.id.toLowerCase()) {
-        return false;
-      }
+    if (filter.upazila != null && filter.upazila!.id.isNotEmpty) {
+      final upaIdMatch = property.area.id.isNotEmpty &&
+          property.area.id.toLowerCase() == filter.upazila!.id.toLowerCase();
+      final upaNameMatch = property.area.name.isNotEmpty &&
+          property.area.name.toLowerCase() == filter.upazila!.name.toLowerCase();
+      final upaBnMatch = (property.area.bnName.isNotEmpty && filter.upazila!.bnName.isNotEmpty &&
+              property.area.bnName == filter.upazila!.bnName) ||
+          (property.area.bnName.isNotEmpty &&
+              property.area.bnName.toLowerCase() == filter.upazila!.name.toLowerCase()) ||
+          (filter.upazila!.bnName.isNotEmpty &&
+              property.area.name.toLowerCase() == filter.upazila!.bnName.toLowerCase());
+      if (!upaIdMatch && !upaNameMatch && !upaBnMatch) return false;
     }
 
-    // 4. Sub-Area check
-    if (filter.area != null && property.subArea != null) {
-      if (property.subArea!.id.isNotEmpty && filter.area!.id.isNotEmpty) {
-        if (property.subArea!.id.toLowerCase() != filter.area!.id.toLowerCase()) {
-          return false;
-        }
-      }
+    // 4. Sub-Area check (OPTIONAL: only filter if user selected a sub-area)
+    if (filter.area != null && filter.area!.id.isNotEmpty) {
+      if (property.subArea == null) return false;
+      final subIdMatch = property.subArea!.id.isNotEmpty &&
+          property.subArea!.id.toLowerCase() == filter.area!.id.toLowerCase();
+      final subNameMatch = property.subArea!.name.isNotEmpty &&
+          property.subArea!.name.toLowerCase() == filter.area!.name.toLowerCase();
+      final subBnMatch = (property.subArea!.bnName.isNotEmpty && filter.area!.bnName.isNotEmpty &&
+              property.subArea!.bnName == filter.area!.bnName) ||
+          (property.subArea!.bnName.isNotEmpty &&
+              property.subArea!.bnName.toLowerCase() == filter.area!.name.toLowerCase()) ||
+          (filter.area!.bnName.isNotEmpty &&
+              property.subArea!.name.toLowerCase() == filter.area!.bnName.toLowerCase());
+      if (!subIdMatch && !subNameMatch && !subBnMatch) return false;
     }
 
-    // 5. Month check
-    if (filter.month != null && filter.month!.isNotEmpty &&
-        property.month.toLowerCase() != filter.month!.toLowerCase()) {
-      return false;
+    // 5. Month check (Supports localized Bengali & English months)
+    if (filter.month != null && filter.month!.trim().isNotEmpty) {
+      if (!_matchesMonth(property.month, filter.month!)) return false;
     }
 
     // 6. House Type check
@@ -208,13 +244,15 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
     }
 
     // 8. Budget Range check
-    if (filter.budgetRange != null && !_matchesBudget(property.amount, filter.budgetRange!)) {
-      return false;
+    if (filter.budgetRange != null && filter.budgetRange!.trim().isNotEmpty) {
+      if (!_matchesBudget(property.amount, filter.budgetRange!)) {
+        return false;
+      }
     }
 
     // 9. Optional Room/Seat check
-    if (filter.roomOrSeat != null && filter.roomOrSeat!.isNotEmpty) {
-      if (property.roomOrSeat.toLowerCase() != filter.roomOrSeat!.toLowerCase()) {
+    if (filter.roomOrSeat != null && filter.roomOrSeat!.trim().isNotEmpty) {
+      if (!_matchesRoomOrSeat(property.roomOrSeat, filter.roomOrSeat!)) {
         return false;
       }
     }
@@ -233,17 +271,17 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
     }
 
     // 12. Optional Floor filter
-    if (filter.floorNumber != null && property.floorNumber != filter.floorNumber) {
+    if (filter.floorNumber != null && property.floorNumber != null && property.floorNumber != filter.floorNumber) {
       return false;
     }
 
     // 13. Optional Parking filter
-    if (filter.hasParking != null && property.hasParking != filter.hasParking) {
+    if (filter.hasParking != null && property.hasParking != null && property.hasParking != filter.hasParking) {
       return false;
     }
 
     // 14. Optional Lift filter
-    if (filter.hasLift != null && property.hasLift != filter.hasLift) {
+    if (filter.hasLift != null && property.hasLift != null && property.hasLift != filter.hasLift) {
       return false;
     }
 
@@ -326,15 +364,16 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
             : null,
       ),
       body: StreamBuilder<List<PropertyModel>>(
-        stream: _service.streamAllProperties(),
+        initialData: _service.latestAvailableProperties,
+        stream: _propertiesStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.themeColor),
             );
           }
 
-          if (snapshot.hasError) {
+          if (snapshot.hasError && !snapshot.hasData) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(20),

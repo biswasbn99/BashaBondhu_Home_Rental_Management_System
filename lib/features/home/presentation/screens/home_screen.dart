@@ -164,9 +164,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: const AIFloatingButton(),
       body: StreamBuilder<List<PropertyModel>>(
+        initialData: _firestoreService.latestAvailableProperties,
         stream: _firestoreService.streamAllProperties(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
             return const Center(
               child: CircularProgressIndicator(color: AppColors.themeColor),
             );

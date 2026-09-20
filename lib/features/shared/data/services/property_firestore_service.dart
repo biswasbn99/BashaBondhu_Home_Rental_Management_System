@@ -112,109 +112,155 @@ class PropertyFirestoreService {
     }
   }
 
-  Stream<List<PropertyModel>>? _cachedPropertiesOnlyAvailable;
-  Stream<List<PropertyModel>>? _cachedPropertiesAll;
+  StreamSubscription? _propSub;
+  StreamSubscription? _settSub;
+  QuerySnapshot? _lastProps;
+  DocumentSnapshot? _lastSettings;
+
+  List<PropertyModel>? _cachedPropertiesOnlyAvailable;
+  List<PropertyModel>? _cachedPropertiesAll;
+
+  final Set<StreamController<List<PropertyModel>>> _onlyAvailableControllers = {};
+  final Set<StreamController<List<PropertyModel>>> _allControllers = {};
+
+  /// Synchronously retrieve latest cached properties (if already fetched)
+  List<PropertyModel>? get latestAvailableProperties => _cachedPropertiesOnlyAvailable;
+  List<PropertyModel>? get latestAllProperties => _cachedPropertiesAll;
 
   void invalidateCache() {
     _cachedPropertiesOnlyAvailable = null;
     _cachedPropertiesAll = null;
+    _emit();
   }
 
-  /// Stream all active properties for HomeScreen / FindHomeScreen (only approved & available by default, respecting verification gating)
-  Stream<List<PropertyModel>> streamAllProperties({bool onlyAvailable = true}) {
-    if (onlyAvailable && _cachedPropertiesOnlyAvailable != null) {
-      return _cachedPropertiesOnlyAvailable!;
-    }
-    if (!onlyAvailable && _cachedPropertiesAll != null) {
-      return _cachedPropertiesAll!;
-    }
-
-    StreamSubscription? propSub;
-    StreamSubscription? settSub;
-    QuerySnapshot? lastProps;
-    DocumentSnapshot? lastSettings;
-
-    late StreamController<List<PropertyModel>> controller;
-
-    void emit() {
-      if (lastProps == null) return;
-      bool requireVerified = false;
-      if (lastSettings != null && lastSettings!.exists && lastSettings!.data() != null) {
-        final rawSettings = lastSettings!.data();
-        if (rawSettings is Map) {
-          requireVerified = (rawSettings['requireVerifiedOwnerForProperties'] as bool?) ?? false;
-        }
-      }
-
-      final List<PropertyModel> list = [];
-      for (final doc in lastProps!.docs) {
+  void _ensureInitialized() {
+    _settSub ??= _settingsDoc.snapshots().listen(
+      (snap) {
         try {
-          final data = doc.data();
-          if (data is Map<String, dynamic>) {
-            final p = PropertyModel.fromMap(data, doc.id);
-            final bool isLive = p.isAvailable && p.approvalStatus == 'approved';
-            if (onlyAvailable && !isLive) continue;
-            if (requireVerified && !p.isOwnerVerified) continue;
-            list.add(p);
-          } else if (data is Map) {
-            final p = PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id);
-            final bool isLive = p.isAvailable && p.approvalStatus == 'approved';
-            if (onlyAvailable && !isLive) continue;
-            if (requireVerified && !p.isOwnerVerified) continue;
-            list.add(p);
-          }
+          _lastSettings = snap;
+          _emit();
         } catch (e) {
-          debugPrint('Error parsing property doc ${doc.id}: $e');
+          debugPrint('⚠️ Error processing settings in properties stream: $e');
         }
-      }
-
-      list.sort((a, b) => b.postDate.compareTo(a.postDate));
-      if (!controller.isClosed) {
-        controller.add(list);
-      }
-    }
-
-    controller = StreamController<List<PropertyModel>>.broadcast(
-      onListen: () {
-        if (lastProps != null) {
-          emit();
-        }
-        settSub ??= _settingsDoc.snapshots().listen(
-          (snap) {
-            try {
-              lastSettings = snap;
-              emit();
-            } catch (e) {
-              debugPrint('⚠️ Error processing settings in properties stream: $e');
-            }
-          },
-          onError: (e) {
-            debugPrint('⚠️ Settings stream error in properties (using defaults): $e');
-            emit();
-          },
-        );
-        propSub ??= _propertiesCollection.snapshots().listen(
-          (snap) {
-            lastProps = snap;
-            emit();
-          },
-          onError: (e) {
-            if (!controller.isClosed) controller.addError(e);
-          },
-        );
       },
-      onCancel: () {
-        // Cached broadcast stream retains listeners for responsiveness
+      onError: (e) {
+        debugPrint('⚠️ Settings stream error in properties (using defaults): $e');
+        _emit();
       },
     );
 
-    final stream = controller.stream;
-    if (onlyAvailable) {
-      _cachedPropertiesOnlyAvailable = stream;
-    } else {
-      _cachedPropertiesAll = stream;
+    _propSub ??= _propertiesCollection.snapshots().listen(
+      (snap) {
+        _lastProps = snap;
+        _emit();
+      },
+      onError: (e) {
+        debugPrint('⚠️ Properties stream error: $e');
+        for (final c in List.of(_onlyAvailableControllers)) {
+          if (!c.isClosed) c.addError(e);
+        }
+        for (final c in List.of(_allControllers)) {
+          if (!c.isClosed) c.addError(e);
+        }
+      },
+    );
+  }
+
+  void _emit() {
+    if (_lastProps == null) return;
+    bool requireVerified = false;
+    if (_lastSettings != null && _lastSettings!.exists && _lastSettings!.data() != null) {
+      final rawSettings = _lastSettings!.data();
+      if (rawSettings is Map) {
+        requireVerified = (rawSettings['requireVerifiedOwnerForProperties'] as bool?) ?? false;
+      }
     }
-    return stream;
+
+    final List<PropertyModel> availableList = [];
+    final List<PropertyModel> allList = [];
+
+    for (final doc in _lastProps!.docs) {
+      try {
+        final data = doc.data();
+        if (data is Map) {
+          final p = PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id);
+          final bool isLive = p.isAvailable && p.approvalStatus == 'approved';
+          allList.add(p);
+
+          if (isLive && (!requireVerified || p.isOwnerVerified)) {
+            availableList.add(p);
+          }
+        }
+      } catch (e) {
+        debugPrint('Error parsing property doc ${doc.id}: $e');
+      }
+    }
+
+    availableList.sort((a, b) => b.postDate.compareTo(a.postDate));
+    allList.sort((a, b) => b.postDate.compareTo(a.postDate));
+
+    _cachedPropertiesOnlyAvailable = availableList;
+    _cachedPropertiesAll = allList;
+
+    for (final c in List.of(_onlyAvailableControllers)) {
+      if (!c.isClosed) {
+        c.add(availableList);
+      }
+    }
+    for (final c in List.of(_allControllers)) {
+      if (!c.isClosed) {
+        c.add(allList);
+      }
+    }
+  }
+
+  /// Stream all active properties for HomeScreen / FindHomeScreen (only approved & available by default, respecting verification gating).
+  /// Every listener immediately receives the latest cached data upon subscription (replay behavior).
+  Stream<List<PropertyModel>> streamAllProperties({bool onlyAvailable = true}) {
+    _ensureInitialized();
+
+    late StreamController<List<PropertyModel>> controller;
+    controller = StreamController<List<PropertyModel>>(
+      onListen: () {
+        if (onlyAvailable) {
+          _onlyAvailableControllers.add(controller);
+          if (_cachedPropertiesOnlyAvailable != null) {
+            controller.add(_cachedPropertiesOnlyAvailable!);
+          }
+        } else {
+          _allControllers.add(controller);
+          if (_cachedPropertiesAll != null) {
+            controller.add(_cachedPropertiesAll!);
+          }
+        }
+      },
+      onCancel: () {
+        if (onlyAvailable) {
+          _onlyAvailableControllers.remove(controller);
+        } else {
+          _allControllers.remove(controller);
+        }
+      },
+    );
+
+    return controller.stream;
+  }
+
+  /// One-shot fetch for properties with cache fallback
+  Future<List<PropertyModel>> getAllProperties({bool onlyAvailable = true}) async {
+    _ensureInitialized();
+    final cached = onlyAvailable ? _cachedPropertiesOnlyAvailable : _cachedPropertiesAll;
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
+    }
+    try {
+      return await streamAllProperties(onlyAvailable: onlyAvailable).first.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => cached ?? [],
+      );
+    } catch (_) {
+      return cached ?? [];
+    }
   }
 
   /// Stream properties owned by a specific house owner

@@ -35,9 +35,16 @@ class FindHomeProvider extends ChangeNotifier {
   double searchLongitude = 90.4125;
   String? searchLocationName;
   bool isFetchingGps = false;
+  bool showValidationErrors = false;
+
+  void setValidationErrors(bool show) {
+    showValidationErrors = show;
+    _safeNotifyListeners();
+  }
 
   void setSearchMode(bool isRadius) {
     isRadiusSearchMode = isRadius;
+    showValidationErrors = false;
     _safeNotifyListeners();
   }
 
@@ -400,19 +407,63 @@ class FindHomeProvider extends ChangeNotifier {
     _safeNotifyListeners();
   }
 
+  bool get isRadiusSearchValid {
+    return searchLatitude != 0 && searchLongitude != 0 && searchRadiusKm > 0;
+  }
+
+  bool get isAreaSearchValid {
+    return selectedDivision != null &&
+        selectedDistrict != null &&
+        selectedUpazila != null &&
+        selectedMonth != null &&
+        selectedMonth!.trim().isNotEmpty &&
+        selectedHouseType != null &&
+        selectedBudgetRange != null &&
+        selectedBudgetRange!.trim().isNotEmpty &&
+        selectedTenantType != null;
+  }
+
   bool get isSearchValid {
     if (isRadiusSearchMode) {
-      return true;
+      return isRadiusSearchValid;
     } else {
-      return selectedMonth != null &&
-          selectedHouseType != null &&
-          selectedDivision != null &&
-          selectedDistrict != null &&
-          selectedUpazila != null &&
-          selectedArea != null &&
-          selectedBudgetRange != null &&
-          selectedTenantType != null;
+      return isAreaSearchValid;
     }
+  }
+
+  List<String> getMissingRequiredFields(AppLocalizations l10n, bool isBn) {
+    final List<String> missing = [];
+    if (isRadiusSearchMode) {
+      if (searchLatitude == 0 || searchLongitude == 0) {
+        missing.add(isBn ? 'সেন্টার পয়েন্ট লোকেশন' : 'Center Point Location');
+      }
+      if (searchRadiusKm <= 0) {
+        missing.add(isBn ? 'সার্চ রেডিয়াস (দূরত্ব)' : 'Search Radius');
+      }
+    } else {
+      if (selectedDivision == null) {
+        missing.add(l10n.division);
+      }
+      if (selectedDistrict == null) {
+        missing.add(l10n.district);
+      }
+      if (selectedUpazila == null) {
+        missing.add(l10n.upazila);
+      }
+      if (selectedMonth == null || selectedMonth!.trim().isEmpty) {
+        missing.add(l10n.month);
+      }
+      if (selectedHouseType == null) {
+        missing.add(l10n.houseType);
+      }
+      if (selectedBudgetRange == null || selectedBudgetRange!.trim().isEmpty) {
+        missing.add(l10n.budget);
+      }
+      if (selectedTenantType == null) {
+        missing.add(l10n.tenantType);
+      }
+    }
+    return missing;
   }
 
   SearchFilterModel buildFilter() {
@@ -485,6 +536,7 @@ class FindHomeProvider extends ChangeNotifier {
     districts = [];
     upazilas = [];
     areas = [];
+    showValidationErrors = false;
     _safeNotifyListeners();
   }
 }

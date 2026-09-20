@@ -86,7 +86,18 @@ class UserProvider extends ChangeNotifier {
   Future<void> _saveToCache(UserModel user) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonString = jsonEncode(user.toMap());
+      final jsonString = jsonEncode(
+        user.toMap(),
+        toEncodable: (nonEncodable) {
+          if (nonEncodable is Timestamp) {
+            return nonEncodable.toDate().toIso8601String();
+          }
+          if (nonEncodable is DateTime) {
+            return nonEncodable.toIso8601String();
+          }
+          return nonEncodable.toString();
+        },
+      );
       await prefs.setString(_kCachedUserKey, jsonString);
       await prefs.setString(_kCachedRoleKey, user.userType);
       debugPrint('💾 Saved user profile to local cache: ${user.email} (${user.userType})');
