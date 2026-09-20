@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
+import '../../../../app/extensions/utility_extension.dart';
 import '../../../../app/providers/locale_provider.dart';
 import '../../../../features/auth/data/models/user_model.dart';
 import '../../../../features/auth/data/providers/user_provider.dart';
+import '../../../../features/subscription/data/models/free_tier_policy_model.dart';
+import '../../../../features/subscription/data/providers/subscription_provider.dart';
+import '../../../../features/subscription/presentation/screens/house_owner_subscription_screen.dart';
+import '../../../../features/subscription/presentation/screens/tenant_subscription_screen.dart';
 import '../providers/ai_assistant_provider.dart';
 import '../widgets/ai_message_bubble.dart';
 
@@ -20,6 +25,7 @@ class AIAssistantScreen extends StatefulWidget {
 class _AIAssistantScreenState extends State<AIAssistantScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  FreeTierPolicyModel _currentPolicy = FreeTierPolicyModel.defaultPolicy();
 
   @override
   void initState() {
@@ -52,13 +58,127 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     });
   }
 
+  void _showUpgradePlanPrompt(BuildContext context, UserModel user, bool isBn, int configuredLimit) {
+    final isSub = user.isSubscribed;
+    final limitStr = configuredLimit == -1
+        ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
+        : configuredLimit.toString().toLocalizedDigits(isBn ? 'bn' : 'en');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Row(
+          children: [
+            const Icon(Icons.workspace_premium_rounded, color: Colors.deepOrange, size: 26),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                isBn ? 'এআই লিমিট শেষ! প্ল্যান আপগ্রেড করুন' : 'AI Limit Reached! Upgrade Plan',
+                style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          isSub
+              ? (isBn
+                  ? '⚠️ আপনার সাবস্ক্রিপশন প্যাকেজের এআই সহকারী ব্যবহারের কোটা শেষ হয়ে গেছে। নিরবচ্ছিন্ন এআই সহায়তা ও সকল অপশন ব্যবহারের জন্য অনুগ্রহ করে প্যাকেজ আপগ্রেড বা রিনিউ করুন।'
+                  : '⚠️ You have reached the AI Assistant query limit for your subscription package. Please upgrade or renew your plan to continue using all AI features and options.')
+              : (configuredLimit <= 0
+                  ? (isBn
+                      ? '⚠️ ফ্রি অ্যাকাউন্টে এআই সহকারী সুবিধা বন্ধ রয়েছে। এআই সহকারীর সকল অপশন ও সহায়তা পেতে অনুগ্রহ করে সাবস্ক্রিপশন প্যাকেজ গ্রহণ করুন।'
+                      : '⚠️ AI Assistant is not available on the free tier. Please subscribe to a package to access all AI features.')
+                  : (isBn
+                      ? '⚠️ ফ্রি অ্যাকাউন্টে এআই সহকারী ব্যবহারের নির্ধারিত $limitStrটি ব্যবহারের লিমিট শেষ হয়ে গেছে। এআই সহকারীর সকল অপশন ও সুবিধা ব্যবহার করতে অনুগ্রহ করে একটি সাবস্ক্রিপশন প্ল্যান গ্রহণ বা আপগ্রেড করুন।'
+                      : '⚠️ You have used all $limitStr of your free AI queries. Please upgrade to a subscription plan to continue using all AI features and options.')),
+          style: const TextStyle(fontSize: 13.5, height: 1.45),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(isBn ? 'পরে' : 'Maybe Later'),
+          ),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.themeColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            icon: const Icon(Icons.rocket_launch_rounded, size: 16),
+            label: Text(
+              isBn ? '💳 প্ল্যান আপগ্রেড করুন' : '💳 Upgrade Plan',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              if (user.isHouseOwner) {
+                Navigator.pushNamed(context, HouseOwnerSubscriptionScreen.name);
+              } else {
+                Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   void _handleSend(String text, UserModel user, String languageCode) {
-    if (text.trim().isEmpty) return;
+    final trimmed = text.trim();
+    final isBn = languageCode == 'bn';
+    final int configuredLimit = user.isSubscribed
+        ? (user.activeSubscriptionPlans.isNotEmpty
+            ? user.activeSubscriptionPlans.first.aiAssistantLimit
+            : user.subscriptionMaxAiQueries)
+        : (user.isHouseOwner ? _currentPolicy.ownerAiAssistant : _currentPolicy.tenantAiAssistant);
+
+    final isPackagesReq = trimmed == '💳 সাবস্ক্রিপশন প্যাকেজ' ||
+        trimmed == '💳 Subscription Packages' ||
+        trimmed == '⭐ সাবস্ক্রিপশন প্যাকেজ' ||
+        trimmed == '⭐ Subscription Packages' ||
+        trimmed == '💳 প্যাকেজ' ||
+        trimmed == '💳 Packages' ||
+        trimmed == 'সাবস্ক্রিপশন প্যাকেজ' ||
+        trimmed == 'Subscription Packages';
+
+    if (isPackagesReq) {
+      if (user.isHouseOwner) {
+        Navigator.pushNamed(context, HouseOwnerSubscriptionScreen.name);
+      } else {
+        Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+      }
+      return;
+    }
+
+    final bool canUse = user.canUseAiAssistantForRole(policy: _currentPolicy);
+    if (!user.isAdmin && !canUse) {
+      _showUpgradePlanPrompt(context, user, isBn, configuredLimit);
+      return;
+    }
+
+    if (trimmed.isEmpty) return;
     _textController.clear();
+
+    final lower = trimmed.toLowerCase();
+    final isNav = lower.contains('package') ||
+        lower.contains('সাবস্ক্রিপশন') ||
+        lower.contains('প্যাকেজ') ||
+        lower.contains('subscription') ||
+        lower.contains('history') ||
+        lower.contains('হিস্ট্রি') ||
+        lower.contains('অপশন') ||
+        lower.contains('option');
+
     context.read<AIAssistantProvider>().handleUserInput(
-          text: text,
+          text: trimmed,
           user: user,
           languageCode: languageCode,
+          policy: _currentPolicy,
+          onAiQueryConsumed: () {
+            if (!user.isAdmin && !isNav) {
+              context.read<SubscriptionProvider>().incrementAiQueryCount(context, user);
+            }
+          },
         );
     _scrollToBottom();
   }
@@ -70,6 +190,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     final localeProvider = context.watch<LocaleProvider>();
     final userProvider = context.watch<UserProvider>();
     final aiProvider = context.watch<AIAssistantProvider>();
+    final subProvider = context.watch<SubscriptionProvider>();
 
     final user = userProvider.user ??
         UserModel(
@@ -89,8 +210,20 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     final isOwner = user.isHouseOwner;
     final isAdmin = user.isAdmin;
 
-    return Scaffold(
-      appBar: AppBar(
+    return StreamBuilder<FreeTierPolicyModel>(
+      stream: subProvider.streamFreeTierPolicy(),
+      builder: (context, policySnap) {
+        final policy = policySnap.data ?? FreeTierPolicyModel.defaultPolicy();
+        _currentPolicy = policy;
+        final bool canUseAi = user.canUseAiAssistantForRole(policy: policy);
+        final int configuredLimit = user.isSubscribed
+            ? (user.activeSubscriptionPlans.isNotEmpty
+                ? user.activeSubscriptionPlans.first.aiAssistantLimit
+                : user.subscriptionMaxAiQueries)
+            : (user.isHouseOwner ? policy.ownerAiAssistant : policy.tenantAiAssistant);
+
+        return Scaffold(
+          appBar: AppBar(
         titleSpacing: 0,
         title: Row(
           children: [
@@ -173,6 +306,16 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // AI Quota Status Bar
+            _buildQuotaStatusBar(
+              context: context,
+              user: user,
+              policy: policy,
+              isDark: isDark,
+              isBn: isBn,
+              languageCode: languageCode,
+            ),
+
             // Chat Messages List
             Expanded(
               child: ListView.builder(
@@ -241,7 +384,11 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                         backgroundColor: AppColors.themeColor,
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         onPressed: () {
-                          aiProvider.showHouseOwner4Options(user, languageCode);
+                          if (!user.isAdmin && !canUseAi) {
+                            _showUpgradePlanPrompt(context, user, isBn, configuredLimit);
+                            return;
+                          }
+                          aiProvider.showHouseOwner4Options(user, languageCode, policy);
                           _scrollToBottom();
                         },
                       ),
@@ -378,7 +525,11 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                         backgroundColor: AppColors.themeColor,
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         onPressed: () {
-                          aiProvider.showTenant3Options(user, languageCode);
+                          if (!user.isAdmin && !canUseAi) {
+                            _showUpgradePlanPrompt(context, user, isBn, configuredLimit);
+                            return;
+                          }
+                          aiProvider.showTenant3Options(user, languageCode, policy);
                           _scrollToBottom();
                         },
                       ),
@@ -509,13 +660,17 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                         textInputAction: TextInputAction.send,
                         onSubmitted: (val) => _handleSend(val, user, languageCode),
                         decoration: InputDecoration(
-                          hintText: !isAdmin
+                          hintText: !isAdmin && !canUseAi
                               ? (isBn
-                                  ? 'এলাকা বা ভাড়ার রেঞ্জ লিখুন (যেমন: মিরপুর বা ১০-১৫ হাজার)'
-                                  : 'Write area or price range (e.g. Mirpur or 10k-15k)')
-                              : (isBn
-                                  ? 'প্রশ্ন বা রিকোয়ারমেন্ট লিখুন (যেমন: মিরপুরে ২ বেড বাসা)'
-                                  : 'Ask anything or type requirements...'),
+                                  ? '⚠️ এআই কোটা শেষ! নতুন প্রশ্ন করতে প্ল্যান আপগ্রেড করুন'
+                                  : '⚠️ AI quota reached! Upgrade plan to continue')
+                              : (!isAdmin
+                                  ? (isBn
+                                      ? 'এলাকা বা ভাড়ার রেঞ্জ লিখুন (যেমন: মিরপুর বা ১০-১৫ হাজার)'
+                                      : 'Write area or price range (e.g. Mirpur or 10k-15k)')
+                                  : (isBn
+                                      ? 'প্রশ্ন বা রিকোয়ারমেন্ট লিখুন (যেমন: মিরপুরে ২ বেড বাসা)'
+                                      : 'Ask anything or type requirements...')),
                           hintStyle: TextStyle(fontSize: 12.5, color: Colors.grey[500]),
                           border: InputBorder.none,
                           isDense: true,
@@ -547,6 +702,169 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
             ),
           ],
         ),
+      ),
+    );
+  },
+);
+}
+
+  Widget _buildQuotaStatusBar({
+    required BuildContext context,
+    required UserModel user,
+    required FreeTierPolicyModel policy,
+    required bool isDark,
+    required bool isBn,
+    required String languageCode,
+  }) {
+    if (user.isAdmin) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+        child: Row(
+          children: [
+            const Icon(Icons.shield_rounded, size: 15, color: Colors.blueAccent),
+            const SizedBox(width: 8),
+            Text(
+              isBn ? 'অ্যাডমিন অ্যাকাউন্ট: সীমাহীন এআই সহকারী এক্সেস' : 'Admin Account: Unlimited AI Assistant Access',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final isSub = user.isSubscribed;
+    final canUse = user.canUseAiAssistantForRole(policy: policy);
+    final remaining = user.remainingAiQueriesForRole(policy: policy);
+    final isUnlimited = remaining >= 999;
+    final remainingStr = remaining.toString().toLocalizedDigits(languageCode);
+
+    final int configuredLimit = isSub
+        ? (user.activeSubscriptionPlans.isNotEmpty
+            ? user.activeSubscriptionPlans.first.aiAssistantLimit
+            : user.subscriptionMaxAiQueries)
+        : (user.isHouseOwner ? policy.ownerAiAssistant : policy.tenantAiAssistant);
+    final limitStr = configuredLimit == -1
+        ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
+        : configuredLimit.toString().toLocalizedDigits(languageCode);
+
+    final Color bg = !canUse
+        ? (isDark ? const Color(0xFF351A1A) : const Color(0xFFFEF2F2))
+        : (isSub
+            ? (isDark ? const Color(0xFF132A26) : const Color(0xFFF0FDFA))
+            : (isDark ? const Color(0xFF2E2413) : const Color(0xFFFFFBEB)));
+    final Color borderCol = !canUse
+        ? Colors.redAccent.withValues(alpha: 0.35)
+        : (isSub
+            ? const Color(0xFF0D9488).withValues(alpha: 0.35)
+            : Colors.amber.shade700.withValues(alpha: 0.35));
+    final Color textCol = !canUse
+        ? Colors.redAccent
+        : (isSub ? const Color(0xFF0D9488) : (isDark ? Colors.amber.shade300 : Colors.amber.shade900));
+
+    String statusTitle;
+    if (!canUse) {
+      statusTitle = isBn
+          ? (isSub
+              ? '⚠️ প্যাকেজের এআই কোটা শেষ! আপগ্রেড করুন'
+              : (configuredLimit <= 0
+                  ? '⚠️ ফ্রি অ্যাকাউন্টে এআই বন্ধ। প্ল্যান নিন'
+                  : '⚠️ ফ্রি এআই কোটা শেষ! ($limitStrটির সব ব্যবহৃত)'))
+          : (isSub
+              ? '⚠️ Plan AI quota exhausted! Upgrade'
+              : (configuredLimit <= 0
+                  ? '⚠️ AI disabled for free tier. Subscribe'
+                  : '⚠️ Free AI quota exhausted ($limitStr used)'));
+    } else if (isUnlimited) {
+      statusTitle = isBn
+          ? (isSub
+              ? '⭐ প্রিমিয়াম: আনলিমিটেড এআই এক্সেস'
+              : '🆓 ফ্রি অ্যাকাউন্ট: আনলিমিটেড এআই সুবিধা')
+          : (isSub
+              ? '⭐ Premium: Unlimited AI Queries'
+              : '🆓 Free Tier: Unlimited AI Queries');
+    } else {
+      statusTitle = isBn
+          ? (isSub
+              ? '⭐ প্রিমিয়াম এআই: বাকি $remainingStrটি (মোট $limitStrটি)'
+              : '🆓 ফ্রি এআই কোটা: বাকি $remainingStrটি (মোট $limitStrটি)')
+          : (isSub
+              ? '⭐ Premium AI: $remainingStr left of $limitStr'
+              : '🆓 Free AI Quota: $remainingStr left of $limitStr');
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border(
+          bottom: BorderSide(color: borderCol, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            !canUse
+                ? Icons.lock_outline_rounded
+                : (isSub ? Icons.verified_rounded : Icons.auto_awesome_rounded),
+            size: 16,
+            color: textCol,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              statusTitle,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: textCol,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () {
+              if (user.isHouseOwner) {
+                Navigator.pushNamed(context, HouseOwnerSubscriptionScreen.name);
+              } else {
+                Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+              }
+            },
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: !canUse ? Colors.redAccent : (isSub ? const Color(0xFF0D9488) : Colors.deepOrange),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    !canUse ? Icons.rocket_launch_rounded : Icons.star_rounded,
+                    size: 13,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    isBn
+                        ? (!canUse ? 'আপগ্রেড' : (isSub ? 'প্ল্যান' : 'আপগ্রেড'))
+                        : (!canUse ? 'Upgrade' : (isSub ? 'Plans' : 'Upgrade')),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

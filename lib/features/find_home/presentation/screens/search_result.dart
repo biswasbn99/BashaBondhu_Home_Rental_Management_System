@@ -37,24 +37,33 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
     _mapController = MapController();
   }
 
+  int? _parseDigits(String input) {
+    const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    const enDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    String s = input.trim();
+    for (int i = 0; i < 10; i++) {
+      s = s.replaceAll(bnDigits[i], enDigits[i]);
+    }
+    return int.tryParse(s.replaceAll(RegExp(r'[^0-9]'), ''));
+  }
+
   bool _matchesBudget(String propertyAmount, String budgetRange) {
-    final cleanedAmount = int.tryParse(propertyAmount.replaceAll(RegExp(r'[^0-9]'), ''));
+    final cleanedAmount = _parseDigits(propertyAmount);
     if (cleanedAmount == null) return true;
 
     if (budgetRange.contains('+')) {
-      final minStr = budgetRange.replaceAll(RegExp(r'[^0-9]'), '');
-      final min = int.tryParse(minStr) ?? 50000;
+      final min = _parseDigits(budgetRange) ?? 50000;
       return cleanedAmount >= min;
     }
 
     final parts = budgetRange.split('-');
     if (parts.length == 2) {
-      final min = int.tryParse(parts[0].trim()) ?? 0;
-      final max = int.tryParse(parts[1].trim()) ?? 9999999;
+      final min = _parseDigits(parts[0]) ?? 0;
+      final max = _parseDigits(parts[1]) ?? 9999999;
       return cleanedAmount >= min && cleanedAmount <= max;
     }
 
-    final single = int.tryParse(budgetRange.replaceAll(RegExp(r'[^0-9]'), ''));
+    final single = _parseDigits(budgetRange);
     if (single != null) {
       return cleanedAmount <= single;
     }
@@ -62,24 +71,68 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
     return true;
   }
 
+  bool _matchesMonth(String propMonth, String filterMonth) {
+    final p = propMonth.toLowerCase().trim();
+    final f = filterMonth.toLowerCase().trim();
+    if (p == f) return true;
+
+    const enMonths = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
+    ];
+    const bnMonths = [
+      'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+      'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'
+    ];
+
+    int? pIdx;
+    int? fIdx;
+    for (int i = 0; i < 12; i++) {
+      if (p.contains(enMonths[i]) || p.contains(bnMonths[i])) pIdx = i;
+      if (f.contains(enMonths[i]) || f.contains(bnMonths[i])) fIdx = i;
+    }
+    if (pIdx != null && fIdx != null) {
+      return pIdx == fIdx;
+    }
+    return p.contains(f) || f.contains(p);
+  }
+
+  bool _matchesRoomOrSeat(String propVal, String filterVal) {
+    if (propVal.toLowerCase().trim() == filterVal.toLowerCase().trim()) return true;
+    final propNum = _parseDigits(propVal);
+    final filterNum = _parseDigits(filterVal);
+    if (propNum != null && filterNum != null) {
+      return propNum == filterNum;
+    }
+    return propVal.toLowerCase().contains(filterVal.toLowerCase()) ||
+        filterVal.toLowerCase().contains(propVal.toLowerCase());
+  }
+
   bool _matchesRadius(PropertyModel property, SearchFilterModel filter) {
     final searchLat = filter.searchLatitude ?? 23.8103;
     final searchLng = filter.searchLongitude ?? 90.4125;
-    final propLat = property.latitude;
-    final propLng = property.longitude;
+    final propLat = property.effectiveLatitude;
+    final propLng = property.effectiveLongitude;
 
-    if (propLat == null || propLng == null) return false;
+    // Check geographic distance if coordinates are available
+    if (propLat != null && propLng != null) {
+      final distanceKm = _distanceCalc.as(
+        LengthUnit.Kilometer,
+        LatLng(searchLat, searchLng),
+        LatLng(propLat, propLng),
+      );
+      if (distanceKm > (filter.searchRadiusKm ?? 5.0)) return false;
+    } else {
+      // Area-level fallback matching if coordinates couldn't be resolved
+      final bool matchesArea = (filter.upazila != null && property.area.id == filter.upazila!.id) ||
+          (filter.area != null && property.subArea?.id == filter.area!.id) ||
+          (filter.district != null && property.district.id == filter.district!.id);
+      if (!matchesArea) return false;
+    }
 
-    final distanceKm = _distanceCalc.as(
-      LengthUnit.Kilometer,
-      LatLng(searchLat, searchLng),
-      LatLng(propLat, propLng),
-    );
-    if (distanceKm > (filter.searchRadiusKm ?? 5.0)) return false;
-
-    // Optional Criteria
-    if (filter.month != null && filter.month!.isNotEmpty) {
-      if (property.month.toLowerCase() != filter.month!.toLowerCase()) return false;
+    // Optional Criteria (Only filter when explicitly selected / not null)
+    if (filter.month != null && filter.month!.trim().isNotEmpty) {
+      if (!_matchesMonth(property.month, filter.month!)) return false;
     }
     if (filter.houseType != null && property.houseType != filter.houseType) {
       return false;
@@ -87,20 +140,20 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
     if (filter.tenantType != null && property.tenantType != null) {
       if (property.tenantType != filter.tenantType) return false;
     }
-    if (filter.budgetRange != null && !_matchesBudget(property.amount, filter.budgetRange!)) {
-      return false;
+    if (filter.budgetRange != null && filter.budgetRange!.trim().isNotEmpty) {
+      if (!_matchesBudget(property.amount, filter.budgetRange!)) return false;
     }
-    if (filter.roomOrSeat != null && filter.roomOrSeat!.isNotEmpty) {
-      if (property.roomOrSeat.toLowerCase() != filter.roomOrSeat!.toLowerCase()) return false;
+    if (filter.roomOrSeat != null && filter.roomOrSeat!.trim().isNotEmpty) {
+      if (!_matchesRoomOrSeat(property.roomOrSeat, filter.roomOrSeat!)) return false;
     }
     if (filter.bathrooms != null) {
       final totalBaths = (property.attachedBathrooms ?? 0) + (property.commonBathrooms ?? 0);
       if (totalBaths < filter.bathrooms!) return false;
     }
     if (filter.balconies != null && (property.balconies ?? 0) < filter.balconies!) return false;
-    if (filter.floorNumber != null && property.floorNumber != filter.floorNumber) return false;
-    if (filter.hasParking != null && property.hasParking != filter.hasParking) return false;
-    if (filter.hasLift != null && property.hasLift != filter.hasLift) return false;
+    if (filter.floorNumber != null && property.floorNumber != null && property.floorNumber != filter.floorNumber) return false;
+    if (filter.hasParking != null && property.hasParking != null && property.hasParking != filter.hasParking) return false;
+    if (filter.hasLift != null && property.hasLift != null && property.hasLift != filter.hasLift) return false;
 
     return true;
   }
@@ -208,10 +261,10 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
       final searchLatLng = LatLng(searchLat, searchLng);
 
       results.sort((a, b) {
-        final latA = a.latitude ?? searchLat;
-        final lngA = a.longitude ?? searchLng;
-        final latB = b.latitude ?? searchLat;
-        final lngB = b.longitude ?? searchLng;
+        final latA = a.effectiveLatitude ?? searchLat;
+        final lngA = a.effectiveLongitude ?? searchLng;
+        final latB = b.effectiveLatitude ?? searchLat;
+        final lngB = b.effectiveLongitude ?? searchLng;
 
         final distA = _distanceCalc.as(LengthUnit.Meter, searchLatLng, LatLng(latA, lngA));
         final distB = _distanceCalc.as(LengthUnit.Meter, searchLatLng, LatLng(latB, lngB));
@@ -382,13 +435,13 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
 
               final p = results[index - 1];
               double? distKm;
-              if (f.isRadiusSearch && p.latitude != null && p.longitude != null) {
+              if (f.isRadiusSearch && p.effectiveLatitude != null && p.effectiveLongitude != null) {
                 final searchLat = f.searchLatitude ?? 23.8103;
                 final searchLng = f.searchLongitude ?? 90.4125;
                 distKm = _distanceCalc.as(
                   LengthUnit.Kilometer,
                   LatLng(searchLat, searchLng),
-                  LatLng(p.latitude!, p.longitude!),
+                  LatLng(p.effectiveLatitude!, p.effectiveLongitude!),
                 );
               }
               return Padding(
@@ -414,7 +467,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
     final centerLat = filter.searchLatitude ?? 23.8103;
     final centerLng = filter.searchLongitude ?? 90.4125;
     final centerLatLng = LatLng(centerLat, centerLng);
-    final validProperties = properties.where((p) => p.latitude != null && p.longitude != null).toList();
+    final validProperties = properties.where((p) => p.effectiveLatitude != null && p.effectiveLongitude != null).toList();
 
     return Stack(
       children: [
@@ -478,8 +531,8 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                 // 2. Property Markers
                 ...validProperties.map((p) {
                   final isSelected = _selectedMapProperty?.id == p.id;
-                  final pLat = p.latitude!;
-                  final pLng = p.longitude!;
+                  final pLat = p.effectiveLatitude!;
+                  final pLng = p.effectiveLongitude!;
                   return Marker(
                     point: LatLng(pLat, pLng),
                     width: 46,

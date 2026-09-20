@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../ai_assistant/presentation/widgets/ai_floating_button.dart';
+import '../../../auth/data/models/user_model.dart';
 import '../../../auth/data/providers/user_provider.dart';
 import '../../../home_rent_post/presentations/widgets/property_location_picker_card.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
@@ -21,6 +22,11 @@ import '../../../shared/presentation/widgets/number_of_room_or_seat_dropdown_but
 import '../../../shared/presentation/widgets/parking_dropdown_button.dart';
 import '../../../shared/presentation/widgets/post_icon.dart';
 import '../../../shared/presentation/widgets/tenant_type_dropdown_button.dart';
+import '../../../home/data/models/property_model.dart';
+import '../../../shared/data/models/district_model.dart';
+import '../../../shared/data/models/area_model.dart';
+import '../../../shared/data/models/sub_area_model.dart';
+import '../../../subscription/data/models/free_tier_policy_model.dart';
 import '../../../subscription/data/providers/subscription_provider.dart';
 import '../../../subscription/presentation/screens/tenant_subscription_screen.dart';
 import '../providers/find_home_provider.dart';
@@ -63,7 +69,16 @@ class _FindHomeView extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final userProvider = Provider.of<UserProvider>(context);
-    final bool isGuest = userProvider.isGuest;
+    final user = userProvider.user;
+    final bool isGuest = userProvider.isGuest || user == null;
+    final subProvider = Provider.of<SubscriptionProvider>(context);
+    final policy = subProvider.currentPolicy ?? FreeTierPolicyModel.defaultPolicy();
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isBn = languageCode == 'bn';
+
+    final bool isRadius = !isGuest && provider.isRadiusSearchMode;
+    final bool canPerformNearby = !isRadius || user.canPerformNearbySearchForPolicy(policy: policy);
+    final int remainingNearby = user?.remainingNearbySearchesForPolicy(policy: policy) ?? 0;
 
     return Scaffold(
       appBar: MainAppBar(
@@ -94,7 +109,17 @@ class _FindHomeView extends StatelessWidget {
               // Visible ONLY for Tenant user, completely hidden for Guest user
               if (!isGuest) ...[
                 _buildModeSwitcher(context, provider, l10n, isDark),
-                const SizedBox(height: 20),
+                const SizedBox(height: 14),
+                if (provider.isRadiusSearchMode) ...[
+                  _buildNearbyQuotaStatusCard(
+                    context: context,
+                    user: user,
+                    policy: policy,
+                    isBn: isBn,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 14),
+                ],
               ],
 
               // --- 2. Dynamic Content Based on Search Mode ---
@@ -115,7 +140,8 @@ class _FindHomeView extends StatelessWidget {
               RoomOrSeatDropdown(
                 hint: '${provider.roomOrSeatHint(l10n)} (${l10n.optional})',
                 value: provider.selectedRoomOrSeat,
-                enabled: provider.selectedHouseType != null,
+                enabled: true,
+                isRequired: false,
                 options: provider.roomOrSeatOptions(l10n),
                 onChanged: provider.selectRoomOrSeat,
               ),
@@ -173,13 +199,15 @@ class _FindHomeView extends StatelessWidget {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: () {
-                    final isRadius = !isGuest && provider.isRadiusSearchMode;
-                    if (isRadius ? true : provider.isSearchValid) {
-                      _search(context, provider);
+                    final isRadiusMode = !isGuest && provider.isRadiusSearchMode;
+                    if (isRadiusMode) {
+                      _search(context, provider, policy);
+                    } else if (provider.isSearchValid) {
+                      _search(context, provider, policy);
                     } else {
-                      final errorMsg = isRadius
-                          ? l10n.selectSearchCenterPrompt
-                          : 'অনুগ্রহ করে সকল আবশ্যকীয় তথ্য (বিভাগ, জেলা, এলাকা, সাব-এলাকা, মাস, বাসার ধরন, বাজেট এবং ভাড়াটিয়ার ধরন) নির্বাচন করুন।';
+                      final errorMsg = isBn
+                          ? 'অনুগ্রহ করে সকল আবশ্যকীয় তথ্য (বিভাগ, জেলা, এলাকা, সাব-এলাকা, মাস, বাসার ধরন, বাজেট এবং ভাড়াটিয়ার ধরন) নির্বাচন করুন।'
+                          : 'Please select all required fields (Division, District, Area, Sub-area, Month, House Type, Budget and Tenant Type).';
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -191,16 +219,32 @@ class _FindHomeView extends StatelessWidget {
                     }
                   },
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.themeColor,
+                    backgroundColor: (!canPerformNearby && isRadius)
+                        ? Colors.deepOrange
+                        : AppColors.themeColor,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text(
-                    (!isGuest && provider.isRadiusSearchMode)
-                        ? '${provider.searchRadiusKm.toInt()} km ${l10n.findHomeButton}'
-                        : l10n.findHomeButton,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
+                  child: (!canPerformNearby && isRadius)
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.workspace_premium_rounded, size: 18, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Text(
+                              isBn ? 'প্যাকেজ আপগ্রেড করুন (সার্চ সীমা শেষ)' : 'Upgrade Plan (Limit Reached)',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
+                            ),
+                          ],
+                        )
+                      : Text(
+                          isRadius
+                              ? (remainingNearby >= 999
+                                  ? '${provider.searchRadiusKm.toInt()} km ${l10n.findHomeButton} (${isBn ? "আনলিমিটেড" : "Unlimited"})'
+                                  : '${provider.searchRadiusKm.toInt()} km ${l10n.findHomeButton} (${remainingNearby.toString().toLocalizedDigits(languageCode)} ${isBn ? "বাকি" : "Left"})')
+                              : l10n.findHomeButton,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
                 ),
               ),
             ],
@@ -329,6 +373,170 @@ class _FindHomeView extends StatelessWidget {
     );
   }
 
+  void _updateCenterFromDistrict(FindHomeProvider provider, DistrictModel district) {
+    if (district.coordinates != null && district.coordinates!.isNotEmpty) {
+      final parts = district.coordinates!.split(',');
+      if (parts.length >= 2) {
+        final lat = double.tryParse(parts[0].trim());
+        final lng = double.tryParse(parts[1].trim());
+        if (lat != null && lng != null) {
+          provider.setCenterLocation(lat, lng, district.name);
+          return;
+        }
+      }
+    }
+    final lat = PropertyModel.resolveFallbackLat(district.name, provider.selectedDivision?.name ?? '');
+    final lng = PropertyModel.resolveFallbackLng(district.name, provider.selectedDivision?.name ?? '');
+    if (lat != null && lng != null) {
+      provider.setCenterLocation(lat, lng, district.name);
+    }
+  }
+
+  void _updateCenterFromUpazila(FindHomeProvider provider, UpazilaModel upazila) {
+    if (upazila.coordinates != null && upazila.coordinates!.isNotEmpty) {
+      final parts = upazila.coordinates!.split(',');
+      if (parts.length >= 2) {
+        final lat = double.tryParse(parts[0].trim());
+        final lng = double.tryParse(parts[1].trim());
+        if (lat != null && lng != null) {
+          provider.setCenterLocation(lat, lng, '${upazila.name}, ${provider.selectedDistrict?.name ?? ""}');
+          return;
+        }
+      }
+    }
+    if (provider.selectedDistrict != null) {
+      _updateCenterFromDistrict(provider, provider.selectedDistrict!);
+    }
+  }
+
+  void _updateCenterFromArea(FindHomeProvider provider, UnionModel area) {
+    if (area.coordinates != null && area.coordinates!.isNotEmpty) {
+      final parts = area.coordinates!.split(',');
+      if (parts.length >= 2) {
+        final lat = double.tryParse(parts[0].trim());
+        final lng = double.tryParse(parts[1].trim());
+        if (lat != null && lng != null) {
+          provider.setCenterLocation(lat, lng, '${area.name}, ${provider.selectedUpazila?.name ?? ""}');
+          return;
+        }
+      }
+    }
+    if (provider.selectedUpazila != null) {
+      _updateCenterFromUpazila(provider, provider.selectedUpazila!);
+    }
+  }
+
+  Widget _buildQuickAreaCenterPicker(
+    BuildContext context,
+    FindHomeProvider provider,
+    dynamic l10n,
+    bool isDark,
+  ) {
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isBn = languageCode == 'bn';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E2827) : const Color(0xFFF7FAFA),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+          width: 1,
+        ),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+          leading: const Icon(Icons.location_city_rounded, color: AppColors.themeColor, size: 20),
+          title: Text(
+            isBn ? 'অথবা ড্রপডাউন থেকে এরিয়া বেছে নিয়ে সেন্টার সেট করুন' : 'Or Select Area from Dropdown as Center',
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+          subtitle: provider.selectedUpazila != null
+              ? Text(
+                  '${provider.selectedUpazila!.getLocalizedName(languageCode)}, ${provider.selectedDistrict?.getLocalizedName(languageCode) ?? ""}',
+                  style: const TextStyle(fontSize: 11.5, color: AppColors.themeColor, fontWeight: FontWeight.bold),
+                )
+              : Text(
+                  isBn ? 'ড্রপডাউন থেকে বিভাগ, জেলা ও থানা নির্বাচন করুন' : 'Select division, district & upazila',
+                  style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DivisionDropdown(
+                          value: provider.selectedDivision,
+                          divisions: provider.divisions,
+                          isLoading: provider.isLoadingDivisions,
+                          onChanged: (val) => provider.selectDivision(val, l10n),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DistrictDropdown(
+                          value: provider.selectedDistrict,
+                          districts: provider.districts,
+                          enabled: provider.selectedDivision != null,
+                          isLoading: provider.isLoadingDistricts,
+                          onChanged: (val) {
+                            provider.selectDistrict(val, l10n);
+                            if (val != null) {
+                              _updateCenterFromDistrict(provider, val);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: UpazilaDropdown(
+                          value: provider.selectedUpazila,
+                          upazilas: provider.upazilas,
+                          enabled: provider.selectedDistrict != null,
+                          isLoading: provider.isLoadingUpazilas,
+                          onChanged: (val) {
+                            provider.selectUpazila(val, l10n);
+                            if (val != null) {
+                              _updateCenterFromUpazila(provider, val);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: AreaDropdown(
+                          value: provider.selectedArea,
+                          areas: provider.areas,
+                          enabled: provider.selectedUpazila != null,
+                          isLoading: provider.isLoadingAreas,
+                          onChanged: (val) {
+                            provider.selectArea(val);
+                            if (val != null) {
+                              _updateCenterFromArea(provider, val);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Advanced Radius Search Form Section
   Widget _buildRadiusSearchForm(
     BuildContext context,
@@ -338,12 +546,15 @@ class _FindHomeView extends StatelessWidget {
     bool isDark,
   ) {
     const radiusOptions = [1.0, 3.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0];
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Center Location Picker Card
-        DecoratedSectionHeader(title: l10n.centerPoint),
+        // 1. Center Location Picker Card (Required)
+        DecoratedSectionHeader(
+          title: '${l10n.centerPoint} (${isBn ? "আবশ্যক" : "Required"})',
+        ),
         const SizedBox(height: 10),
         PropertyLocationPickerCard(
           latitude: provider.searchLatitude,
@@ -356,10 +567,14 @@ class _FindHomeView extends StatelessWidget {
             }
           },
         ),
+        const SizedBox(height: 10),
+        _buildQuickAreaCenterPicker(context, provider, l10n, isDark),
         const SizedBox(height: 20),
 
-        // 2. Radius Selection (5km, 10km, etc.)
-        DecoratedSectionHeader(title: l10n.searchRadius),
+        // 2. Radius Selection (Required: 1km, 3km, 5km, 10km, 15km, 20km, 25km, 30km)
+        DecoratedSectionHeader(
+          title: '${l10n.searchRadius} (${isBn ? "আবশ্যক" : "Required"})',
+        ),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(14),
@@ -406,7 +621,7 @@ class _FindHomeView extends StatelessWidget {
               ),
               const SizedBox(height: 14),
 
-              // Radius Quick Chips (1km, 3km, 5km, 10km, 15km, 20km)
+              // Radius Quick Chips (1km, 3km, 5km, 10km, 15km, 20km, 25km, 30km)
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -455,7 +670,9 @@ class _FindHomeView extends StatelessWidget {
         const SizedBox(height: 20),
 
         // 3. Accommodation & Budget (Optional in Radius Search)
-        DecoratedSectionHeader(title: l10n.accommodationPromptTitle),
+        DecoratedSectionHeader(
+          title: '${l10n.accommodationPromptTitle} (${l10n.optional})',
+        ),
         const SizedBox(height: 10),
         Row(
           children: [
@@ -463,6 +680,7 @@ class _FindHomeView extends StatelessWidget {
               child: MonthDropdown(
                 value: provider.selectedMonth,
                 months: FindHomeProvider.months,
+                isRequired: false,
                 onChanged: provider.selectMonth,
               ),
             ),
@@ -471,6 +689,7 @@ class _FindHomeView extends StatelessWidget {
               child: HouseTypeDropdown(
                 value: provider.selectedHouseType,
                 houseTypes: FindHomeProvider.houseTypes,
+                isRequired: false,
                 onChanged: provider.selectHouseType,
               ),
             ),
@@ -484,6 +703,7 @@ class _FindHomeView extends StatelessWidget {
               child: BudgetDropdown(
                 value: provider.selectedBudgetRange,
                 ranges: FindHomeProvider.budgetRanges,
+                isRequired: false,
                 onChanged: provider.selectBudget,
               ),
             ),
@@ -491,6 +711,7 @@ class _FindHomeView extends StatelessWidget {
             Expanded(
               child: TenantTypeDropdown(
                 value: provider.selectedTenantType,
+                isRequired: false,
                 onChanged: provider.selectTenantType,
               ),
             ),
@@ -521,6 +742,7 @@ class _FindHomeView extends StatelessWidget {
               child: MonthDropdown(
                 value: provider.selectedMonth,
                 months: FindHomeProvider.months,
+                isRequired: true,
                 onChanged: provider.selectMonth,
               ),
             ),
@@ -529,6 +751,7 @@ class _FindHomeView extends StatelessWidget {
               child: HouseTypeDropdown(
                 value: provider.selectedHouseType,
                 houseTypes: FindHomeProvider.houseTypes,
+                isRequired: true,
                 onChanged: provider.selectHouseType,
               ),
             ),
@@ -596,6 +819,7 @@ class _FindHomeView extends StatelessWidget {
               child: BudgetDropdown(
                 value: provider.selectedBudgetRange,
                 ranges: FindHomeProvider.budgetRanges,
+                isRequired: true,
                 onChanged: provider.selectBudget,
               ),
             ),
@@ -603,6 +827,7 @@ class _FindHomeView extends StatelessWidget {
             Expanded(
               child: TenantTypeDropdown(
                 value: provider.selectedTenantType,
+                isRequired: true,
                 onChanged: provider.selectTenantType,
               ),
             ),
@@ -612,16 +837,230 @@ class _FindHomeView extends StatelessWidget {
     );
   }
 
-  void _search(BuildContext context, FindHomeProvider provider) async {
+  Widget _buildNearbyQuotaStatusCard({
+    required BuildContext context,
+    required UserModel user,
+    required FreeTierPolicyModel policy,
+    required bool isBn,
+    required bool isDark,
+  }) {
+    final bool isSub = user.isSubscribed;
+    final bool canPerform = user.canPerformNearbySearchForPolicy(policy: policy);
+    final int remaining = user.remainingNearbySearchesForPolicy(policy: policy);
+
+    // Free account total limit
+    final int freeTotalLimit = policy.tenantNearbySearches;
+    final String freeTotalLimitStr = freeTotalLimit.toString().toLocalizedDigits(isBn ? 'bn' : 'en');
+    final String remainingStr = remaining.toString().toLocalizedDigits(isBn ? 'bn' : 'en');
+
+    // Quota exhausted or disabled -> Alert Card
+    if (!canPerform) {
+      String titleText;
+      String descText;
+
+      if (isSub) {
+        if (user.activePlans.isNotEmpty && user.activePlans.every((p) => p.nearbySearchLimit == 0)) {
+          titleText = isBn ? '🔒 প্যাকেজে কাছাকাছি সার্চ সুবিধা নেই' : '🔒 Nearby Search Not in Package';
+          descText = isBn
+              ? 'আপনার বর্তমান সাবস্ক্রিপশন প্যাকেজে নিকটবর্তী এরিয়া সার্চের সুবিধা অন্তর্ভুক্ত নেই। এই সুবিধা পেতে উচ্চতর প্যাকেজ আপগ্রেড করুন।'
+              : 'Nearby radius search is not included in your current subscription plan. Please upgrade to a higher package.';
+        } else {
+          titleText = isBn ? '⚠️ নিকটবর্তী সার্চ কোটা শেষ' : '⚠️ Nearby Search Quota Reached';
+          descText = isBn
+              ? 'আপনার বর্তমান প্যাকেজের নিকটবর্তী এরিয়া সার্চের কোটা শেষ হয়ে গেছে। আনলিমিটেড বা অতিরিক্ত সার্চ সুবিধা পেতে প্যাকেজ আপগ্রেড করুন।'
+              : 'You have reached your package limit for nearby searches. Please upgrade your package for additional searches.';
+        }
+      } else {
+        if (freeTotalLimit <= 0) {
+          titleText = isBn ? '🔒 ফ্রি অ্যাকাউন্টে কাছাকাছি সার্চ বন্ধ' : '🔒 Nearby Search Disabled';
+          descText = isBn
+              ? 'ফ্রি অ্যাকাউন্টে কাছাকাছি (দূরত্ব অনুযায়ী) সার্চের সুবিধা বন্ধ আছে। এই সুবিধা উপভোগ করতে সাবস্ক্রিপশন প্যাকেজ গ্রহণ করুন।'
+              : 'Nearby radius search is disabled on free accounts. Upgrade to a subscription package to enjoy nearby search.';
+        } else {
+          titleText = isBn ? '⚠️ কাছাকাছি সার্চের ফ্রি সীমা শেষ' : '⚠️ Free Nearby Search Limit Reached';
+          descText = isBn
+              ? 'আপনার ফ্রি $freeTotalLimitStrটি কাছাকাছি (রেডিয়াস) সার্চের কোটা শেষ হয়ে গেছে। আনলিমিটেড বা অতিরিক্ত সার্চ সুবিধা পেতে প্যাকেজ আপগ্রেড করুন।'
+              : 'You have used all $freeTotalLimitStr free nearby radius searches. Please activate a subscription package for additional searches.';
+        }
+      }
+
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2D1810) : const Color(0xFFFFF3EB),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.deepOrange.shade400.withValues(alpha: 0.7), width: 1.2),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.deepOrange.shade100,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.workspace_premium_rounded, color: Colors.deepOrange, size: 20),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        titleText,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.orange.shade300 : Colors.deepOrange.shade900,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        descText,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[300] : Colors.grey[800],
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.pushNamed(context, TenantSubscriptionScreen.name),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.deepOrange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.workspace_premium_rounded, size: 16),
+                label: Text(
+                  isBn ? 'প্যাকেজ আপগ্রেড করুন' : 'Upgrade Plan',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Active Quota Remaining Card
+    String quotaText;
+    if (isSub) {
+      if (remaining >= 999) {
+        quotaText = isBn ? 'প্যাকেজ কোটায় নিকটবর্তী সার্চ: আনলিমিটেড' : 'Package Nearby Search: Unlimited';
+      } else {
+        quotaText = isBn
+            ? 'প্যাকেজ কোটায় নিকটবর্তী সার্চ: $remainingStrটি বাকি'
+            : 'Package Nearby Search: $remainingStr Left';
+      }
+    } else {
+      if (freeTotalLimit == -1) {
+        quotaText = isBn ? 'ফ্রি কোটায় কাছাকাছি সার্চ: আনলিমিটেড' : 'Free Nearby Search: Unlimited';
+      } else {
+        quotaText = isBn
+            ? 'ফ্রি কোটায় কাছাকাছি সার্চ: $remainingStrটি বাকি (মোট $freeTotalLimitStrটি)'
+            : 'Free Nearby Search: $remainingStr Left (Total $freeTotalLimitStr)';
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF142422) : const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? Colors.teal.shade700 : Colors.teal.shade300,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.themeColor.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.radar_rounded, size: 18, color: AppColors.themeColor),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  quotaText,
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.teal.shade200 : const Color(0xFF0F5132),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isBn
+                      ? 'মানচিত্রে নির্দিষ্ট পয়েন্ট নির্বাচন করে নির্দিষ্ট দূরত্বের মধ্যে বাসা খুঁজুন।'
+                      : 'Pick a center point on map to discover homes within your desired radius.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.grey[400] : Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _search(BuildContext context, FindHomeProvider provider, FreeTierPolicyModel policy) async {
     final userProvider = context.read<UserProvider>();
     final user = userProvider.user;
     final isGuest = userProvider.isGuest || user == null;
     final isRadius = !isGuest && provider.isRadiusSearchMode;
 
     final l10n = context.localizations;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isBn = languageCode == 'bn';
 
     if (isRadius) {
-      if (!isGuest && !user.isSubscribed && user.freeRadiusSearchesRemaining <= 0) {
+      if (!user.canPerformNearbySearchForPolicy(policy: policy)) {
+        final int freeLimit = policy.tenantNearbySearches;
+        final String freeLimitStr = freeLimit.toString().toLocalizedDigits(languageCode);
+
+        String dialogTitle;
+        String dialogContent;
+
+        if (user.isSubscribed) {
+          dialogTitle = isBn ? 'নিকটবর্তী সার্চ কোটা শেষ' : 'Nearby Search Quota Reached';
+          dialogContent = isBn
+              ? 'আপনার বর্তমান প্যাকেজের নিকটবর্তী এরিয়া সার্চের কোটা শেষ হয়ে গেছে। আনলিমিটেড বা অতিরিক্ত সার্চ সুবিধা পেতে প্যাকেজ আপগ্রেড করুন।'
+              : 'You have reached your package limit for nearby searches. Please upgrade your package for additional searches.';
+        } else {
+          if (freeLimit <= 0) {
+            dialogTitle = isBn ? 'কাছাকাছি সার্চ সুবিধা সীমাবদ্ধ' : 'Nearby Search Disabled';
+            dialogContent = isBn
+                ? 'ফ্রি অ্যাকাউন্টে কাছাকাছি (দূরত্ব অনুযায়ী) সার্চের সুবিধা বন্ধ আছে। এই সুবিধা উপভোগ করতে অনুগ্রহ করে সাবস্ক্রিপশন প্যাকেজ গ্রহণ করুন।'
+                : 'Nearby radius search is disabled on free accounts. Please activate a subscription package to enjoy nearby search.';
+          } else {
+            dialogTitle = l10n.radiusLimitReachedTitle;
+            dialogContent = l10n.radiusLimitReachedSubtitle(freeLimitStr);
+          }
+        }
+
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -632,14 +1071,14 @@ class _FindHomeView extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    l10n.radiusLimitReachedTitle,
+                    dialogTitle,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
             content: Text(
-              l10n.radiusLimitReachedSubtitle,
+              dialogContent,
               style: const TextStyle(fontSize: 13.5, height: 1.4),
             ),
             actions: [
@@ -661,9 +1100,7 @@ class _FindHomeView extends StatelessWidget {
         return;
       }
 
-      if (!isGuest && !user.isSubscribed) {
-        await context.read<SubscriptionProvider>().incrementRadiusSearchCount(context, user);
-      }
+      await context.read<SubscriptionProvider>().recordRadiusSearch(context, user);
     }
 
     if (context.mounted) {

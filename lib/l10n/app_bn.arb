@@ -360,32 +360,36 @@
   "mapLockedTitle": "ম্যাপ ও জিপিএস লোকেশন লক করা আছে",
   "mapLockedSubtitle": "বাসার সঠিক লোকেশন ও গুগল ম্যাপস ডিরেকশন পেতে তথ্য আনলক করুন।",
   "unlockMap": "ম্যাপ আনলক করুন",
-  "unlockInfoAndNumberWithQuota": "তথ্য ও নম্বর আনলক করুন ({remaining}/৫টি ফ্রি বাকি)",
+  "unlockInfoAndNumberWithQuota": "তথ্য ও নম্বর আনলক করুন ({remaining}/{total}টি ফ্রি বাকি)",
   "@unlockInfoAndNumberWithQuota": {
     "placeholders": {
-      "remaining": {"type": "String"}
+      "remaining": {"type": "String"},
+      "total": {"type": "String"}
     }
   },
-  "unlockInfoAndNumberWithQuotaOwner": "ভাড়াটিয়ার নম্বর আনলক ({remaining}/২টি ফ্রি বাকি)",
+  "unlockInfoAndNumberWithQuotaOwner": "ভাড়াটিয়ার নম্বর আনলক ({remaining}/{total}টি ফ্রি বাকি)",
   "@unlockInfoAndNumberWithQuotaOwner": {
     "placeholders": {
-      "remaining": {"type": "String"}
+      "remaining": {"type": "String"},
+      "total": {"type": "String"}
     }
   },
   "loginToUnlockInfo": "লগইন করে নম্বর ও তথ্য আনলক করুন",
   "unlockWithSupportPackage": "👑 সাপোর্ট প্যাকেজ নিয়ে নম্বর আনলক করুন",
   "unlockPropertyDialogTitle": "তথ্য ও নম্বর আনলক",
-  "unlockPropertyDialogContent": "আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই বাসার সঠিক সাব-এরিয়া, বাড়িওয়ালার ফোন নম্বর ও অতিরিক্ত সকল ছবি আনলক করতে চান?\n\n(আপনার ফ্রি আনলক বাকি: {remaining}/৫টি)",
+  "unlockPropertyDialogContent": "আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই বাসার সঠিক সাব-এরিয়া, বাড়িওয়ালার ফোন নম্বর ও অতিরিক্ত সকল ছবি আনলক করতে চান?\n\n(আপনার ফ্রি আনলক বাকি: {remaining}/{total}টি)",
   "@unlockPropertyDialogContent": {
     "placeholders": {
-      "remaining": {"type": "String"}
+      "remaining": {"type": "String"},
+      "total": {"type": "String"}
     }
   },
   "unlockDemandDialogTitle": "ভাড়াটিয়ার নম্বর আনলক",
-  "unlockDemandDialogContent": "আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই ভাড়াটিয়ার সম্পূর্ণ ফোন ও হোয়াটসঅ্যাপ নম্বর আনলক করতে চান?\n\n(আপনার ফ্রি আনলক বাকি: {remaining}/২টি)",
+  "unlockDemandDialogContent": "আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই ভাড়াটিয়ার সম্পূর্ণ ফোন ও হোয়াটসঅ্যাপ নম্বর আনলক করতে চান?\n\n(আপনার ফ্রি আনলক বাকি: {remaining}/{total}টি)",
   "@unlockDemandDialogContent": {
     "placeholders": {
-      "remaining": {"type": "String"}
+      "remaining": {"type": "String"},
+      "total": {"type": "String"}
     }
   },
   "unlockSuccessMessage": "বাসার সকল তথ্য, সাব-এরিয়া ও বাড়িওয়ালার নম্বর সফলভাবে আনলক হয়েছে!",
@@ -403,7 +407,12 @@
   "loginToUnlockTenantContact": "লগইন করে ভাড়াটিয়ার নম্বর দেখুন",
   "unlockWithHouseOwnerPackage": "👑 বাড়িওয়ালা প্যাকেজ নিয়ে নম্বর আনলক করুন",
   "radiusLimitReachedTitle": "রেডিয়াস সার্চের ফ্রি সীমা শেষ",
-  "radiusLimitReachedSubtitle": "আপনি ৩টি ফ্রি রেডিয়াস সার্চ ব্যবহার করে ফেলেছেন। আনলিমিটেড রেডিয়াস সার্চ উপভোগ করতে আমাদের যেকোনো সাপোর্ট প্যাকেজ অ্যাক্টিভ করুন।",
+  "radiusLimitReachedSubtitle": "আপনি {limit}টি ফ্রি কাছাকাছি সার্চ ব্যবহার করে ফেলেছেন। আনলিমিটেড বা অতিরিক্ত কাছাকাছি সার্চ উপভোগ করতে যেকোনো সাবস্ক্রিপশন প্যাকেজ অ্যাক্টিভ করুন।",
+  "@radiusLimitReachedSubtitle": {
+    "placeholders": {
+      "limit": {"type": "String"}
+    }
+  },
   "maybeLater": "পরে করব",
   "viewPackages": "প্যাকেজ দেখুন",
   "tenantQuotaOverviewTitle": "আপনার ফ্রি অ্যাকাউন্টের লিমিট ওভারভিউ",

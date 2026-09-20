@@ -24,6 +24,8 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/widgets/tenant_type_dropdown_button.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/providers/demand_home_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/tenant_subscription_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/data/providers/subscription_provider.dart';
 
 class DemandHomeScreen extends StatelessWidget {
   const DemandHomeScreen({super.key});
@@ -501,8 +503,60 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
       return;
     }
 
+    final user = userProvider.user!;
+    if (!user.canCreatePost) {
+      final int limitToShow = user.activePlans.isNotEmpty
+          ? user.activePlans.first.maxPostsLimit
+          : user.subscriptionMaxPosts;
+      final String limitStr = limitToShow == -1
+          ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
+          : limitToShow.toString().toLocalizedDigits("bn");
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.workspace_premium_rounded, color: Colors.deepOrange),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isBn ? 'চাহিদা পোস্ট লিমিট সমাপ্ত' : 'Demand Limit Reached',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            isBn
+                ? (user.isSubscribed
+                    ? 'আপনার বর্তমান প্যাকেজের ভাড়ার চাহিদা পোস্ট করার লিমিট ($limitStrটি) শেষ হয়ে গেছে। আরও পোস্ট করতে প্যাকেজ আপগ্রেড বা রিনিউ করুন।'
+                    : 'আপনার ফ্রি ভাড়ার চাহিদা পোস্ট করার লিমিট শেষ হয়ে গেছে। আরও চাহিদা পোস্ট করতে সাবস্ক্রিপশন প্যাকেজ সক্রিয় করুন।')
+                : (user.isSubscribed
+                    ? 'You have reached your demand post limit ($limitToShow) for this plan. Please upgrade your plan to post more.'
+                    : 'You have reached your free demand post limit. Please subscribe to a package to continue posting.'),
+            style: const TextStyle(fontSize: 13.5, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(isBn ? 'বাতিল' : 'Cancel'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.themeColor),
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+              },
+              child: Text(isBn ? 'প্যাকেজ দেখুন' : 'View Packages'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     try {
-      final user = userProvider.user!;
       final fullName = user.fullName.trim().isNotEmpty ? user.fullName.trim() : "${user.firstName} ${user.lastName}".trim();
       if (fullName.isNotEmpty) provider.userName = fullName;
       if (user.mobile.isNotEmpty) provider.userMobile = user.mobile;
@@ -512,6 +566,10 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
         tenantEmail: user.email,
         tenantVerificationStatus: user.verificationStatus,
       );
+
+      if (context.mounted) {
+        await context.read<SubscriptionProvider>().incrementPostCount(context, user);
+      }
 
       if (context.mounted) {
         provider.resetFilters();

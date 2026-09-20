@@ -58,6 +58,18 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
   final _searchController = TextEditingController();
   final AdminFirestoreService _adminService = AdminFirestoreService();
 
+  late final Stream<bool> _autoApprovalStream;
+  late final Stream<List<PropertyModel>> _propertiesStream;
+  late final Stream<List<TenantDemandModel>> _demandsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _autoApprovalStream = _adminService.streamAutoApprovalSetting();
+    _propertiesStream = _adminService.streamAllProperties();
+    _demandsStream = _adminService.streamAllDemands();
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -77,16 +89,29 @@ class _PropertyManagementViewState extends State<PropertyManagementView> {
     final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
 
     return StreamBuilder<bool>(
-      stream: _adminService.streamAutoApprovalSetting(),
+      stream: _autoApprovalStream,
+      initialData: true,
       builder: (_, autoApproveSnapshot) {
         final isAutoApprovalOn = autoApproveSnapshot.data ?? true;
 
         return StreamBuilder<List<PropertyModel>>(
-          stream: _adminService.streamAllProperties(),
+          stream: _propertiesStream,
           builder: (_, propSnapshot) {
             return StreamBuilder<List<TenantDemandModel>>(
-              stream: _adminService.streamAllDemands(),
+              stream: _demandsStream,
               builder: (_, demandSnapshot) {
+                if (!propSnapshot.hasData &&
+                    !demandSnapshot.hasData &&
+                    propSnapshot.connectionState == ConnectionState.waiting &&
+                    demandSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 60),
+                      child: CircularProgressIndicator(color: AppColors.themeColor),
+                    ),
+                  );
+                }
+
                 final allProperties = propSnapshot.data ?? [];
                 final allDemands = demandSnapshot.data ?? [];
 

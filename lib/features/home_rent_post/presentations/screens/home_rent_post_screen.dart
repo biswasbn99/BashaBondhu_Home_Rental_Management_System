@@ -28,6 +28,8 @@ import '../widgets/amenities_dropdown.dart';
 import '../widgets/counter_dropdown.dart';
 import '../widgets/distance_dropdown.dart';
 import '../widgets/electricity_bill_dropdown.dart';
+import '../../../subscription/presentation/screens/house_owner_subscription_screen.dart';
+import '../../../subscription/data/providers/subscription_provider.dart';
 import '../widgets/multi_image_picker_widget.dart';
 import '../widgets/property_location_picker_card.dart';
 import '../widgets/validated_text_area.dart';
@@ -728,6 +730,59 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                             return;
                           }
 
+                          final currentUser = userProvider.user!;
+                          if (!currentUser.canCreatePost) {
+                            final int limitToShow = currentUser.activePlans.isNotEmpty
+                                ? currentUser.activePlans.first.maxPostsLimit
+                                : currentUser.subscriptionMaxPosts;
+                            final String limitStr = limitToShow == -1
+                                ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
+                                : limitToShow.toString().toLocalizedDigits("bn");
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                title: Row(
+                                  children: [
+                                    const Icon(Icons.workspace_premium_rounded, color: Colors.deepOrange),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        isBn ? 'পোস্ট লিমিট সমাপ্ত' : 'Post Limit Reached',
+                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                content: Text(
+                                  isBn
+                                      ? (currentUser.isSubscribed
+                                          ? 'আপনার বর্তমান প্যাকেজের বাসা বিজ্ঞাপন পোস্ট করার লিমিট ($limitStrটি) শেষ হয়ে গেছে। আরও পোস্ট করতে প্যাকেজ আপগ্রেড বা রিনিউ করুন।'
+                                          : 'আপনার ফ্রি বাসা বিজ্ঞাপন পোস্ট করার লিমিট শেষ হয়ে গেছে। আরও পোস্ট করতে সাবস্ক্রিপশন প্যাকেজ সক্রিয় করুন।')
+                                      : (currentUser.isSubscribed
+                                          ? 'You have reached your listing limit ($limitToShow) for this plan. Please upgrade your plan to post more.'
+                                          : 'You have reached your free listing limit. Please subscribe to a package to continue posting.'),
+                                  style: const TextStyle(fontSize: 13.5, height: 1.4),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx),
+                                    child: Text(isBn ? 'বাতিল' : 'Cancel'),
+                                  ),
+                                  FilledButton(
+                                    style: FilledButton.styleFrom(backgroundColor: AppColors.themeColor),
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      Navigator.pushNamed(context, HouseOwnerSubscriptionScreen.name);
+                                    },
+                                    child: Text(isBn ? 'প্যাকেজ দেখুন' : 'View Packages'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            return;
+                          }
+
                           // Bilingual Post Confirmation Dialog
                           final confirm = await showDialog<bool>(
                             context: context,
@@ -768,6 +823,9 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
 
                           final success = await provider.publishPost(userProvider.user);
                           if (success) {
+                            if (context.mounted) {
+                              await context.read<SubscriptionProvider>().incrementPostCount(context, currentUser);
+                            }
                             if (context.mounted) {
                               _amountController.clear();
                               _userWhatsAppController.clear();

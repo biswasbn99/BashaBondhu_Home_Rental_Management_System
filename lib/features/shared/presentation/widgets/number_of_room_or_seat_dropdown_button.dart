@@ -9,6 +9,7 @@ class RoomOrSeatDropdown extends StatelessWidget {
     required this.options,
     required this.onChanged,
     required this.enabled,
+    this.isRequired = false,
     this.showErrors = false,
     this.validator,
   });
@@ -18,6 +19,7 @@ class RoomOrSeatDropdown extends StatelessWidget {
   final List<String> options;
   final ValueChanged<String?> onChanged;
   final bool enabled;
+  final bool isRequired;
   final bool showErrors;
   final String? Function(String?)? validator;
 
@@ -28,20 +30,28 @@ class RoomOrSeatDropdown extends StatelessWidget {
       hint: hint,
       value: value,
       enabled: enabled,
+      isRequired: isRequired,
       showErrors: showErrors,
-      validator: validator ??
-          (val) {
-            if (val == null || val.trim().isEmpty) {
-              if (!enabled) {
-                return isBn ? 'প্রথমে বাসার ধরন নির্বাচন করুন' : 'Please select house type first';
-              }
-              return isBn ? 'দয়া করে $hint নির্বাচন করুন' : 'Please select $hint';
-            }
-            return null;
-          },
-      items: options
-          .map((o) => DropdownMenuItem(value: o, child: Text(o)))
-          .toList(),
+      validator: isRequired
+          ? (validator ??
+              (val) {
+                if (val == null || val.trim().isEmpty) {
+                  if (!enabled) {
+                    return isBn ? 'প্রথমে বাসার ধরন নির্বাচন করুন' : 'Please select house type first';
+                  }
+                  return isBn ? 'দয়া করে $hint নির্বাচন করুন' : 'Please select $hint';
+                }
+                return null;
+              })
+          : null,
+      items: [
+        if (!isRequired)
+          DropdownMenuItem<String>(
+            value: null,
+            child: Text(isBn ? 'যেকোনো সংখ্যা' : 'Any Count'),
+          ),
+        ...options.map((o) => DropdownMenuItem(value: o, child: Text(o))),
+      ],
       onChanged: onChanged,
     );
   }

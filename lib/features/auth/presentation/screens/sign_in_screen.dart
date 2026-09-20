@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,7 @@ class _SignInScreenState extends State<SignInScreen> {
   String? _selectedUserType;
   bool _isPasswordObscured = true;
   bool _isLoading = false;
+  bool _isNavigating = false;
   final TextEditingController _emailTEController = TextEditingController();
   final TextEditingController _passwordTEController = TextEditingController();
 
@@ -44,6 +46,14 @@ class _SignInScreenState extends State<SignInScreen> {
     super.initState();
     if (widget.preSelectedUserType != null && widget.preSelectedUserType!.isNotEmpty) {
       _selectedUserType = widget.preSelectedUserType;
+    }
+    _emailTEController.addListener(_clearActiveSnackBars);
+    _passwordTEController.addListener(_clearActiveSnackBars);
+  }
+
+  void _clearActiveSnackBars() {
+    if (mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
     }
   }
 
@@ -153,6 +163,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ],
                       onChanged: (value) {
+                        _clearActiveSnackBars();
                         setState(() {
                           _selectedUserType = value;
                         });
@@ -248,7 +259,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: _isLoading ? null : () => _onTapSignInButton(isBn),
+                      onPressed: (_isLoading || _isNavigating) ? null : () => _onTapSignInButton(isBn),
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,
@@ -270,7 +281,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         style: context.textTheme.labelLarge,
                       ),
                       TextButton(
-                        onPressed: _onTapSignUpNavigation,
+                        onPressed: (_isLoading || _isNavigating) ? null : _onTapSignUpNavigation,
                         child: Text(isBn ? 'রেজিস্ট্রেশন করুন' : l10n.signUp),
                       ),
                     ],
@@ -285,6 +296,7 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Future<void> _onTapSignInButton(bool isBn) async {
+    _clearActiveSnackBars();
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
@@ -308,6 +320,7 @@ class _SignInScreenState extends State<SignInScreen> {
             context.read<MainNavHolderProvider>().resetIndex();
             
             if (mounted) {
+              _clearActiveSnackBars();
               Navigator.popUntil(context, (route) => route.isFirst);
             }
           } else {
@@ -324,11 +337,13 @@ class _SignInScreenState extends State<SignInScreen> {
                   ? 'অননুমোদিত প্রবেশ। আপনি $regRole হিসেবে নিবন্ধিত, কিন্তু $selRole হিসেবে লগইন করতে চেয়েছেন।'
                   : 'Unauthorized access. You are registered as $regRole, but trying to log in as $selRole.';
 
+              _clearActiveSnackBars();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(message),
                   backgroundColor: Colors.red.shade700,
                   behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
                 ),
               );
             }
@@ -336,41 +351,144 @@ class _SignInScreenState extends State<SignInScreen> {
         }
       } on FirebaseAuthException catch (e) {
         if (!mounted) return;
-        final errorMessage = _getLocalizedAuthErrorMessage(e, isBn);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red.shade700,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        await _handleAuthException(e, isBn);
       } catch (e) {
         if (!mounted) return;
-        final errorStr = isBn
-            ? 'লগইন ব্যর্থ হয়েছে। আপনার ইমেইল ও পাসওয়ার্ড যাচাই করে আবার চেষ্টা করুন।'
-            : 'Login failed. Please verify your email and password and try again.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorStr),
-            backgroundColor: Colors.red.shade700,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        final cleanEmail = _emailTEController.text.trim();
+        bool userExists = true;
+        try {
+          final query = await FirebaseFirestore.instance
+              .collection('users')
+              .where('email', isEqualTo: cleanEmail)
+              .limit(1)
+              .get();
+          userExists = query.docs.isNotEmpty;
+        } catch (_) {}
+
+        if (!mounted) return;
+        if (!userExists) {
+          _showUnregisteredError(isBn);
+        } else {
+          final errorStr = isBn
+              ? 'লগইন ব্যর্থ হয়েছে। আপনার ইমেইল ও পাসওয়ার্ড যাচাই করে আবার চেষ্টা করুন।'
+              : 'Login failed. Please verify your email and password and try again.';
+          _clearActiveSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorStr),
+              backgroundColor: Colors.red.shade700,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
     }
   }
 
+  Future<void> _handleAuthException(FirebaseAuthException e, bool isBn) async {
+    if (!mounted) return;
+
+    if (e.code == 'user-not-found') {
+      _showUnregisteredError(isBn);
+      return;
+    }
+    if (e.code == 'wrong-password') {
+      _showWrongPasswordError(isBn);
+      return;
+    }
+    if (e.code == 'invalid-credential' || e.code == 'INVALID_LOGIN_CREDENTIALS') {
+      final cleanEmail = _emailTEController.text.trim();
+      bool userExists = false;
+      try {
+        final query = await FirebaseFirestore.instance
+            .collection('users')
+            .where('email', isEqualTo: cleanEmail)
+            .limit(1)
+            .get();
+        userExists = query.docs.isNotEmpty;
+      } catch (err) {
+        debugPrint('Error checking user email existence: $err');
+      }
+
+      if (!mounted) return;
+      if (!userExists) {
+        _showUnregisteredError(isBn);
+        return;
+      } else {
+        _showWrongPasswordError(isBn);
+        return;
+      }
+    }
+
+    if (!mounted) return;
+    final errorMessage = _getLocalizedAuthErrorMessage(e, isBn);
+    _clearActiveSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(errorMessage),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showUnregisteredError(bool isBn) {
+    if (!mounted) return;
+    _clearActiveSnackBars();
+    final message = isBn
+        ? 'এই ইমেইল দিয়ে কোনো অ্যাকাউন্ট তৈরি করা হয়নি। দয়া করে আগে রেজিস্ট্রেশন বা সাইন আপ করুন।'
+        : 'No account found with this email. Please sign up or register first.';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: isBn ? 'সাইন আপ' : 'Sign Up',
+          textColor: Colors.amberAccent,
+          onPressed: () {
+            if (mounted) {
+              _onTapSignUpNavigation();
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showWrongPasswordError(bool isBn) {
+    if (!mounted) return;
+    _clearActiveSnackBars();
+    final message = isBn
+        ? 'ভুল পাসওয়ার্ড দিয়েছেন। অনুগ্রহ করে সঠিক পাসওয়ার্ড দিন অথবা ভুলে গেলে রিসেট করুন।'
+        : 'Incorrect password. Please enter the correct password or reset it.';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   String _getLocalizedAuthErrorMessage(FirebaseAuthException e, bool isBn) {
     switch (e.code) {
       case 'user-not-found':
+        return isBn
+            ? 'এই ইমেইল দিয়ে কোনো অ্যাকাউন্ট তৈরি করা হয়নি। দয়া করে আগে রেজিস্ট্রেশন বা সাইন আপ করুন।'
+            : 'No account found with this email. Please sign up or register first.';
       case 'wrong-password':
       case 'invalid-credential':
       case 'INVALID_LOGIN_CREDENTIALS':
         return isBn
-            ? 'ভুল ইমেইল বা পাসওয়ার্ড প্রদান করেছেন। দয়া করে সঠিক তথ্য দিন।'
-            : 'Incorrect email or password. Please check your credentials and try again.';
+            ? 'ভুল পাসওয়ার্ড দিয়েছেন। অনুগ্রহ করে সঠিক পাসওয়ার্ড দিন অথবা ভুলে গেলে রিসেট করুন।'
+            : 'Incorrect password. Please enter the correct password or reset it.';
       case 'invalid-email':
         return isBn
             ? 'ইমেইল ঠিকানাটি সঠিক নয়।'
@@ -399,6 +517,9 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   void _onTapSignUpNavigation() {
+    if (!mounted || _isNavigating) return;
+    _isNavigating = true;
+    _clearActiveSnackBars();
     Navigator.pushReplacementNamed(
       context,
       SignUpScreen.name,
@@ -410,7 +531,15 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   @override
+  void deactivate() {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
+    _emailTEController.removeListener(_clearActiveSnackBars);
+    _passwordTEController.removeListener(_clearActiveSnackBars);
     _emailTEController.dispose();
     _passwordTEController.dispose();
     super.dispose();

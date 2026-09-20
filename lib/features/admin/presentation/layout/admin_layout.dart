@@ -17,10 +17,25 @@ import '../widgets/admin_post_details_dialog.dart';
 import '../widgets/admin_sidebar.dart';
 import '../widgets/admin_user_posts_dialog.dart';
 
-class AdminLayout extends StatelessWidget {
+class AdminLayout extends StatefulWidget {
   const AdminLayout({super.key, required this.child});
 
   final Widget child;
+
+  @override
+  State<AdminLayout> createState() => _AdminLayoutState();
+}
+
+class _AdminLayoutState extends State<AdminLayout> {
+  late final Stream<List<UserModel>> _usersStream;
+  late final Stream<List<AppNotificationModel>> _notificationsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _usersStream = AdminFirestoreService().streamAllUsers();
+    _notificationsStream = NotificationFirestoreService().streamAdminNotifications();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,10 +140,10 @@ class AdminLayout extends StatelessWidget {
 
                             // Notification Bell Icon with Pending Reclaim Appeals, Verification Requests & Post Activities
                             StreamBuilder<List<UserModel>>(
-                              stream: AdminFirestoreService().streamAllUsers(),
+                              stream: _usersStream,
                               builder: (context, userSnap) {
                                 return StreamBuilder<List<AppNotificationModel>>(
-                                  stream: NotificationFirestoreService().streamAdminNotifications(),
+                                  stream: _notificationsStream,
                                   builder: (context, notifSnap) {
                                     final allUsers = userSnap.data ?? [];
                                     final allNotifs = notifSnap.data ?? [];
@@ -297,7 +312,7 @@ class AdminLayout extends StatelessWidget {
 
                 // Main Module Body
                 Expanded(
-                  child: child,
+                  child: widget.child,
                 ),
               ],
             ),

@@ -476,6 +476,13 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     return StreamBuilder<List<SubscriptionTransactionModel>>(
       stream: _subscriptionService.streamAllTransactions(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: CircularProgressIndicator(color: AppColors.themeColor)),
+          );
+        }
+
         final allTransactions = snapshot.data ?? [];
 
         final filtered = allTransactions.where((t) {
@@ -693,6 +700,13 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     return StreamBuilder<List<PropertyModel>>(
       stream: _adminService.streamAllProperties(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: CircularProgressIndicator(color: AppColors.themeColor)),
+          );
+        }
+
         final allProperties = snapshot.data ?? [];
 
         final filtered = allProperties.where((p) {
@@ -905,6 +919,13 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     return StreamBuilder<List<TenantDemandModel>>(
       stream: _adminService.streamAllDemands(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: CircularProgressIndicator(color: AppColors.themeColor)),
+          );
+        }
+
         final allDemands = snapshot.data ?? [];
 
         final filtered = allDemands.where((d) {
@@ -1087,6 +1108,13 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     return StreamBuilder<List<UserModel>>(
       stream: _adminService.streamAllUsers(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: CircularProgressIndicator(color: AppColors.themeColor)),
+          );
+        }
+
         final allUsers = snapshot.data ?? [];
         final houseOwners = allUsers.where((u) => u.userType == 'House Owner').toList();
 
@@ -1304,6 +1332,13 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     return StreamBuilder<List<UserModel>>(
       stream: _adminService.streamAllUsers(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: CircularProgressIndicator(color: AppColors.themeColor)),
+          );
+        }
+
         final allUsers = snapshot.data ?? [];
         final tenants = allUsers.where((u) => u.userType == 'Tenant').toList();
 

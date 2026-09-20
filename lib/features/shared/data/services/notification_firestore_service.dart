@@ -10,6 +10,8 @@ class NotificationFirestoreService {
   final CollectionReference _notificationsCollection =
       FirebaseFirestore.instance.collection('notifications');
 
+  Stream<List<AppNotificationModel>>? _cachedAdminNotificationsStream;
+
   /// Create and dispatch a new notification document
   Future<String> createNotification(AppNotificationModel notification) async {
     try {
@@ -43,21 +45,21 @@ class NotificationFirestoreService {
     }
   }
 
-  /// Stream all notifications intended for Admin (sorted newest first, latest only per post)
+  /// Stream all notifications intended for Admin (sorted newest first, latest only per post, cached)
   Stream<List<AppNotificationModel>> streamAdminNotifications({bool onlyUnread = false}) {
-    return _notificationsCollection.snapshots().map((snapshot) {
+    _cachedAdminNotificationsStream ??= _notificationsCollection.snapshots().map((snapshot) {
       final List<AppNotificationModel> list = [];
       for (final doc in snapshot.docs) {
         try {
           final data = doc.data();
           if (data is Map<String, dynamic>) {
             final n = AppNotificationModel.fromMap(data, doc.id);
-            if (n.recipientType == 'admin' && (!onlyUnread || !n.isRead)) {
+            if (n.recipientType == 'admin') {
               list.add(n);
             }
           } else if (data is Map) {
             final n = AppNotificationModel.fromMap(Map<String, dynamic>.from(data), doc.id);
-            if (n.recipientType == 'admin' && (!onlyUnread || !n.isRead)) {
+            if (n.recipientType == 'admin') {
               list.add(n);
             }
           }
@@ -84,7 +86,12 @@ class NotificationFirestoreService {
       }
 
       return finalList;
-    });
+    }).asBroadcastStream();
+
+    if (onlyUnread) {
+      return _cachedAdminNotificationsStream!.map((list) => list.where((n) => !n.isRead).toList());
+    }
+    return _cachedAdminNotificationsStream!;
   }
 
   /// Stream notifications for a specific user (tenant or house owner)

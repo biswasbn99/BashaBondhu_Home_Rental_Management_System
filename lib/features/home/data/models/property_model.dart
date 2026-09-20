@@ -54,6 +54,96 @@ class PropertyModel {
   bool get isPendingApproval => approvalStatus == 'pending';
   bool get isRejected => approvalStatus == 'rejected';
 
+  /// Effective latitude with fallback to sub-area, upazila, district, and regional coordinates
+  double? get effectiveLatitude {
+    if (latitude != null && latitude != 0) return latitude;
+    if (subArea?.coordinates != null && subArea!.coordinates!.isNotEmpty) {
+      final parts = subArea!.coordinates!.split(',');
+      if (parts.length >= 2) {
+        final lat = double.tryParse(parts[0].trim());
+        if (lat != null && lat != 0) return lat;
+      }
+    }
+    if (area.coordinates != null && area.coordinates!.isNotEmpty) {
+      final parts = area.coordinates!.split(',');
+      if (parts.length >= 2) {
+        final lat = double.tryParse(parts[0].trim());
+        if (lat != null && lat != 0) return lat;
+      }
+    }
+    if (district.coordinates != null && district.coordinates!.isNotEmpty) {
+      final parts = district.coordinates!.split(',');
+      if (parts.length >= 2) {
+        final lat = double.tryParse(parts[0].trim());
+        if (lat != null && lat != 0) return lat;
+      }
+    }
+    return resolveFallbackLat(district.name, division.name);
+  }
+
+  /// Effective longitude with fallback to sub-area, upazila, district, and regional coordinates
+  double? get effectiveLongitude {
+    if (longitude != null && longitude != 0) return longitude;
+    if (subArea?.coordinates != null && subArea!.coordinates!.isNotEmpty) {
+      final parts = subArea!.coordinates!.split(',');
+      if (parts.length >= 2) {
+        final lng = double.tryParse(parts[1].trim());
+        if (lng != null && lng != 0) return lng;
+      }
+    }
+    if (area.coordinates != null && area.coordinates!.isNotEmpty) {
+      final parts = area.coordinates!.split(',');
+      if (parts.length >= 2) {
+        final lng = double.tryParse(parts[1].trim());
+        if (lng != null && lng != 0) return lng;
+      }
+    }
+    if (district.coordinates != null && district.coordinates!.isNotEmpty) {
+      final parts = district.coordinates!.split(',');
+      if (parts.length >= 2) {
+        final lng = double.tryParse(parts[1].trim());
+        if (lng != null && lng != 0) return lng;
+      }
+    }
+    return resolveFallbackLng(district.name, division.name);
+  }
+
+  static double? resolveFallbackLat(String distName, String divName) {
+    final d = distName.toLowerCase();
+    final v = divName.toLowerCase();
+    if (d.contains('dhaka') || v.contains('dhaka')) return 23.8103;
+    if (d.contains('chattogram') || d.contains('chittagong') || v.contains('chattogram')) return 22.3569;
+    if (d.contains('sylhet') || v.contains('sylhet')) return 24.8949;
+    if (d.contains('rajshahi') || v.contains('rajshahi')) return 24.3636;
+    if (d.contains('khulna') || v.contains('khulna')) return 22.8456;
+    if (d.contains('barishal') || d.contains('barisal') || v.contains('barishal')) return 22.7010;
+    if (d.contains('rangpur') || v.contains('rangpur')) return 25.7439;
+    if (d.contains('mymensingh') || v.contains('mymensingh')) return 24.7471;
+    if (d.contains('gazipur')) return 23.9999;
+    if (d.contains('narayanganj')) return 23.6238;
+    if (d.contains('cumilla') || d.contains('comilla')) return 23.4682;
+    if (d.contains('bogura') || d.contains('bogra')) return 24.8465;
+    return null;
+  }
+
+  static double? resolveFallbackLng(String distName, String divName) {
+    final d = distName.toLowerCase();
+    final v = divName.toLowerCase();
+    if (d.contains('dhaka') || v.contains('dhaka')) return 90.4125;
+    if (d.contains('chattogram') || d.contains('chittagong') || v.contains('chattogram')) return 91.7832;
+    if (d.contains('sylhet') || v.contains('sylhet')) return 91.8687;
+    if (d.contains('rajshahi') || v.contains('rajshahi')) return 88.6241;
+    if (d.contains('khulna') || v.contains('khulna')) return 89.5403;
+    if (d.contains('barishal') || d.contains('barisal') || v.contains('barishal')) return 90.3535;
+    if (d.contains('rangpur') || v.contains('rangpur')) return 89.2752;
+    if (d.contains('mymensingh') || v.contains('mymensingh')) return 90.4203;
+    if (d.contains('gazipur')) return 90.4203;
+    if (d.contains('narayanganj')) return 90.5000;
+    if (d.contains('cumilla') || d.contains('comilla')) return 91.1788;
+    if (d.contains('bogura') || d.contains('bogra')) return 89.3777;
+    return null;
+  }
+
   PropertyModel({
     required this.id,
     this.ownerId = '',

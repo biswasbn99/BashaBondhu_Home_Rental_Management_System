@@ -68,10 +68,6 @@ class AuthService {
       return userCredential;
     } on FirebaseAuthException catch (e) {
       debugPrint('SignIn Auth Error: ${e.code} - ${e.message}');
-      // Customizing message for clarity
-      if (e.code == 'invalid-credential') {
-        throw Exception('ইমেইল অথবা পাসওয়ার্ড ভুল। দয়া করে আবার চেষ্টা করুন।');
-      }
       rethrow;
     } catch (e) {
       debugPrint('General SignIn Error: $e');

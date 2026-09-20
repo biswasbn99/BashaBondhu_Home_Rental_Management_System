@@ -25,40 +25,68 @@ class AdminDashboardView extends StatefulWidget {
 class _AdminDashboardViewState extends State<AdminDashboardView> {
   int _selectedActivityTab = 0; // 0: All, 1: House Owner, 2: Tenant
 
+  final AdminFirestoreService _adminService = AdminFirestoreService();
+  late final Stream<List<UserModel>> _usersStream;
+  late final Stream<List<PropertyModel>> _propertiesStream;
+  late final Stream<List<TenantDemandModel>> _demandsStream;
+  late final Stream<List<SubscriptionTransactionModel>> _transactionsStream;
+  late final Stream<List<Map<String, dynamic>>> _reportsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    final demandService = TenantDemandFirestoreService();
+    final subscriptionService = SubscriptionFirestoreService();
+
+    _usersStream = _adminService.streamAllUsers();
+    _propertiesStream = _adminService.streamAllProperties();
+    _demandsStream = demandService.streamAllDemands(onlyActive: false);
+    _transactionsStream = subscriptionService.streamAllTransactions();
+    _reportsStream = _adminService.streamReports();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final adminProvider = context.watch<AdminProvider>();
     final isBn = adminProvider.isBangla;
-    final adminService = AdminFirestoreService();
-    final demandService = TenantDemandFirestoreService();
-    final subscriptionService = SubscriptionFirestoreService();
 
     return StreamBuilder<List<UserModel>>(
-      stream: adminService.streamAllUsers(),
+      stream: _usersStream,
       builder: (context, userSnapshot) {
         final users = userSnapshot.data ?? [];
 
         return StreamBuilder<List<PropertyModel>>(
-          stream: adminService.streamAllProperties(),
+          stream: _propertiesStream,
           builder: (context, propSnapshot) {
             final properties = propSnapshot.data ?? [];
 
             return StreamBuilder<List<TenantDemandModel>>(
-              stream: demandService.streamAllDemands(onlyActive: false),
+              stream: _demandsStream,
               builder: (context, demandSnapshot) {
                 final demands = demandSnapshot.data ?? [];
 
                 return StreamBuilder<List<SubscriptionTransactionModel>>(
-                  stream: subscriptionService.streamAllTransactions(),
+                  stream: _transactionsStream,
                   builder: (context, transSnapshot) {
                     final transactions = transSnapshot.data ?? [];
 
                     return StreamBuilder<List<Map<String, dynamic>>>(
-                      stream: adminService.streamReports(),
+                      stream: _reportsStream,
                       builder: (context, reportSnapshot) {
                         final reports = reportSnapshot.data ?? [];
+
+                        final isInitialLoading = (userSnapshot.connectionState == ConnectionState.waiting && !userSnapshot.hasData) &&
+                            (propSnapshot.connectionState == ConnectionState.waiting && !propSnapshot.hasData);
+                        if (isInitialLoading) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 80),
+                              child: CircularProgressIndicator(color: AppColors.themeColor),
+                            ),
+                          );
+                        }
 
                         // Real-time Metrics Calculation
                         final int totalUsers = users.length;
@@ -277,7 +305,7 @@ class _AdminDashboardViewState extends State<AdminDashboardView> {
                                 context: context,
                                 isBn: isBn,
                                 isDark: isDark,
-                                adminService: adminService,
+                                adminService: _adminService,
                                 recentProperties: recentProperties,
                                 recentDemands: recentDemands,
                                 pendingUsers: pendingUsers,

@@ -7,7 +7,15 @@ import '../../../shared/data/services/notification_firestore_service.dart';
 import '../../../tenant/data/models/tenant_demand_model.dart';
 
 class AdminFirestoreService {
+  static final AdminFirestoreService _instance = AdminFirestoreService._internal();
+  factory AdminFirestoreService() => _instance;
+  AdminFirestoreService._internal();
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  void invalidateCache() {
+    // Retained for API compatibility
+  }
 
   // Collection References
   CollectionReference get _usersCollection => _firestore.collection('users');
@@ -28,15 +36,9 @@ class AdminFirestoreService {
       for (final doc in snapshot.docs) {
         try {
           final data = doc.data();
-          if (data is Map<String, dynamic>) {
+          if (data is Map) {
             final map = Map<String, dynamic>.from(data);
-            if (!map.containsKey('uid') || (map['uid'] as String).isEmpty) {
-              map['uid'] = doc.id;
-            }
-            list.add(UserModel.fromMap(map));
-          } else if (data is Map) {
-            final map = Map<String, dynamic>.from(data);
-            if (!map.containsKey('uid') || (map['uid'] as String).isEmpty) {
+            if (!map.containsKey('uid') || (map['uid'] as String?)?.isEmpty == true) {
               map['uid'] = doc.id;
             }
             list.add(UserModel.fromMap(map));
@@ -46,6 +48,9 @@ class AdminFirestoreService {
         }
       }
       return list;
+    }).handleError((e) {
+      debugPrint('ℹ️ Handled users stream error: $e');
+      return <UserModel>[];
     });
   }
 
@@ -221,24 +226,23 @@ class AdminFirestoreService {
   // ==========================================================================
 
   Stream<List<PropertyModel>> streamAllProperties() {
-    return _propertiesCollection
-        .orderBy('postDate', descending: true)
-        .snapshots()
-        .map((snapshot) {
+    return _propertiesCollection.snapshots().map((snapshot) {
       final List<PropertyModel> list = [];
       for (final doc in snapshot.docs) {
         try {
           final data = doc.data();
-          if (data is Map<String, dynamic>) {
-            list.add(PropertyModel.fromMap(data, doc.id));
-          } else if (data is Map) {
+          if (data is Map) {
             list.add(PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id));
           }
         } catch (e) {
           debugPrint('Error parsing property doc ${doc.id}: $e');
         }
       }
+      list.sort((a, b) => b.postDate.compareTo(a.postDate));
       return list;
+    }).handleError((e) {
+      debugPrint('ℹ️ Handled properties stream error: $e');
+      return <PropertyModel>[];
     });
   }
 
@@ -335,24 +339,23 @@ class AdminFirestoreService {
   // ==========================================================================
 
   Stream<List<TenantDemandModel>> streamAllDemands() {
-    return _demandsCollection
-        .orderBy('postDate', descending: true)
-        .snapshots()
-        .map((snapshot) {
+    return _demandsCollection.snapshots().map((snapshot) {
       final List<TenantDemandModel> list = [];
       for (final doc in snapshot.docs) {
         try {
           final data = doc.data();
-          if (data is Map<String, dynamic>) {
-            list.add(TenantDemandModel.fromMap(data, doc.id));
-          } else if (data is Map) {
+          if (data is Map) {
             list.add(TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id));
           }
         } catch (e) {
           debugPrint('Error parsing demand doc ${doc.id}: $e');
         }
       }
+      list.sort((a, b) => b.postDate.compareTo(a.postDate));
       return list;
+    }).handleError((e) {
+      debugPrint('ℹ️ Handled demands stream error: $e');
+      return <TenantDemandModel>[];
     });
   }
 
@@ -449,11 +452,20 @@ class AdminFirestoreService {
 
   Stream<List<Map<String, dynamic>>> streamReports() {
     return _reportsCollection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>? ?? {};
-        data['id'] = doc.id;
-        return data;
-      }).toList();
+      final List<Map<String, dynamic>> list = [];
+      for (final doc in snapshot.docs) {
+        try {
+          final raw = doc.data();
+          if (raw is Map) {
+            final data = Map<String, dynamic>.from(raw);
+            data['id'] = doc.id;
+            list.add(data);
+          }
+        } catch (e) {
+          debugPrint('Error parsing report doc ${doc.id}: $e');
+        }
+      }
+      return list;
     });
   }
 
@@ -599,15 +611,23 @@ class AdminFirestoreService {
         _seedDefaultSettings();
         return _defaultSettingsMap;
       }
-      return snapshot.data() as Map<String, dynamic>;
+      final raw = snapshot.data();
+      if (raw is Map) {
+        return Map<String, dynamic>.from(raw);
+      }
+      return _defaultSettingsMap;
     });
   }
 
   Stream<bool> streamAutoApprovalSetting() {
     return _settingsDoc.snapshots().map((snapshot) {
       if (!snapshot.exists || snapshot.data() == null) return true;
-      final data = snapshot.data() as Map<String, dynamic>;
-      return (data['autoApprovalEnabled'] as bool?) ?? true;
+      final raw = snapshot.data();
+      if (raw is Map) {
+        final data = Map<String, dynamic>.from(raw);
+        return (data['autoApprovalEnabled'] as bool?) ?? true;
+      }
+      return true;
     });
   }
 
@@ -615,8 +635,12 @@ class AdminFirestoreService {
     try {
       final doc = await _settingsDoc.get();
       if (!doc.exists || doc.data() == null) return true;
-      final data = doc.data() as Map<String, dynamic>;
-      return (data['autoApprovalEnabled'] as bool?) ?? true;
+      final raw = doc.data();
+      if (raw is Map) {
+        final data = Map<String, dynamic>.from(raw);
+        return (data['autoApprovalEnabled'] as bool?) ?? true;
+      }
+      return true;
     } catch (_) {
       return true;
     }
@@ -625,16 +649,24 @@ class AdminFirestoreService {
   Stream<bool> streamRequireVerifiedTenantSetting() {
     return _settingsDoc.snapshots().map((snapshot) {
       if (!snapshot.exists || snapshot.data() == null) return false;
-      final data = snapshot.data() as Map<String, dynamic>;
-      return (data['requireVerifiedTenantForDemands'] as bool?) ?? false;
+      final raw = snapshot.data();
+      if (raw is Map) {
+        final data = Map<String, dynamic>.from(raw);
+        return (data['requireVerifiedTenantForDemands'] as bool?) ?? false;
+      }
+      return false;
     });
   }
 
   Stream<bool> streamRequireVerifiedOwnerSetting() {
     return _settingsDoc.snapshots().map((snapshot) {
       if (!snapshot.exists || snapshot.data() == null) return false;
-      final data = snapshot.data() as Map<String, dynamic>;
-      return (data['requireVerifiedOwnerForProperties'] as bool?) ?? false;
+      final raw = snapshot.data();
+      if (raw is Map) {
+        final data = Map<String, dynamic>.from(raw);
+        return (data['requireVerifiedOwnerForProperties'] as bool?) ?? false;
+      }
+      return false;
     });
   }
 

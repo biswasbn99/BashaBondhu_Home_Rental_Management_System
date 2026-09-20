@@ -500,8 +500,14 @@ class HomeRentPostProvider extends ChangeNotifier {
         isAvailable: true,
       );
 
+      final effectiveLat = latitude ?? newProperty.effectiveLatitude;
+      final effectiveLng = longitude ?? newProperty.effectiveLongitude;
+      final finalProperty = (latitude == null || longitude == null)
+          ? newProperty.copyWith(latitude: effectiveLat, longitude: effectiveLng)
+          : newProperty;
+
       await _firestoreService.createProperty(
-        property: newProperty,
+        property: finalProperty,
         localImages: _images,
       );
 

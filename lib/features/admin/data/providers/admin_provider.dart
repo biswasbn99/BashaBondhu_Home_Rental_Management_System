@@ -70,6 +70,9 @@ class AdminProvider extends ChangeNotifier {
     _lastErrorMessage = null;
     notifyListeners();
 
+    // Trigger cleanup of any legacy admin records
+    _cleanupLegacyAdmin();
+
     try {
       // 1. Try Firebase Authentication first
       UserCredential? credential;
@@ -82,7 +85,7 @@ class AdminProvider extends ChangeNotifier {
         debugPrint('Firebase Auth Sign-In Error: ${authErr.code} - ${authErr.message}');
         
         // Auto-provision default admin if not created in Firebase Auth yet
-        if ((cleanEmail == 'biswashridoy528@gmail.com' || cleanEmail == 'admin1@gmail.com') &&
+        if (cleanEmail == 'biswashridoy528@gmail.com' &&
             cleanPassword == '1234567' &&
             (authErr.code == 'user-not-found' || authErr.code == 'invalid-credential')) {
           try {
@@ -106,8 +109,7 @@ class AdminProvider extends ChangeNotifier {
         final uid = credential.user!.uid;
 
         // Check if admin permission is authorized
-        bool isAuthorizedAdmin = cleanEmail == 'biswashridoy528@gmail.com' ||
-            cleanEmail == 'admin1@gmail.com';
+        bool isAuthorizedAdmin = cleanEmail == 'biswashridoy528@gmail.com';
 
         if (!isAuthorizedAdmin) {
           final adminDoc = await _firestore.collection('admins').doc(cleanEmail).get();
@@ -169,8 +171,7 @@ class AdminProvider extends ChangeNotifier {
       }
 
       // 4. Fallback for offline/test super admin
-      if ((cleanEmail == 'biswashridoy528@gmail.com' || cleanEmail == 'admin1@gmail.com') &&
-          cleanPassword == '1234567') {
+      if (cleanEmail == 'biswashridoy528@gmail.com' && cleanPassword == '1234567') {
         _isLoggedIn = true;
         _adminEmail = cleanEmail;
         _adminName = 'Super Admin';
@@ -186,8 +187,7 @@ class AdminProvider extends ChangeNotifier {
       return false;
     } catch (e) {
       debugPrint('Admin login general error: $e');
-      if ((cleanEmail == 'biswashridoy528@gmail.com' || cleanEmail == 'admin1@gmail.com') &&
-          cleanPassword == '1234567') {
+      if (cleanEmail == 'biswashridoy528@gmail.com' && cleanPassword == '1234567') {
         _isLoggedIn = true;
         _adminEmail = cleanEmail;
         _adminName = 'Super Admin';
@@ -200,6 +200,21 @@ class AdminProvider extends ChangeNotifier {
       _lastErrorMessage = 'লগইন করার সময় একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।';
       notifyListeners();
       return false;
+    }
+  }
+
+  Future<void> _cleanupLegacyAdmin() async {
+    try {
+      await _firestore.collection('admins').doc('admin1@gmail.com').delete();
+      final query = await _firestore
+          .collection('admins')
+          .where('email', isEqualTo: 'admin1@gmail.com')
+          .get();
+      for (var doc in query.docs) {
+        await doc.reference.delete();
+      }
+    } catch (e) {
+      debugPrint('Legacy admin cleanup notice: $e');
     }
   }
 

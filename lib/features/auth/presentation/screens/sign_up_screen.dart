@@ -298,6 +298,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _onTapSignInNavigation() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     Navigator.pushReplacementNamed(
       context,
       SignInScreen.name,

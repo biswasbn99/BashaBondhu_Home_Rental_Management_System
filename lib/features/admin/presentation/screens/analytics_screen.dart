@@ -7,8 +7,24 @@ import '../../../home/data/models/property_model.dart';
 import '../../data/providers/admin_provider.dart';
 import '../../data/services/admin_firestore_service.dart';
 
-class AnalyticsView extends StatelessWidget {
+class AnalyticsView extends StatefulWidget {
   const AnalyticsView({super.key});
+
+  @override
+  State<AnalyticsView> createState() => _AnalyticsViewState();
+}
+
+class _AnalyticsViewState extends State<AnalyticsView> {
+  late final Stream<List<UserModel>> _usersStream;
+  late final Stream<List<PropertyModel>> _propertiesStream;
+
+  @override
+  void initState() {
+    super.initState();
+    final adminService = AdminFirestoreService();
+    _usersStream = adminService.streamAllUsers();
+    _propertiesStream = adminService.streamAllProperties();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,16 +32,26 @@ class AnalyticsView extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final adminProvider = context.watch<AdminProvider>();
     final isBn = adminProvider.isBangla;
-    final adminService = AdminFirestoreService();
 
     return StreamBuilder<List<UserModel>>(
-      stream: adminService.streamAllUsers(),
+      stream: _usersStream,
       builder: (context, userSnapshot) {
-        final users = userSnapshot.data ?? [];
-
         return StreamBuilder<List<PropertyModel>>(
-          stream: adminService.streamAllProperties(),
+          stream: _propertiesStream,
           builder: (context, propSnapshot) {
+            if (!userSnapshot.hasData &&
+                !propSnapshot.hasData &&
+                userSnapshot.connectionState == ConnectionState.waiting &&
+                propSnapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 60),
+                  child: CircularProgressIndicator(color: AppColors.themeColor),
+                ),
+              );
+            }
+
+            final users = userSnapshot.data ?? [];
             final properties = propSnapshot.data ?? [];
 
             final int totalUsers = users.length;

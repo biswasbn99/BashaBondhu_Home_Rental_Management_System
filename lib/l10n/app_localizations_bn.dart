@@ -1091,13 +1091,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get unlockMap => 'ম্যাপ আনলক করুন';
 
   @override
-  String unlockInfoAndNumberWithQuota(String remaining) {
-    return 'তথ্য ও নম্বর আনলক করুন ($remaining/৫টি ফ্রি বাকি)';
+  String unlockInfoAndNumberWithQuota(String remaining, String total) {
+    return 'তথ্য ও নম্বর আনলক করুন ($remaining/$totalটি ফ্রি বাকি)';
   }
 
   @override
-  String unlockInfoAndNumberWithQuotaOwner(String remaining) {
-    return 'ভাড়াটিয়ার নম্বর আনলক ($remaining/২টি ফ্রি বাকি)';
+  String unlockInfoAndNumberWithQuotaOwner(String remaining, String total) {
+    return 'ভাড়াটিয়ার নম্বর আনলক ($remaining/$totalটি ফ্রি বাকি)';
   }
 
   @override
@@ -1111,16 +1111,16 @@ class AppLocalizationsBn extends AppLocalizations {
   String get unlockPropertyDialogTitle => 'তথ্য ও নম্বর আনলক';
 
   @override
-  String unlockPropertyDialogContent(String remaining) {
-    return 'আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই বাসার সঠিক সাব-এরিয়া, বাড়িওয়ালার ফোন নম্বর ও অতিরিক্ত সকল ছবি আনলক করতে চান?\n\n(আপনার ফ্রি আনলক বাকি: $remaining/৫টি)';
+  String unlockPropertyDialogContent(String remaining, String total) {
+    return 'আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই বাসার সঠিক সাব-এরিয়া, বাড়িওয়ালার ফোন নম্বর ও অতিরিক্ত সকল ছবি আনলক করতে চান?\n\n(আপনার ফ্রি আনলক বাকি: $remaining/$totalটি)';
   }
 
   @override
   String get unlockDemandDialogTitle => 'ভাড়াটিয়ার নম্বর আনলক';
 
   @override
-  String unlockDemandDialogContent(String remaining) {
-    return 'আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই ভাড়াটিয়ার সম্পূর্ণ ফোন ও হোয়াটসঅ্যাপ নম্বর আনলক করতে চান?\n\n(আপনার ফ্রি আনলক বাকি: $remaining/২টি)';
+  String unlockDemandDialogContent(String remaining, String total) {
+    return 'আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই ভাড়াটিয়ার সম্পূর্ণ ফোন ও হোয়াটসঅ্যাপ নম্বর আনলক করতে চান?\n\n(আপনার ফ্রি আনলক বাকি: $remaining/$totalটি)';
   }
 
   @override
@@ -1153,8 +1153,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get radiusLimitReachedTitle => 'রেডিয়াস সার্চের ফ্রি সীমা শেষ';
 
   @override
-  String get radiusLimitReachedSubtitle =>
-      'আপনি ৩টি ফ্রি রেডিয়াস সার্চ ব্যবহার করে ফেলেছেন। আনলিমিটেড রেডিয়াস সার্চ উপভোগ করতে আমাদের যেকোনো সাপোর্ট প্যাকেজ অ্যাক্টিভ করুন।';
+  String radiusLimitReachedSubtitle(String limit) {
+    return 'আপনি $limitটি ফ্রি কাছাকাছি সার্চ ব্যবহার করে ফেলেছেন। আনলিমিটেড বা অতিরিক্ত কাছাকাছি সার্চ উপভোগ করতে যেকোনো সাবস্ক্রিপশন প্যাকেজ অ্যাক্টিভ করুন।';
+  }
 
   @override
   String get maybeLater => 'পরে করব';

@@ -8,6 +8,7 @@ import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../shared/presentation/screens/my_profile_screen.dart';
+import '../../../subscription/presentation/widgets/account_tier_status_badge.dart';
 
 class AccountProfileHeader extends StatelessWidget {
   const AccountProfileHeader({
@@ -115,7 +116,10 @@ class AccountProfileHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Role Badge & Completion Status
-                    Row(
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -166,7 +170,6 @@ class AccountProfileHeader extends StatelessWidget {
                           ),
                         ),
                         if (user != null) ...[
-                          const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                             decoration: BoxDecoration(
@@ -243,6 +246,10 @@ class AccountProfileHeader extends StatelessWidget {
                           ),
                         ],
                       ),
+                    ],
+                    if (user != null) ...[
+                      const SizedBox(height: 8),
+                      AccountTierStatusBadge(user: user!),
                     ],
                   ],
                 ),

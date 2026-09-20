@@ -112,8 +112,23 @@ class PropertyFirestoreService {
     }
   }
 
+  Stream<List<PropertyModel>>? _cachedPropertiesOnlyAvailable;
+  Stream<List<PropertyModel>>? _cachedPropertiesAll;
+
+  void invalidateCache() {
+    _cachedPropertiesOnlyAvailable = null;
+    _cachedPropertiesAll = null;
+  }
+
   /// Stream all active properties for HomeScreen / FindHomeScreen (only approved & available by default, respecting verification gating)
   Stream<List<PropertyModel>> streamAllProperties({bool onlyAvailable = true}) {
+    if (onlyAvailable && _cachedPropertiesOnlyAvailable != null) {
+      return _cachedPropertiesOnlyAvailable!;
+    }
+    if (!onlyAvailable && _cachedPropertiesAll != null) {
+      return _cachedPropertiesAll!;
+    }
+
     StreamSubscription? propSub;
     StreamSubscription? settSub;
     QuerySnapshot? lastProps;
@@ -125,8 +140,10 @@ class PropertyFirestoreService {
       if (lastProps == null) return;
       bool requireVerified = false;
       if (lastSettings != null && lastSettings!.exists && lastSettings!.data() != null) {
-        final data = lastSettings!.data() as Map<String, dynamic>;
-        requireVerified = (data['requireVerifiedOwnerForProperties'] as bool?) ?? false;
+        final rawSettings = lastSettings!.data();
+        if (rawSettings is Map) {
+          requireVerified = (rawSettings['requireVerifiedOwnerForProperties'] as bool?) ?? false;
+        }
       }
 
       final List<PropertyModel> list = [];
@@ -150,6 +167,7 @@ class PropertyFirestoreService {
           debugPrint('Error parsing property doc ${doc.id}: $e');
         }
       }
+
       list.sort((a, b) => b.postDate.compareTo(a.postDate));
       if (!controller.isClosed) {
         controller.add(list);
@@ -158,14 +176,24 @@ class PropertyFirestoreService {
 
     controller = StreamController<List<PropertyModel>>.broadcast(
       onListen: () {
-        settSub = _settingsDoc.snapshots().listen(
+        if (lastProps != null) {
+          emit();
+        }
+        settSub ??= _settingsDoc.snapshots().listen(
           (snap) {
-            lastSettings = snap;
+            try {
+              lastSettings = snap;
+              emit();
+            } catch (e) {
+              debugPrint('⚠️ Error processing settings in properties stream: $e');
+            }
+          },
+          onError: (e) {
+            debugPrint('⚠️ Settings stream error in properties (using defaults): $e');
             emit();
           },
-          onError: (e) => debugPrint('Error in settings stream: $e'),
         );
-        propSub = _propertiesCollection.snapshots().listen(
+        propSub ??= _propertiesCollection.snapshots().listen(
           (snap) {
             lastProps = snap;
             emit();
@@ -176,12 +204,17 @@ class PropertyFirestoreService {
         );
       },
       onCancel: () {
-        propSub?.cancel();
-        settSub?.cancel();
+        // Cached broadcast stream retains listeners for responsiveness
       },
     );
 
-    return controller.stream;
+    final stream = controller.stream;
+    if (onlyAvailable) {
+      _cachedPropertiesOnlyAvailable = stream;
+    } else {
+      _cachedPropertiesAll = stream;
+    }
+    return stream;
   }
 
   /// Stream properties owned by a specific house owner

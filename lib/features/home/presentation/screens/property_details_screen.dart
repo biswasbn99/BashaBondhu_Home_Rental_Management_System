@@ -17,7 +17,9 @@ import '../../../shared/presentation/widgets/app_bar.dart';
 import '../../../shared/presentation/widgets/app_network_image.dart';
 import '../../../shared/presentation/widgets/decorated_section_header.dart';
 import '../../../shared/presentation/widgets/full_screen_image_viewer.dart';
+import '../../../subscription/data/models/free_tier_policy_model.dart';
 import '../../../subscription/data/providers/subscription_provider.dart';
+import '../../../subscription/presentation/screens/house_owner_subscription_screen.dart';
 import '../../../subscription/presentation/screens/tenant_subscription_screen.dart';
 import '../../data/models/property_model.dart';
 
@@ -89,7 +91,67 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     } catch (_) {}
   }
 
-  Future<void> _openGoogleMapsNavigation(double lat, double lng) async {
+  Future<void> _openGoogleMapsNavigation(double lat, double lng, UserModel? user, FreeTierPolicyModel? policy) async {
+    if (user == null) {
+      Navigator.pushNamed(context, SignInScreen.name);
+      return;
+    }
+
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
+    final languageCode = Localizations.localeOf(context).languageCode;
+    if (!user.canOpenMapDirectionsForPolicy(policy: policy)) {
+      final mapLimit = (policy?.tenantMapDirections ?? 2).toString().toLocalizedDigits(languageCode);
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Row(
+            children: [
+              const Icon(Icons.workspace_premium_rounded, color: Colors.deepOrange),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isBn ? 'দিকনির্দেশনা সীমা অতিক্রম' : 'Navigation Limit Reached',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            user.isSubscribed
+                ? (isBn
+                    ? 'আপনার বর্তমান প্যাকেজের গুগল ম্যাপ ডিরেকশন কোটা শেষ হয়ে গেছে। আনলিমিটেড বা অতিরিক্ত ডিরেকশন পেতে প্যাকেজ আপগ্রেড করুন।'
+                    : 'Your active package Google Maps navigation quota has been exhausted. Please upgrade your plan for more directions.')
+                : (isBn
+                    ? 'ফ্রি অ্যাকাউন্টে গুগল ম্যাপ দিকনির্দেশনা ব্যবহারের সীমা ($mapLimitটি) শেষ হয়ে গেছে। আনলিমিটেড দিকনির্দেশনা পেতে সাবস্ক্রিপশন প্যাকেজ আপগ্রেড করুন।'
+                    : 'Free tier Google Maps navigation limit ($mapLimit) has been reached. Please upgrade to a subscription plan for more directions.'),
+            style: const TextStyle(fontSize: 13.5, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(isBn ? 'পরে' : 'Maybe Later'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.themeColor),
+              onPressed: () {
+                Navigator.pop(ctx);
+                if (user.isHouseOwner) {
+                  Navigator.pushNamed(context, HouseOwnerSubscriptionScreen.name);
+                } else {
+                  Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+                }
+              },
+              child: Text(isBn ? 'প্যাকেজ আপগ্রেড করুন' : 'Upgrade Plan'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    await context.read<SubscriptionProvider>().incrementMapDirectionCount(context, user);
+
     final googleMapsUrl = Uri.parse('google.navigation:q=$lat,$lng&mode=d');
     final browserUrl = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng');
 
@@ -102,19 +164,77 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     } catch (_) {}
   }
 
-  void _handleUnlock(BuildContext context, UserModel? user) {
+  void _handleUnlock(BuildContext context, UserModel? user, FreeTierPolicyModel? policy) {
     if (user == null) {
       Navigator.pushNamed(context, SignInScreen.name);
       return;
     }
 
-    if (user.freePropertyUnlocksRemaining <= 0 && !user.isSubscribed) {
-      Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
+    final l10n = context.localizations;
+    final languageCode = Localizations.localeOf(context).languageCode;
+
+    if (!user.canUnlockContactForPolicy(policy: policy)) {
+      final freeLimit = (policy?.tenantUnlockNumbers ?? 5).toString().toLocalizedDigits(languageCode);
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Row(
+            children: [
+              const Icon(Icons.workspace_premium_rounded, color: Colors.deepOrange),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isBn ? 'নম্বর আনলক সীমা শেষ' : 'Contact Unlock Limit Reached',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            user.isSubscribed
+                ? (isBn
+                    ? 'আপনার বর্তমান প্যাকেজের ফোন নম্বর আনলক করার কোটা শেষ হয়ে গেছে। আরও নম্বর আনলক করতে প্যাকেজ রিনিউ বা আপগ্রেড করুন।'
+                    : 'Your subscription contact unlock quota is exhausted. Please renew or upgrade your package.')
+                : (isBn
+                    ? 'আপনার ফ্রি $freeLimitটি নম্বর আনলক শেষ হয়ে গেছে। বাড়িওয়ালার ফোন নম্বর ও অন্যান্য তথ্য আনলক করতে সাপোর্ট প্যাকেজ গ্রহণ করুন।'
+                    : 'You have used all $freeLimit free contact unlocks. Please activate a support package to unlock more contacts.'),
+            style: const TextStyle(fontSize: 13.5, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(isBn ? 'পরে' : 'Maybe Later'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.themeColor),
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+              },
+              child: Text(isBn ? 'প্যাকেজ দেখুন' : 'View Packages'),
+            ),
+          ],
+        ),
+      );
       return;
     }
 
-    final l10n = context.localizations;
-    final languageCode = Localizations.localeOf(context).languageCode;
+    final remaining = user.remainingContactUnlocksForPolicy(policy: policy);
+    final remainingStr = remaining >= 999999
+        ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
+        : remaining.toString().toLocalizedDigits(languageCode);
+    final totalLimit = policy?.tenantUnlockNumbers ?? 5;
+    final totalLimitStr = totalLimit == -1
+        ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
+        : totalLimit.toString().toLocalizedDigits(languageCode);
+
+    final dialogContent = user.isSubscribed
+        ? (isBn
+            ? 'আপনি কি ১টি ক্রেডিট ব্যবহার করে এই বাসার সঠিক সাব-এরিয়া, বাড়িওয়ালার ফোন নম্বর ও অন্যান্য তথ্য আনলক করতে চান?\n\n(আপনার প্যাকেজে আনলক বাকি: $remainingStr)'
+            : 'Do you want to use 1 package credit to unlock this landlord\'s contact info?\n\n(Package unlocks remaining: $remainingStr)')
+        : l10n.unlockPropertyDialogContent(remainingStr, totalLimitStr);
 
     showDialog(
       context: context,
@@ -133,7 +253,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           ],
         ),
         content: Text(
-          l10n.unlockPropertyDialogContent(user.freePropertyUnlocksRemaining.toLocalizedDigits(languageCode)),
+          dialogContent,
           style: const TextStyle(fontSize: 13.5, height: 1.45),
         ),
         actions: [
@@ -164,6 +284,321 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
+  void _handleUnlockSubArea(BuildContext context, UserModel? user, FreeTierPolicyModel policy) {
+    if (user == null) {
+      Navigator.pushNamed(context, SignInScreen.name);
+      return;
+    }
+
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final canUnlock = user.canUnlockSubAreaForTenant(policy: policy);
+
+    if (!canUnlock) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Row(
+            children: [
+              const Icon(Icons.workspace_premium_rounded, color: Color(0xFF0D9488)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isBn ? 'সাব-এরিয়া আনলক সীমা শেষ' : 'Sub-Area Unlock Limit Reached',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            user.isSubscribed
+                ? (isBn
+                    ? 'আপনার বর্তমান প্যাকেজের সাব-এরিয়া লোকেশন আনলক করার কোটা শেষ হয়ে গেছে। আরও আনলক করতে প্যাকেজ রিনিউ বা আপগ্রেড করুন।'
+                    : 'Your package sub-area unlock quota has been exhausted. Please renew or upgrade your plan.')
+                : (isBn
+                    ? (policy.tenantSubAreaUnlocks <= 0
+                        ? 'ফ্রি অ্যাকাউন্টে সাব-এরিয়া লোকেশন সুবিধা অন্তর্ভুক্ত নেই। বাসার সঠিক সাব-এরিয়া ও ঠিকানা দেখতে সাবস্ক্রিপশন প্ল্যান গ্রহণ করুন।'
+                        : 'আপনার ফ্রি ${policy.tenantSubAreaUnlocks}টি সাব-এরিয়া আনলক শেষ হয়ে গেছে। আরও আনলক করতে সাবস্ক্রিপশন প্ল্যান গ্রহণ করুন।')
+                    : 'You have exhausted your free sub-area unlocks. Please subscribe to unlock more property locations.'),
+            style: const TextStyle(fontSize: 13.5, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(isBn ? 'পরে' : 'Maybe Later'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D9488)),
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+              },
+              child: Text(isBn ? 'প্যাকেজ দেখুন' : 'View Packages'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final remaining = user.remainingTenantSubAreaUnlocks(policy: policy);
+    final remainingStr = remaining >= 999
+        ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
+        : remaining.toString().toLocalizedDigits(languageCode);
+
+    final dialogContent = user.isSubscribed
+        ? (isBn
+            ? 'আপনি কি ১টি ক্রেডিট ব্যবহার করে এই বাসার বিস্তারিত সাব-এরিয়া লোকেশন ও সুনির্দিষ্ট ঠিকানা আনলক করতে চান?\n\n(আপনার প্যাকেজে সাব-এরিয়া আনলক বাকি: $remainingStr টি)'
+            : 'Do you want to use 1 package credit to unlock this property\'s sub-area location & detailed address?\n\n(Package sub-area unlocks remaining: $remainingStr)')
+        : (isBn
+            ? 'আপনি কি ১টি ফ্রি ক্রেডিট ব্যবহার করে এই বাসার সাব-এরিয়া লোকেশন আনলক করতে চান?\n\n(আপনার ফ্রি সাব-এরিয়া আনলক বাকি: $remainingStr টি)'
+            : 'Do you want to use 1 free credit to unlock this property\'s sub-area location?\n\n(Free sub-area unlocks remaining: $remainingStr)');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Row(
+          children: [
+            const Icon(Icons.location_city_rounded, color: Color(0xFF0D9488)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                isBn ? 'সাব-এরিয়া লোকেশন আনলক করুন' : 'Unlock Sub-Area Location',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          dialogContent,
+          style: const TextStyle(fontSize: 13.5, height: 1.45),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(isBn ? 'না' : 'Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF0D9488)),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final subProvider = context.read<SubscriptionProvider>();
+              final ok = await subProvider.unlockPropertySubArea(context, user, widget.property.id);
+              if (ok && mounted) {
+                setState(() {});
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isBn
+                          ? 'বাসার সাব-এরিয়া লোকেশন সফলভাবে আনলক হয়েছে!'
+                          : 'Property sub-area unlocked successfully!',
+                    ),
+                    backgroundColor: const Color(0xFF0D9488),
+                  ),
+                );
+              }
+            },
+            child: Text(isBn ? 'হ্যাঁ, আনলক করুন' : 'Yes, Unlock'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleUnlockPhotos(BuildContext context, UserModel user, String propertyId, FreeTierPolicyModel? policy) async {
+    final isBn = Localizations.localeOf(context).languageCode == 'bn';
+    final languageCode = Localizations.localeOf(context).languageCode;
+
+    if (!user.canUnlockPhotoGallery(policy: policy)) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Row(
+            children: [
+              const Icon(Icons.workspace_premium_rounded, color: Colors.deepOrange),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isBn ? 'ফটো গ্যালারি সীমা অতিক্রম' : 'Photo Gallery Limit Reached',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            user.isSubscribed
+                ? (isBn
+                    ? 'আপনার বর্তমান প্যাকেজের ফটো গ্যালারি আনলক কোটা শেষ হয়ে গেছে। আরও ছবি দেখতে প্যাকেজ আপগ্রেড করুন।'
+                    : 'Your active package photo gallery unlock quota has been exhausted. Please upgrade your plan.')
+                : (isBn
+                    ? 'আপনার ফ্রি ফটো গ্যালারি দেখার লিমিট শেষ হয়ে গেছে। অতিরিক্ত ছবি দেখতে সাবস্ক্রিপশন প্যাকেজ সক্রিয় করুন।'
+                    : 'You have reached your free photo gallery unlock limit. Please subscribe to view additional photos.'),
+            style: const TextStyle(fontSize: 13.5, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(isBn ? 'পরে' : 'Maybe Later'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.themeColor),
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, TenantSubscriptionScreen.name);
+              },
+              child: Text(isBn ? 'প্যাকেজ দেখুন' : 'View Packages'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    final remaining = user.remainingPhotoGalleryUnlocks(policy: policy);
+    final remainingStr = remaining >= 999
+        ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
+        : remaining.toString().toLocalizedDigits(languageCode);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Row(
+          children: [
+            const Icon(Icons.photo_library_rounded, color: AppColors.themeColor),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                isBn ? 'ফটো গ্যালারি আনলক করুন' : 'Unlock Photo Gallery',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.5),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          isBn
+              ? (user.isSubscribed
+                  ? 'আপনি কি ১টি প্যাকেজ ফটো গ্যালারি কোটা ব্যবহার করে এই বাসার সকল ছবি আনলক করতে চান?\n\n(আপনার অবশিষ্ট কোটা: $remainingStrটি)'
+                  : 'আপনি কি ১টি ফ্রি ফটো গ্যালারি কোটা ব্যবহার করে এই বাসার সকল ছবি আনলক করতে চান?\n\n(আপনার অবশিষ্ট কোটা: $remainingStrটি)')
+              : (user.isSubscribed
+                  ? 'Do you want to use 1 package photo gallery unlock credit for this property?\n\n(Remaining unlocks: $remainingStr)'
+                  : 'Do you want to use 1 free photo gallery unlock credit for this property?\n\n(Remaining unlocks: $remainingStr)'),
+          style: const TextStyle(fontSize: 13.5, height: 1.45),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(isBn ? 'না' : 'No'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.themeColor),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(isBn ? 'হ্যাঁ, আনলক করুন' : 'Yes, Unlock'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final ok = await context.read<SubscriptionProvider>().unlockPhotoGallery(context, user, propertyId);
+      if (ok && mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(this.context).showSnackBar(
+          SnackBar(
+            content: Text(isBn ? 'ফটো গ্যালারি সফলভাবে আনলক হয়েছে!' : 'Photo gallery unlocked successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildSubAreaLockedCard(
+    BuildContext context,
+    UserModel? user,
+    bool isDark,
+    bool isBn,
+    FreeTierPolicyModel policy,
+  ) {
+    final canUnlock = user?.canUnlockSubAreaForTenant(policy: policy) ?? false;
+    final remaining = user?.remainingTenantSubAreaUnlocks(policy: policy) ?? 0;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final remainingStr = remaining >= 999
+        ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
+        : remaining.toString().toLocalizedDigits(languageCode);
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 4, bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF132A26) : const Color(0xFFF0FDFA),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF0D9488).withValues(alpha: 0.35),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0D9488).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.lock_rounded, size: 18, color: Color(0xFF0D9488)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isBn ? 'বাসার সাব-এরিয়া ও পূর্ণাঙ্গ ঠিকানা লক করা' : 'Sub-Area & Full Address Locked',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                Text(
+                  user == null
+                      ? (isBn ? 'লগইন করে সাব-এরিয়া আনলক করুন' : 'Log in to unlock sub-area')
+                      : (canUnlock
+                          ? (isBn
+                              ? 'সুনির্দিষ্ট এলাকা ও পাড়া দেখতে আনলক করুন (বাকি: $remainingStr টি)'
+                              : 'Unlock to view exact sub-area & neighborhood ($remainingStr left)')
+                          : (isBn
+                              ? 'সাব-এরিয়া আনলক লিমিট শেষ। আপগ্রেড করুন।'
+                              : 'Sub-area unlock limit reached. Upgrade to unlock.')),
+                  style: TextStyle(fontSize: 11.5, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF0D9488),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            icon: const Icon(Icons.lock_open_rounded, size: 14),
+            label: Text(
+              isBn ? 'সাব-এরিয়া আনলক' : 'Unlock Sub-Area',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            onPressed: () => _handleUnlockSubArea(context, user, policy),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.localizations;
@@ -174,31 +609,45 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final user = userProvider.user;
     final isGuest = userProvider.isGuest || user == null;
     final p = widget.property;
+    final subProvider = context.watch<SubscriptionProvider>();
 
-    final isUnlocked = PrivacyHelper.isPropertyUnlocked(
-      propertyId: p.id,
-      isGuest: isGuest,
-      isSubscribed: user?.isSubscribed ?? false,
-      unlockedPropertyIds: user?.unlockedPropertyIds ?? [],
-    );
+    return StreamBuilder<FreeTierPolicyModel>(
+      stream: subProvider.streamFreeTierPolicy(),
+      builder: (context, policySnap) {
+        final policy = policySnap.data ?? FreeTierPolicyModel.defaultPolicy();
+        final bool isBn = languageCode == 'bn';
 
-    final subAreaName = p.subArea?.getLocalizedName(languageCode) ?? '';
-    final areaName = p.area.getLocalizedName(languageCode);
-    final districtName = p.district.getLocalizedName(languageCode);
+        final bool isLandlord = user?.uid == p.ownerId;
+        final bool isSubAreaUnlocked = isLandlord ||
+            (user != null && user.isPropertySubAreaUnlocked(p.id, policy: policy, landlordId: p.ownerId));
 
-    final locationText = PrivacyHelper.formatLocationWithPrivacy(
-      subAreaName: subAreaName,
-      areaName: areaName,
-      districtName: districtName,
-      isUnlocked: isUnlocked,
-      isGuest: isGuest,
-      languageCode: languageCode,
-    );
+        final isUnlocked = isLandlord ||
+            PrivacyHelper.isPropertyUnlocked(
+              propertyId: p.id,
+              isGuest: isGuest,
+              isSubscribed: user?.isSubscribed ?? false,
+              unlockedPropertyIds: user?.unlockedPropertyIds ?? [],
+            );
 
-    final String displayMobile = isUnlocked ? p.userMobile : PrivacyHelper.maskPhoneNumber(p.userMobile);
-    final String displayWhatsApp = isUnlocked ? p.userWhatsApp : PrivacyHelper.maskPhoneNumber(p.userWhatsApp);
+        final bool canViewPhotos = !isGuest && user.isPhotoGalleryUnlockedForProperty(p.id, policy: policy);
 
-    return Scaffold(
+        final subAreaName = p.subArea?.getLocalizedName(languageCode) ?? '';
+        final areaName = p.area.getLocalizedName(languageCode);
+        final districtName = p.district.getLocalizedName(languageCode);
+
+        final locationText = PrivacyHelper.formatLocationWithPrivacy(
+          subAreaName: subAreaName,
+          areaName: areaName,
+          districtName: districtName,
+          isUnlocked: isSubAreaUnlocked,
+          isGuest: isGuest,
+          languageCode: languageCode,
+        );
+
+        final String displayMobile = isUnlocked ? p.userMobile : PrivacyHelper.maskPhoneNumber(p.userMobile);
+        final String displayWhatsApp = isUnlocked ? p.userWhatsApp : PrivacyHelper.maskPhoneNumber(p.userWhatsApp);
+
+        return Scaffold(
       appBar: MainAppBar(
         automaticallyImplyLeading: true,
         title: Text(
@@ -215,7 +664,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // --- 1. Image Slider Gallery (Template only for locked) ---
-            _buildImageGallery(p, isGuest, isDark, languageCode),
+            _buildImageGallery(p, isGuest, canViewPhotos, isDark, languageCode),
 
             Padding(
               padding: const EdgeInsets.all(20),
@@ -226,19 +675,25 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   _buildPriceSection(p, l10n, theme),
                   const SizedBox(height: 20),
 
-                  // --- 2.1 Additional Photos Section (Gallery for Tenant / Login Lock for Guest) ---
-                  _buildAdditionalPhotosSection(p, isGuest, isDark, languageCode),
+                  // --- 2.1 Additional Photos Section (Gallery for Tenant / Login Lock for Guest / Subscription Lock for Free) ---
+                  _buildAdditionalPhotosSection(p, isGuest, canViewPhotos, isDark, languageCode, user, policy),
 
                   // --- 3. Location Section with Sub-Area Privacy Mask ---
                   DecoratedSectionHeader(title: l10n.locationLabel),
                   const SizedBox(height: 12),
                   _buildInfoRow(Icons.map_outlined, locationText),
-                  if (p.shortAddress.isNotEmpty && isUnlocked)
+                  if (p.shortAddress.isNotEmpty && isSubAreaUnlocked)
                     _buildInfoRow(Icons.location_on_outlined, p.shortAddress),
+
+                  // Sub-Area Unlock Card when locked
+                  if (!isSubAreaUnlocked && subAreaName.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    _buildSubAreaLockedCard(context, user, isDark, isBn, policy),
+                  ],
 
                   // --- 4. Interactive Map Section (Locked Container if not unlocked) ---
                   if (p.latitude != null && p.longitude != null)
-                    _buildMapSection(p, l10n, theme, isDark, isUnlocked, user),
+                    _buildMapSection(p, l10n, theme, isDark, isUnlocked, user, policy),
 
                   const SizedBox(height: 24),
 
@@ -383,7 +838,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   const SizedBox(height: 28),
 
                   // --- 8. Dynamic Bottom Unlock / Contact Action Bar ---
-                  _buildBottomActionBar(context, p, isUnlocked, user, isGuest, l10n),
+                  _buildBottomActionBar(context, p, isUnlocked, user, isGuest, l10n, policy),
                 ],
               ),
             ),
@@ -391,7 +846,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         ),
       ),
     );
-  }
+  },
+);
+}
 
   Widget _buildBottomActionBar(
     BuildContext context,
@@ -400,6 +857,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     UserModel? user,
     bool isGuest,
     AppLocalizations l10n,
+    FreeTierPolicyModel policy,
   ) {
     final languageCode = Localizations.localeOf(context).languageCode;
 
@@ -423,13 +881,28 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         );
       }
 
-      final remaining = user?.freePropertyUnlocksRemaining ?? 0;
+      final canUnlock = user?.canUnlockContactForPolicy(policy: policy) ?? false;
 
-      if (remaining > 0) {
+      if (canUnlock) {
+        final isSub = user?.isSubscribed ?? false;
+        final count = user?.remainingContactUnlocksForPolicy(policy: policy) ?? 0;
+        final countStr = count >= 999999
+            ? (languageCode == 'bn' ? 'আনলিমিটেড' : 'Unlimited')
+            : count.toString().toLocalizedDigits(languageCode);
+        final totalCount = policy.tenantUnlockNumbers;
+        final totalStr = totalCount == -1
+            ? (languageCode == 'bn' ? 'আনলিমিটেড' : 'Unlimited')
+            : totalCount.toString().toLocalizedDigits(languageCode);
+        final btnText = isSub
+            ? (languageCode == 'bn'
+                ? 'প্যাকেজ কোটায় নম্বর আনলক ($countStr বাকি)'
+                : 'Unlock with Package ($countStr Left)')
+            : l10n.unlockInfoAndNumberWithQuota(countStr, totalStr);
+
         return SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
-            onPressed: () => _handleUnlock(context, user),
+            onPressed: () => _handleUnlock(context, user, policy),
             style: FilledButton.styleFrom(
               backgroundColor: Colors.deepOrange,
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -437,7 +910,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ),
             icon: const Icon(Icons.lock_open_rounded),
             label: Text(
-              l10n.unlockInfoAndNumberWithQuota(remaining.toLocalizedDigits(languageCode)),
+              btnText,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
           ),
@@ -503,6 +976,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     bool isDark,
     bool isUnlocked,
     UserModel? user,
+    FreeTierPolicyModel? policy,
   ) {
     if (p.latitude == null || p.longitude == null) return const SizedBox.shrink();
 
@@ -530,15 +1004,38 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
             const SizedBox(height: 12),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.amber.shade800,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              icon: const Icon(Icons.lock_open_rounded, size: 16),
-              label: Text(l10n.unlockMap, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-              onPressed: () => _handleUnlock(context, user),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.amber.shade800,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.lock_open_rounded, size: 16),
+                  label: Text(l10n.unlockMap, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  onPressed: () => _handleUnlock(context, user, policy),
+                ),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.themeColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.directions_rounded, size: 16),
+                  label: Text(
+                    Localizations.localeOf(context).languageCode == 'bn'
+                        ? 'গুগল ম্যাপ ডিরেকশন (${user?.remainingMapDirectionsForPolicy(policy: policy).toString().toLocalizedDigits("bn") ?? 0} বাকি)'
+                        : 'Google Maps Directions (${user?.remainingMapDirectionsForPolicy(policy: policy) ?? 0} Left)',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () => _openGoogleMapsNavigation(p.latitude!, p.longitude!, user, policy),
+                ),
+              ],
             ),
           ],
         ),
@@ -643,7 +1140,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
-            onPressed: () => _openGoogleMapsNavigation(p.latitude!, p.longitude!),
+            onPressed: () => _openGoogleMapsNavigation(p.latitude!, p.longitude!, user, policy),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.themeColor,
               foregroundColor: Colors.white,
@@ -661,7 +1158,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  Widget _buildImageGallery(PropertyModel p, bool isGuest, bool isDark, String languageCode) {
+  Widget _buildImageGallery(
+    PropertyModel p,
+    bool isGuest,
+    bool canViewPhotos,
+    bool isDark,
+    String languageCode,
+  ) {
     final images = p.images;
     final isBn = languageCode == 'bn';
 
@@ -676,8 +1179,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       );
     }
 
-    // Guest users can only see the 1st image (template), logged-in users can swipe between all photos
-    final displayImages = isGuest ? [images.first] : images;
+    // Guest users or users without additional photos quota can only view the 1st image (template)
+    final bool canAccessAll = !isGuest && canViewPhotos;
+    final displayImages = canAccessAll ? images : [images.first];
 
     return SizedBox(
       height: 260,
@@ -696,8 +1200,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 onTap: () {
                   FullScreenImageViewer.show(
                     context,
-                    images: isGuest ? [images.first] : images,
-                    initialIndex: isGuest ? 0 : index,
+                    images: displayImages,
+                    initialIndex: canAccessAll ? index : 0,
                   );
                 },
                 child: AppImageWidget(
@@ -753,8 +1257,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 onTap: () {
                   FullScreenImageViewer.show(
                     context,
-                    images: isGuest ? [images.first] : images,
-                    initialIndex: isGuest ? 0 : _currentImageIndex,
+                    images: displayImages,
+                    initialIndex: canAccessAll ? _currentImageIndex : 0,
                   );
                 },
                 child: Padding(
@@ -792,12 +1296,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (isGuest && images.length > 1) ...[
+                  if (!canAccessAll && images.length > 1) ...[
                     const Icon(Icons.lock_rounded, color: Colors.amber, size: 12),
                     const SizedBox(width: 4),
                   ],
                   Text(
-                    isGuest
+                    !canAccessAll
                         ? (isBn
                             ? '১/${images.length.toString().toLocalizedDigits("bn")} (বাকি ছবি লক)'
                             : '1/${images.length} (More Locked)')
@@ -814,9 +1318,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   }
 
   /// Additional Photos Section:
-  /// - For Tenant (logged in): Shows horizontal gallery of additional photos with zoom support
+  /// - For Tenant (with access): Shows horizontal gallery of additional photos with zoom support
   /// - For Guest: Shows locked banner with login prompt
-  Widget _buildAdditionalPhotosSection(PropertyModel p, bool isGuest, bool isDark, String languageCode) {
+  /// - For Logged-in without Photo Access: Shows locked banner with subscription prompt
+  Widget _buildAdditionalPhotosSection(
+    PropertyModel p,
+    bool isGuest,
+    bool canViewPhotos,
+    bool isDark,
+    String languageCode,
+    UserModel? user,
+    FreeTierPolicyModel? policy,
+  ) {
     if (p.images.length <= 1) return const SizedBox.shrink();
 
     final isBn = languageCode == 'bn';
@@ -903,7 +1416,171 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       );
     }
 
-    // --- LOGGED-IN TENANT: Additional Photos Gallery ---
+    // --- LOGGED-IN BUT NO ACCESS TO ADDITIONAL PHOTOS ---
+    if (!canViewPhotos) {
+      final bool canUnlockFree = user != null && user.canUnlockPhotoGallery(policy: policy);
+      final remainingFree = user?.remainingPhotoGalleryUnlocks(policy: policy) ?? 0;
+      final remainingStr = remainingFree.toString().toLocalizedDigits(languageCode);
+
+      if (canUnlockFree) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 24),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E2D2A) : const Color(0xFFE8F5F3),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.themeColor.withValues(alpha: 0.5)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.themeColor.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.photo_library_rounded, color: AppColors.themeColor, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isBn ? '🔒 অতিরিক্ত $countTextটি ছবি দেখতে আনলক করুন' : '🔒 $countText Additional Photos Locked',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: isDark ? Colors.teal.shade300 : AppColors.themeColor,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          isBn
+                              ? 'আপনার ফ্রি ফটো গ্যালারি কোটা থেকে ১টি ব্যবহার করে এই বাসার সব ছবি দেখতে পারবেন। (বাকি: $remainingStrটি)'
+                              : 'You can use 1 free photo gallery unlock credit to view all photos of this property. ($remainingStr remaining)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.grey[400] : Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => _handleUnlockPhotos(context, user, p.id, policy),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.themeColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: const Icon(Icons.lock_open_rounded, size: 16),
+                  label: Text(
+                    isBn ? 'ফ্রি কোটায় গ্যালারি আনলক করুন ($remainingStr বাকি)' : 'Unlock Gallery ($remainingStr Left)',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      // Out of free quota -> Show subscription purchase CTA
+      return Container(
+        margin: const EdgeInsets.only(bottom: 24),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2D1F16) : const Color(0xFFFFF3EB),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.deepOrange.shade400.withValues(alpha: 0.6)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.deepOrange.shade100,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.workspace_premium_rounded, color: Colors.deepOrange, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isBn ? '🔒 অতিরিক্ত $countTextটি ছবি দেখতে সাবস্ক্রিপশন প্রয়োজন' : '🔒 $countText Additional Photos Locked',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: isDark ? Colors.orange.shade300 : Colors.deepOrange.shade900,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isBn
+                            ? 'আপনার ফ্রি ফটো গ্যালারি কোটা শেষ হয়ে গেছে। বাড়িওয়ালার আপলোড করা অতিরিক্ত রুম ও ভেতরের সকল ছবির গ্যালারি এক্সেস পেতে সাপোর্ট প্যাকেজ গ্রহণ করুন।'
+                            : 'Your free photo gallery unlock quota is exhausted. Activate a support package to unlock all additional interior and room photos uploaded by the landlord.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[400] : Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.pushNamed(context, TenantSubscriptionScreen.name),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.deepOrange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.workspace_premium_rounded, size: 16),
+                label: Text(
+                  isBn ? 'সাপোর্ট প্যাকেজ দেখুন' : 'View Support Packages',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // --- LOGGED-IN TENANT WITH ACCESS: Additional Photos Gallery ---
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       child: Column(

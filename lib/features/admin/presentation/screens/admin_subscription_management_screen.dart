@@ -5,7 +5,9 @@ import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../data/providers/admin_provider.dart';
 import '../../../subscription/data/models/subscription_model.dart';
+import '../../../subscription/data/models/free_tier_policy_model.dart';
 import '../../../subscription/data/providers/subscription_provider.dart';
+import '../../../subscription/data/services/subscription_firestore_service.dart';
 
 class AdminSubscriptionManagementView extends StatefulWidget {
   const AdminSubscriptionManagementView({super.key});
@@ -17,11 +19,27 @@ class AdminSubscriptionManagementView extends StatefulWidget {
 class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManagementView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  int _selectedTabIndex = 0;
+  late final SubscriptionFirestoreService _service;
+  late final Stream<List<SubscriptionPlanModel>> _allPlansStream;
+  late final Stream<List<SubscriptionTransactionModel>> _allTransactionsStream;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+      if (_selectedTabIndex != _tabController.index) {
+        setState(() {
+          _selectedTabIndex = _tabController.index;
+        });
+      }
+    });
+    _service = SubscriptionFirestoreService();
+    _service.seedDefaultPlansIfEmpty(forceCheck: true);
+    _allPlansStream = _service.streamAllPlans();
+    _allTransactionsStream = _service.streamAllTransactions();
   }
 
   @override
@@ -36,7 +54,6 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
     final isDark = theme.brightness == Brightness.dark;
     final adminProv = context.watch<AdminProvider>();
     final isBn = adminProv.isBangla;
-    final subProvider = context.watch<SubscriptionProvider>();
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -50,58 +67,58 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
             const SizedBox(height: 20),
 
             // Top Metrics Overview Bar
-            _buildMetricsOverview(context, subProvider, isDark, isBn),
+            _buildMetricsOverview(context, _allPlansStream, _allTransactionsStream, isDark, isBn),
             const SizedBox(height: 24),
 
             // Modern Tab Bar
             _buildModernTabBar(isDark, isBn),
             const SizedBox(height: 20),
 
-            // Tab Content Container
-            SizedBox(
-              height: 750,
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // Tab 1: Tenant Plans
-                  _buildPlansTab(
-                    context,
-                    subProvider.streamTenantPlans(),
-                    isBn,
-                    isDark,
-                    SubscriptionTargetRole.tenant,
-                  ),
-
-                  // Tab 2: House Owner Plans
-                  _buildPlansTab(
-                    context,
-                    subProvider.streamHouseOwnerPlans(),
-                    isBn,
-                    isDark,
-                    SubscriptionTargetRole.houseOwner,
-                  ),
-
-                  // Tab 3: Transactions
-                  _buildTransactionsTab(
-                    context,
-                    subProvider.streamAllTransactions(),
-                    isBn,
-                    isDark,
-                  ),
-                ],
-              ),
-            ),
+            // Tab Content
+            _buildActiveTabContent(isBn, isDark),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildActiveTabContent(bool isBn, bool isDark) {
+    switch (_selectedTabIndex) {
+      case 0:
+        return _buildPlansTab(
+          context,
+          _service.streamAllPlans(),
+          isBn,
+          isDark,
+          SubscriptionTargetRole.tenant,
+        );
+      case 1:
+        return _buildPlansTab(
+          context,
+          _service.streamAllPlans(),
+          isBn,
+          isDark,
+          SubscriptionTargetRole.houseOwner,
+        );
+      case 2:
+        return _AdminTransactionsTab(
+          isBn: isBn,
+          isDark: isDark,
+        );
+      case 3:
+      default:
+        return _AdminFreeTierPolicyTab(
+          isBn: isBn,
+          isDark: isDark,
+        );
+    }
+  }
+
   Widget _buildTopHeader(BuildContext context, bool isDark, bool isBn) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 650;
+        final titleWidget = Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
@@ -123,25 +140,28 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
               child: const Icon(Icons.card_membership_rounded, color: Colors.white, size: 28),
             ),
             const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isBn ? 'সাবস্ক্রিপশন ও প্যাকেজ স্টুডিও' : 'Subscription & Package Studio',
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  isBn
-                      ? 'ভাড়াটিয়া ও বাড়িওয়ালাদের প্যাকেজ, দ্বিভাষিক বিবরণ (BN & EN), বিশেষ অফার ও প্রাইসিং কন্ট্রোল'
-                      : 'Manage tenant & house owner packages, bilingual details (BN & EN), deals & prices',
-                  style: TextStyle(fontSize: 13, color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isBn ? 'সাবস্ক্রিপশন ও প্যাকেজ স্টুডিও' : 'Subscription & Package Studio',
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    isBn
+                        ? 'ভাড়াটিয়া ও বাড়িওয়ালাদের প্যাকেজ, ফ্রি অ্যাকাউন্ট পলিসি ও প্রাইসিং কন্ট্রোল'
+                        : 'Manage tenant & house owner packages, free tier policy & prices',
+                    style: TextStyle(fontSize: 12.5, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                  ),
+                ],
+              ),
             ),
           ],
-        ),
-        FilledButton.icon(
+        );
+
+        final buttonWidget = FilledButton.icon(
           onPressed: () => _showGatewaySettingsDialog(context, isDark, isBn),
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFF6366F1),
@@ -152,16 +172,42 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
           icon: const Icon(Icons.settings_suggest_rounded, size: 20),
           label: Text(
             isBn ? 'SSLCOMMERZ গেটওয়ে' : 'SSLCOMMERZ Gateway',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
           ),
-        ),
-      ],
+        );
+
+        if (isCompact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              titleWidget,
+              const SizedBox(height: 12),
+              buttonWidget,
+            ],
+          );
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(child: titleWidget),
+            const SizedBox(width: 16),
+            buttonWidget,
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildMetricsOverview(BuildContext context, SubscriptionProvider subProvider, bool isDark, bool isBn) {
+  Widget _buildMetricsOverview(
+    BuildContext context,
+    Stream<List<SubscriptionPlanModel>> plansStream,
+    Stream<List<SubscriptionTransactionModel>> txStream,
+    bool isDark,
+    bool isBn,
+  ) {
     return StreamBuilder<List<SubscriptionPlanModel>>(
-      stream: subProvider.streamAllPlans(),
+      stream: plansStream,
       builder: (context, planSnapshot) {
         final plans = planSnapshot.data ?? [];
         final tenantCount = plans.where((p) => p.targetRole == SubscriptionTargetRole.tenant).length;
@@ -169,7 +215,7 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
         final offerCount = plans.where((p) => p.hasActiveOffer).length;
 
         return StreamBuilder<List<SubscriptionTransactionModel>>(
-          stream: subProvider.streamAllTransactions(),
+          stream: txStream,
           builder: (context, txSnapshot) {
             final txs = txSnapshot.data ?? [];
             final totalRevenue = txs.fold<double>(0.0, (acc, item) => acc + item.amountPaid);
@@ -297,6 +343,13 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
       padding: const EdgeInsets.all(4),
       child: TabBar(
         controller: _tabController,
+        isScrollable: true,
+        tabAlignment: TabAlignment.start,
+        onTap: (index) {
+          setState(() {
+            _selectedTabIndex = index;
+          });
+        },
         indicatorSize: TabBarIndicatorSize.tab,
         indicator: BoxDecoration(
           color: AppColors.themeColor,
@@ -311,7 +364,7 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
         ),
         labelColor: Colors.white,
         unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[700],
-        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+        labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         tabs: [
           Tab(
             icon: const Icon(Icons.person_pin_rounded, size: 18),
@@ -324,6 +377,10 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
           Tab(
             icon: const Icon(Icons.receipt_long_rounded, size: 18),
             text: isBn ? 'গ্রাহক ও লেনদেন (Transactions)' : 'Subscribers & Transactions',
+          ),
+          Tab(
+            icon: const Icon(Icons.tune_rounded, size: 18),
+            text: isBn ? 'ফ্রি অ্যাকাউন্ট পলিসি (Free Tier)' : 'Free Tier Policy',
           ),
         ],
       ),
@@ -341,6 +398,7 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
     final themeColor = isTenant ? const Color(0xFF0D9488) : const Color(0xFFF59E0B);
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Action Toolbar
         Container(
@@ -369,20 +427,52 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
                   ),
                 ],
               ),
-              FilledButton.icon(
-                onPressed: () => _showPlanStudioDialog(context, targetRole: targetRole, existingPlan: null, isDark: isDark, isBn: isBn),
-                style: FilledButton.styleFrom(
-                  backgroundColor: themeColor,
-                  foregroundColor: isTenant ? Colors.white : Colors.black,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  elevation: 2,
-                ),
-                icon: const Icon(Icons.add_rounded, size: 20),
-                label: Text(
-                  isBn ? '+ নতুন প্যাকেজ তৈরি করুন' : '+ Create New Package',
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
-                ),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final subProvider = context.read<SubscriptionProvider>();
+                      final success = await subProvider.restoreDefaultPlans();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(success
+                                ? (isBn ? 'ডিফল্ট প্যাকেজসমূহ রিস্টোর করা হয়েছে।' : 'Default plans restored successfully.')
+                                : (isBn ? 'রিস্টোর করতে ব্যর্থ হয়েছে।' : 'Failed to restore default plans.')),
+                            backgroundColor: success ? Colors.green : Colors.redAccent,
+                          ),
+                        );
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: themeColor,
+                      side: BorderSide(color: themeColor.withValues(alpha: 0.5)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.restore_rounded, size: 18),
+                    label: Text(
+                      isBn ? 'ডিফল্ট রিস্টোর' : 'Restore Defaults',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  FilledButton.icon(
+                    onPressed: () => _showPlanStudioDialog(context, targetRole: targetRole, existingPlan: null, isDark: isDark, isBn: isBn),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: themeColor,
+                      foregroundColor: isTenant ? Colors.white : Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 2,
+                    ),
+                    icon: const Icon(Icons.add_rounded, size: 20),
+                    label: Text(
+                      isBn ? '+ নতুন প্যাকেজ তৈরি' : '+ Create New Plan',
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -391,17 +481,49 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
         const SizedBox(height: 14),
 
         // Plans Grid
-        Expanded(
-          child: StreamBuilder<List<SubscriptionPlanModel>>(
-            stream: stream,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator(color: AppColors.themeColor));
-              }
+        StreamBuilder<List<SubscriptionPlanModel>>(
+          stream: stream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: Center(child: CircularProgressIndicator(color: AppColors.themeColor)),
+              );
+            }
 
-              final plans = snapshot.data ?? [];
-              if (plans.isEmpty) {
-                return Center(
+            if (snapshot.hasError) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.error_outline_rounded, size: 48, color: Colors.redAccent),
+                      const SizedBox(height: 12),
+                      Text(
+                        isBn ? 'প্যাকেজ লোড করতে সমস্যা হয়েছে' : 'Error loading subscription plans',
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 14),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          setState(() {});
+                        },
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: Text(isBn ? 'পুনরায় চেষ্টা করুন' : 'Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            final allPlans = snapshot.data ?? [];
+            final plans = allPlans.where((p) => p.targetRole == targetRole).toList();
+            if (plans.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -411,28 +533,56 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
                         isBn ? 'কোনো প্যাকেজ পাওয়া যায়নি' : 'No subscription plans found',
                         style: TextStyle(fontSize: 15, color: Colors.grey[600]),
                       ),
-                      const SizedBox(height: 12),
-                      FilledButton.icon(
-                        onPressed: () => _showPlanStudioDialog(context, targetRole: targetRole, existingPlan: null, isDark: isDark, isBn: isBn),
-                        style: FilledButton.styleFrom(backgroundColor: themeColor),
-                        icon: const Icon(Icons.add_rounded),
-                        label: Text(isBn ? 'প্রথম প্যাকেজ তৈরি করুন' : 'Create First Plan'),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 10,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: () => _showPlanStudioDialog(context, targetRole: targetRole, existingPlan: null, isDark: isDark, isBn: isBn),
+                            style: FilledButton.styleFrom(backgroundColor: themeColor),
+                            icon: const Icon(Icons.add_rounded),
+                            label: Text(isBn ? 'প্রথম প্যাকেজ তৈরি করুন' : 'Create First Plan'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              final subProvider = context.read<SubscriptionProvider>();
+                              final success = await subProvider.restoreDefaultPlans();
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(success
+                                        ? (isBn ? 'ডিফল্ট প্যাকেজসমূহ রিস্টোর করা হয়েছে।' : 'Default plans restored successfully.')
+                                        : (isBn ? 'রিস্টোর করতে ব্যর্থ হয়েছে।' : 'Failed to restore default plans.')),
+                                    backgroundColor: success ? Colors.green : Colors.redAccent,
+                                  ),
+                                );
+                              }
+                            },
+                            style: OutlinedButton.styleFrom(foregroundColor: themeColor, side: BorderSide(color: themeColor)),
+                            icon: const Icon(Icons.restore_rounded),
+                            label: Text(isBn ? 'ডিফল্ট ৩টি প্যাকেজ রিস্টোর করুন' : 'Restore Default 3 Plans'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                );
-              }
-
-              return ListView.separated(
-                itemCount: plans.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 14),
-                itemBuilder: (context, index) {
-                  final plan = plans[index];
-                  return _buildAdminPlanCard(context, plan, isBn, isDark, themeColor);
-                },
+                ),
               );
-            },
-          ),
+            }
+
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: plans.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 14),
+              itemBuilder: (context, index) {
+                final plan = plans[index];
+                return _buildAdminPlanCard(context, plan, isBn, isDark, themeColor);
+              },
+            );
+          },
         ),
       ],
     );
@@ -644,6 +794,68 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
 
                 const SizedBox(height: 14),
                 const Divider(height: 1),
+                const SizedBox(height: 10),
+
+                // Quota & Facility Control Badges
+                Text(
+                  isBn ? 'সক্রিয় কোটা ও সু্যোগ-সুবিধা:' : 'Active Quotas & Facilities:',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    _quotaBadge(
+                      Icons.post_add_rounded,
+                      isBn
+                          ? (plan.maxPostsLimit == -1 ? 'পোস্ট: আনলিমিটেড' : 'পোস্ট: ${plan.maxPostsLimit.toString().toLocalizedDigits("bn")}টি')
+                          : (plan.maxPostsLimit == -1 ? 'Posts: Unlimited' : 'Posts: ${plan.maxPostsLimit}'),
+                      Colors.blue,
+                      isDark,
+                    ),
+                    _quotaBadge(
+                      Icons.lock_open_rounded,
+                      isBn
+                          ? (plan.unlockNumbersLimit == -1 ? 'নম্বর: আনলিমিটেড' : 'নম্বর: ${plan.unlockNumbersLimit.toString().toLocalizedDigits("bn")}টি')
+                          : (plan.unlockNumbersLimit == -1 ? 'Unlocks: Unlimited' : 'Unlocks: ${plan.unlockNumbersLimit}'),
+                      Colors.green,
+                      isDark,
+                    ),
+                    _quotaBadge(
+                      Icons.photo_library_rounded,
+                      isBn
+                          ? (plan.canAccessAdditionalPhotos ? 'সকল ছবি: উন্মুক্ত' : 'ছবি: সীমিত')
+                          : (plan.canAccessAdditionalPhotos ? 'Photos: Full Access' : 'Photos: Template Only'),
+                      Colors.purple,
+                      isDark,
+                    ),
+                    _quotaBadge(
+                      Icons.radar_rounded,
+                      isBn
+                          ? (plan.nearbySearchLimit == -1 ? 'কাছাকাছি সার্চ: আনলিমিটেড' : 'কাছাকাছি সার্চ: ${plan.nearbySearchLimit.toString().toLocalizedDigits("bn")}টি')
+                          : (plan.nearbySearchLimit == -1 ? 'Nearby: Unlimited' : 'Nearby: ${plan.nearbySearchLimit}'),
+                      Colors.teal,
+                      isDark,
+                    ),
+                    _quotaBadge(
+                      Icons.directions_rounded,
+                      isBn
+                          ? (plan.mapDirectionsLimit == -1 ? 'ম্যাপ ডিরেকশন: আনলিমিটেড' : 'ম্যাপ ডিরেকশন: ${plan.mapDirectionsLimit.toString().toLocalizedDigits("bn")}টি')
+                          : (plan.mapDirectionsLimit == -1 ? 'Directions: Unlimited' : 'Directions: ${plan.mapDirectionsLimit}'),
+                      Colors.amber.shade800,
+                      isDark,
+                    ),
+                    _quotaBadge(
+                      Icons.auto_awesome_rounded,
+                      isBn
+                          ? (plan.aiAssistantLimit == -1 ? 'AI সহকারী: আনলিমিটেড' : 'AI সহকারী: ${plan.aiAssistantLimit.toString().toLocalizedDigits("bn")}টি')
+                          : (plan.aiAssistantLimit == -1 ? 'AI: Unlimited' : 'AI: ${plan.aiAssistantLimit}'),
+                      Colors.indigo,
+                      isDark,
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 12),
 
                 // Bilingual Perks Bullet List
@@ -695,97 +907,6 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
     );
   }
 
-  Widget _buildTransactionsTab(
-    BuildContext context,
-    Stream<List<SubscriptionTransactionModel>> stream,
-    bool isBn,
-    bool isDark,
-  ) {
-    return StreamBuilder<List<SubscriptionTransactionModel>>(
-      stream: stream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.themeColor));
-        }
-
-        final txs = snapshot.data ?? [];
-        if (txs.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.receipt_long_outlined, size: 48, color: Colors.grey[400]),
-                const SizedBox(height: 12),
-                Text(
-                  isBn ? 'এখনও কোনো সাবস্ক্রিপশন লেনদেন হয়নি' : 'No subscription transactions yet',
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.separated(
-          itemCount: txs.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 10),
-          itemBuilder: (context, index) {
-            final tx = txs[index];
-            return Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF16211F) : Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: isDark ? const Color(0xFF263936) : const Color(0xFFE2EBE9)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE2136E).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFFE2136E), size: 24),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              tx.planTitle,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                            ),
-                            Text(
-                              '৳${tx.amountPaid.toInt()}',
-                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.themeColor),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${isBn ? "গ্রাহক:" : "User:"} ${tx.userEmail} • ${tx.senderPhone}',
-                          style: TextStyle(fontSize: 12.5, color: Colors.grey[600]),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'TrxID: ${tx.transactionId} • ${tx.status.toUpperCase()}',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFE2136E)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   void _confirmDeletePlan(BuildContext context, SubscriptionPlanModel plan, bool isBn) {
     showDialog(
@@ -811,15 +932,26 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
             onPressed: () async {
               Navigator.pop(ctx);
               final subProvider = context.read<SubscriptionProvider>();
-              await subProvider.deletePlan(plan.id);
+              final success = await subProvider.deletePlan(plan.id);
 
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(isBn ? 'প্যাকেজটি সফলভাবে ডিলিট করা হয়েছে।' : 'Plan deleted successfully.'),
-                    backgroundColor: Colors.redAccent,
-                  ),
-                );
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(isBn ? 'প্যাকেজটি সফলভাবে ডিলিট করা হয়েছে।' : 'Plan deleted successfully.'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(isBn
+                          ? 'প্যাকেজ ডিলিট করতে সমস্যা হয়েছে: ${subProvider.errorMessage ?? "অজানা ত্রুটি"}'
+                          : 'Failed to delete plan: ${subProvider.errorMessage ?? "Unknown error"}'),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
               }
             },
             child: Text(isBn ? 'হ্যাঁ, ডিলিট করুন' : 'Delete'),
@@ -979,6 +1111,189 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
       ),
     );
   }
+
+  Widget _quotaBadge(IconData icon, String text, Color color, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: isDark ? 0.2 : 0.08),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// 📊 ADMIN TRANSACTIONS TAB (SUBSCRIBERS & TRANSACTIONS)
+// ============================================================================
+class _AdminTransactionsTab extends StatefulWidget {
+  final bool isBn;
+  final bool isDark;
+
+  const _AdminTransactionsTab({
+    required this.isBn,
+    required this.isDark,
+  });
+
+  @override
+  State<_AdminTransactionsTab> createState() => _AdminTransactionsTabState();
+}
+
+class _AdminTransactionsTabState extends State<_AdminTransactionsTab> {
+  late Stream<List<SubscriptionTransactionModel>> _txStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _txStream = SubscriptionFirestoreService().streamAllTransactions();
+  }
+
+  void _refresh() {
+    setState(() {
+      _txStream = SubscriptionFirestoreService().streamAllTransactions();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isBn = widget.isBn;
+    final isDark = widget.isDark;
+
+    return StreamBuilder<List<SubscriptionTransactionModel>>(
+      stream: _txStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: CircularProgressIndicator(color: AppColors.themeColor),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline_rounded, size: 48, color: Colors.redAccent),
+                const SizedBox(height: 12),
+                Text(
+                  isBn ? 'লেনদেন তালিকা লোড করতে ত্রুটি হয়েছে' : 'Error loading transactions',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 14),
+                OutlinedButton.icon(
+                  onPressed: _refresh,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: Text(isBn ? 'পুনরায় চেষ্টা করুন' : 'Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final txs = snapshot.data ?? [];
+        if (txs.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.receipt_long_outlined, size: 48, color: Colors.grey[400]),
+                  const SizedBox(height: 12),
+                  Text(
+                    isBn ? 'এখনও কোনো সাবস্ক্রিপশন লেনদেন হয়নি' : 'No subscription transactions yet',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: _refresh,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(isBn ? 'রিফ্রেশ করুন' : 'Refresh'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: txs.length,
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final tx = txs[index];
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF16211F) : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: isDark ? const Color(0xFF263936) : const Color(0xFFE2EBE9)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2136E).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.account_balance_wallet_rounded, color: Color(0xFFE2136E), size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              tx.planTitle,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                            Text(
+                              '৳${tx.amountPaid.toInt()}',
+                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.themeColor),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${isBn ? "গ্রাহক:" : "User:"} ${tx.userEmail} • ${tx.senderPhone}',
+                          style: TextStyle(fontSize: 12.5, color: Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'TrxID: ${tx.transactionId} • ${tx.status.toUpperCase()}',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFE2136E)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
 /// =========================================================================
@@ -1014,10 +1329,45 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
   late final TextEditingController _badgeBnController;
   late final TextEditingController _badgeEnController;
 
+  // Quota & Facility Controllers & Toggles
+  // 1. Max Demands / Listings
+  late bool _enableMaxPosts;
+  late bool _isUnlimitedPosts;
+  late final TextEditingController _maxPostsController;
+
+  // 2. Unlock Numbers
+  late bool _enableUnlockNumbers;
+  late bool _isUnlimitedUnlocks;
+  late final TextEditingController _unlockNumbersController;
+
+  // 3. Sub-area Unlock
+  late bool _enableSubArea;
+  late bool _isUnlimitedSubArea;
+  late final TextEditingController _subAreaController;
+
+  // 4. Photo Gallery (Tenant only)
+  late bool _enablePhotoGallery;
+  late bool _isUnlimitedPhotoGallery;
+  late final TextEditingController _photoGalleryController;
+
+  // 5. Nearby Search (Tenant only)
+  late bool _enableNearbySearch;
+  late bool _isUnlimitedNearby;
+  late final TextEditingController _nearbySearchController;
+
+  // 6. Map Directions (Tenant only)
+  late bool _enableMapDirections;
+  late bool _isUnlimitedDirections;
+  late final TextEditingController _mapDirectionsController;
+
+  // 7. AI Assistant Search
+  late bool _enableAiAssistant;
+  late bool _isUnlimitedAi;
+  late final TextEditingController _aiAssistantController;
+
   late bool _isPopular;
   late bool _hasOffer;
   bool _previewInEnglish = false;
-  final List<_PerkPairControllers> _perkPairs = [];
   late final List<_DurationPresetItem> _durationPresets;
 
   @override
@@ -1058,49 +1408,64 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
     _badgeBnController = TextEditingController(text: p?.offerBadgeTextBn ?? '');
     _badgeEnController = TextEditingController(text: p?.offerBadgeTextEn ?? '');
 
+    // 1. Max Demands / Listings
+    final initialMaxPosts = p?.maxPostsLimit ?? (widget.targetRole == SubscriptionTargetRole.tenant ? 5 : 10);
+    _enableMaxPosts = initialMaxPosts != 0;
+    _isUnlimitedPosts = initialMaxPosts == -1;
+    _maxPostsController = TextEditingController(
+      text: (_isUnlimitedPosts || !_enableMaxPosts) ? (widget.targetRole == SubscriptionTargetRole.tenant ? '5' : '10') : initialMaxPosts.toString(),
+    );
+
+    // 2. Unlock Numbers
+    final initialUnlocks = p?.unlockNumbersLimit ?? -1;
+    _enableUnlockNumbers = initialUnlocks != 0;
+    _isUnlimitedUnlocks = initialUnlocks == -1;
+    _unlockNumbersController = TextEditingController(
+      text: (_isUnlimitedUnlocks || !_enableUnlockNumbers) ? '10' : initialUnlocks.toString(),
+    );
+
+    // 3. Sub-area Unlock
+    final initialSubArea = p?.subAreaUnlockLimit ?? -1;
+    _enableSubArea = initialSubArea != 0;
+    _isUnlimitedSubArea = initialSubArea == -1;
+    _subAreaController = TextEditingController(
+      text: (_isUnlimitedSubArea || !_enableSubArea) ? '5' : initialSubArea.toString(),
+    );
+
+    // 4. Photo Gallery (Tenant only)
+    final initialPhotoGallery = p?.fullPhotoGalleryLimit ?? -1;
+    _enablePhotoGallery = initialPhotoGallery != 0;
+    _isUnlimitedPhotoGallery = initialPhotoGallery == -1;
+    _photoGalleryController = TextEditingController(
+      text: (_isUnlimitedPhotoGallery || !_enablePhotoGallery) ? '10' : initialPhotoGallery.toString(),
+    );
+
+    // 5. Nearby Search (Tenant only)
+    final initialNearby = p?.nearbySearchLimit ?? 10;
+    _enableNearbySearch = initialNearby != 0;
+    _isUnlimitedNearby = initialNearby == -1;
+    _nearbySearchController = TextEditingController(
+      text: (_isUnlimitedNearby || !_enableNearbySearch) ? '10' : initialNearby.toString(),
+    );
+
+    // 6. Map Directions (Tenant only)
+    final initialDirections = p?.mapDirectionsLimit ?? 10;
+    _enableMapDirections = initialDirections != 0;
+    _isUnlimitedDirections = initialDirections == -1;
+    _mapDirectionsController = TextEditingController(
+      text: (_isUnlimitedDirections || !_enableMapDirections) ? '10' : initialDirections.toString(),
+    );
+
+    // 7. AI Assistant Search
+    final initialAi = p?.aiAssistantLimit ?? -1;
+    _enableAiAssistant = initialAi != 0;
+    _isUnlimitedAi = initialAi == -1;
+    _aiAssistantController = TextEditingController(
+      text: (_isUnlimitedAi || !_enableAiAssistant) ? '50' : initialAi.toString(),
+    );
+
     _isPopular = p?.isPopular ?? false;
     _hasOffer = p?.hasActiveOffer ?? false;
-
-    if (p != null) {
-      final maxLen = p.perksBn.length > p.perksEn.length ? p.perksBn.length : p.perksEn.length;
-      for (int i = 0; i < maxLen; i++) {
-        final bn = i < p.perksBn.length ? p.perksBn[i] : '';
-        final en = i < p.perksEn.length ? p.perksEn[i] : '';
-        _perkPairs.add(_PerkPairControllers(
-          bnController: TextEditingController(text: bn),
-          enController: TextEditingController(text: en),
-        ));
-      }
-    } else {
-      // Initial defaults
-      if (widget.targetRole == SubscriptionTargetRole.tenant) {
-        _perkPairs.add(_PerkPairControllers(
-          bnController: TextEditingController(text: 'এই পোস্টসহ আনলিমিটেড নাম্বার আনলক করতে পারবেন'),
-          enController: TextEditingController(text: 'Unlock unlimited contact numbers including this post'),
-        ));
-        _perkPairs.add(_PerkPairControllers(
-          bnController: TextEditingController(text: '১০টি ভিন্ন চাহিদা জানাতে পারবেন'),
-          enController: TextEditingController(text: 'Post up to 10 customized rental demands'),
-        ));
-        _perkPairs.add(_PerkPairControllers(
-          bnController: TextEditingController(text: 'বিজ্ঞাপন দেখতে হবে না'),
-          enController: TextEditingController(text: 'Ad-free experience'),
-        ));
-      } else {
-        _perkPairs.add(_PerkPairControllers(
-          bnController: TextEditingController(text: 'আনলিমিটেড ভাড়াটিয়াদের নম্বর আনলক করতে পারবেন'),
-          enController: TextEditingController(text: 'Unlock unlimited tenant contact numbers'),
-        ));
-        _perkPairs.add(_PerkPairControllers(
-          bnController: TextEditingController(text: '১০টি বাসাভাড়া বিজ্ঞাপন পোস্ট করতে পারবেন'),
-          enController: TextEditingController(text: 'Post up to 10 rental listings'),
-        ));
-        _perkPairs.add(_PerkPairControllers(
-          bnController: TextEditingController(text: 'বিজ্ঞাপন দেখতে হবে না'),
-          enController: TextEditingController(text: 'Ad-free experience'),
-        ));
-      }
-    }
   }
 
   @override
@@ -1116,11 +1481,21 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
     _offerPriceController.dispose();
     _badgeBnController.dispose();
     _badgeEnController.dispose();
-    for (final pair in _perkPairs) {
-      pair.bnController.dispose();
-      pair.enController.dispose();
-    }
+    _maxPostsController.dispose();
+    _unlockNumbersController.dispose();
+    _subAreaController.dispose();
+    _photoGalleryController.dispose();
+    _nearbySearchController.dispose();
+    _mapDirectionsController.dispose();
+    _aiAssistantController.dispose();
     super.dispose();
+  }
+
+  int _getFacilityVal(bool enabled, bool isUnlimited, TextEditingController ctrl, int defaultVal) {
+    if (!enabled) return 0;
+    if (isUnlimited) return -1;
+    final parsed = int.tryParse(ctrl.text.trim().toEnglishDigits());
+    return (parsed != null && parsed > 0) ? parsed : defaultVal;
   }
 
   void _applyDurationPreset(int days, String labelBn, String labelEn) {
@@ -1131,27 +1506,20 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
     });
   }
 
-  void _addSuggestedPerk(String bn, String en) {
-    setState(() {
-      _perkPairs.add(_PerkPairControllers(
-        bnController: TextEditingController(text: bn),
-        enController: TextEditingController(text: en),
-      ));
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final isTenant = widget.targetRole == SubscriptionTargetRole.tenant;
     final roleAccentColor = isTenant ? const Color(0xFF0D9488) : const Color(0xFFF59E0B);
     final isEdit = widget.existingPlan != null;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Dialog(
       backgroundColor: widget.isDark ? const Color(0xFF16211F) : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
-        width: 800,
-        constraints: const BoxConstraints(maxHeight: 880),
+        width: screenWidth > 860 ? 820 : screenWidth * 0.95,
+        constraints: BoxConstraints(maxHeight: screenHeight > 900 ? 880 : screenHeight * 0.92),
         child: Column(
           children: [
             // Modal Top Header
@@ -1196,8 +1564,8 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
                           ),
                           Text(
                             isTenant
-                                ? (widget.isBn ? 'ভাড়াটিয়াদের (Tenant) জন্য দ্বিভাষিক প্যাকেজ' : 'For Tenant Users (Bilingual BN & EN)')
-                                : (widget.isBn ? 'বাড়িওয়ালাদের (House Owner) জন্য দ্বিভাষিক প্যাকেজ' : 'For House Owner Users (Bilingual BN & EN)'),
+                                ? (widget.isBn ? 'ভাড়াটিয়াদের (Tenant) জন্য ৭টি অটোমেটেড সুবিধা প্যাকেজ' : 'For Tenant Users (7 Automated Facilities)')
+                                : (widget.isBn ? 'বাড়িওয়ালাদের (House Owner) জন্য ৪টি অটোমেটেড সুবিধা প্যাকেজ' : 'For House Owner Users (4 Automated Facilities)'),
                             style: const TextStyle(color: Colors.white70, fontSize: 12),
                           ),
                         ],
@@ -1283,7 +1651,7 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
                     const SizedBox(height: 24),
 
                     // Section 2: Pricing & Duration
-                    _sectionTitle('২. মূল্য ও মেয়াদ (Pricing & Quick Duration)', roleAccentColor),
+                    _sectionTitle('২. মূল্য ও মেয়াদ (Pricing & Duration Presets)', roleAccentColor),
                     const SizedBox(height: 10),
 
                     // Quick Duration Chips with responsive Wrap and Add Button
@@ -1639,218 +2007,40 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
 
                     const SizedBox(height: 24),
 
-                    // Section 4: Bilingual Perks Manager
+                    // Section 4: Package Facility Quota & Control (ON/OFF + Set Number / Unlimited)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _sectionTitle('৪. সুবিধাসমূহ (Bilingual Perks & Features)', roleAccentColor),
-                        TextButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _perkPairs.add(_PerkPairControllers(
-                                bnController: TextEditingController(),
-                                enController: TextEditingController(),
-                              ));
-                            });
-                          },
-                          icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
-                          label: Text(widget.isBn ? '+ নতুন সুবিধা যোগ' : '+ Add Perk Pair'),
+                        _sectionTitle(
+                          isTenant
+                              ? '৪. ভাড়াটিয়া সুবিধা নির্ধারণ (Tenant 7 Facilities Control)'
+                              : '৪. বাড়িওয়ালা সুবিধা নির্ধারণ (Owner 4 Facilities Control)',
+                          roleAccentColor,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: roleAccentColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            widget.isBn ? 'স্বয়ংক্রিয় ফিচারস ও পার্কস' : 'Auto Features & Perks',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: roleAccentColor),
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-
-                    // Quick Perk Suggestions Chips
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        _quickPerkChip('+ আনলিমিটেড নম্বর আনলক', '+ Unlock unlimited contact numbers'),
-                        _quickPerkChip('+ ১০টি চাহিদা প্রকাশ', '+ Post 10 customized demands'),
-                        _quickPerkChip('+ ১০টি বাসা বিজ্ঞাপন পোস্ট', '+ Post 10 property listings'),
-                        _quickPerkChip('+ বিজ্ঞাপন মুক্ত অভিজ্ঞতা', '+ 100% Ad-free experience'),
-                        _quickPerkChip('+ অতিরিক্ত সকল ছবির এক্সেস', '+ Full photo gallery access'),
-                        _quickPerkChip('+ গুগল ম্যাপস ডিরেকশন', '+ Full Google Maps navigation access'),
-                      ],
+                    Text(
+                      widget.isBn
+                          ? 'প্রতিটি সুবিধার জন্য ক্লিকযোগ্য ON/OFF সুইচ রয়েছে। সুইচ OFF রাখলে সেই সুবিধাটি বন্ধ থাকবে (ইউজার ব্যবহার বা দেখতে পারবে না)। সুইচ ON থাকলে নির্দিষ্ট সংখ্যা বা আনলিমিটেড নির্বাচন করুন। এর ভিত্তিতে প্যাকেজের সুবিধাসমূহ বাংলায় ও ইংরেজিতে স্বয়ংক্রিয়ভাবে তৈরি হবে।'
+                          : 'Each facility has a clickable ON/OFF switch. If OFF, the feature is disabled (0). If ON, select between Set Number or Unlimited. Perks in Bengali & English are auto-generated based on these settings.',
+                      style: TextStyle(fontSize: 12, color: widget.isDark ? Colors.grey[400] : Colors.grey[600]),
                     ),
+                    const SizedBox(height: 14),
 
-                    const SizedBox(height: 12),
-
-                    ..._perkPairs.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final pair = entry.value;
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: widget.isDark ? const Color(0xFF182422) : const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: widget.isDark ? const Color(0xFF2C3E3B) : const Color(0xFFE2E8F0),
-                            width: 1.2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: widget.isDark ? 0.2 : 0.03),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Perk Item Card Header
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: roleAccentColor.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.stars_rounded, size: 14, color: roleAccentColor),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        'সুবিধা / Perk #${index + 1}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                          color: roleAccentColor,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
-                                    padding: const EdgeInsets.all(6),
-                                    minimumSize: const Size(32, 32),
-                                  ),
-                                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
-                                  tooltip: 'এই সুবিধাটি মুছে ফেলুন (Delete)',
-                                  onPressed: () {
-                                    setState(() {
-                                      _perkPairs.removeAt(index);
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-
-                            // Dual Input Fields (Responsive Side-by-Side or Stacked)
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                if (constraints.maxWidth > 560) {
-                                  return Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: TextField(
-                                          controller: pair.bnController,
-                                          onChanged: (_) => setState(() {}),
-                                          decoration: InputDecoration(
-                                            labelText: 'সুবিধা #${index + 1} (বাংলা ভাষায়)',
-                                            hintText: 'যেমন: আনলিমিটেড নাম্বার আনলক',
-                                            prefixIcon: Icon(Icons.check_circle_outline_rounded, color: roleAccentColor, size: 18),
-                                            filled: true,
-                                            fillColor: widget.isDark ? const Color(0xFF121C1A) : Colors.white,
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: widget.isDark ? const Color(0xFF2D3F3C) : const Color(0xFFCBD5E1)),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: widget.isDark ? const Color(0xFF2D3F3C) : const Color(0xFFCBD5E1)),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 14),
-                                      Expanded(
-                                        child: TextField(
-                                          controller: pair.enController,
-                                          onChanged: (_) => setState(() {}),
-                                          decoration: InputDecoration(
-                                            labelText: 'Perk #${index + 1} (in English)',
-                                            hintText: 'e.g. Unlock unlimited contact numbers',
-                                            prefixIcon: const Icon(Icons.translate_rounded, color: Color(0xFF6366F1), size: 18),
-                                            filled: true,
-                                            fillColor: widget.isDark ? const Color(0xFF121C1A) : Colors.white,
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: widget.isDark ? const Color(0xFF2D3F3C) : const Color(0xFFCBD5E1)),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                              borderSide: BorderSide(color: widget.isDark ? const Color(0xFF2D3F3C) : const Color(0xFFCBD5E1)),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                } else {
-                                  return Column(
-                                    children: [
-                                      TextField(
-                                        controller: pair.bnController,
-                                        onChanged: (_) => setState(() {}),
-                                        decoration: InputDecoration(
-                                          labelText: 'সুবিধা #${index + 1} (বাংলা ভাষায়)',
-                                          hintText: 'যেমন: আনলিমিটেড নাম্বার আনলক',
-                                          prefixIcon: Icon(Icons.check_circle_outline_rounded, color: roleAccentColor, size: 18),
-                                          filled: true,
-                                          fillColor: widget.isDark ? const Color(0xFF121C1A) : Colors.white,
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                            borderSide: BorderSide(color: widget.isDark ? const Color(0xFF2D3F3C) : const Color(0xFFCBD5E1)),
-                                          ),
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                            borderSide: BorderSide(color: widget.isDark ? const Color(0xFF2D3F3C) : const Color(0xFFCBD5E1)),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      TextField(
-                                        controller: pair.enController,
-                                        onChanged: (_) => setState(() {}),
-                                        decoration: InputDecoration(
-                                          labelText: 'Perk #${index + 1} (in English)',
-                                          hintText: 'e.g. Unlock unlimited contact numbers',
-                                          prefixIcon: const Icon(Icons.translate_rounded, color: Color(0xFF6366F1), size: 18),
-                                          filled: true,
-                                          fillColor: widget.isDark ? const Color(0xFF121C1A) : Colors.white,
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                            borderSide: BorderSide(color: widget.isDark ? const Color(0xFF2D3F3C) : const Color(0xFFCBD5E1)),
-                                          ),
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                            borderSide: BorderSide(color: widget.isDark ? const Color(0xFF2D3F3C) : const Color(0xFFCBD5E1)),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
+                    // Renders 7 facilities for Tenant, 4 facilities for Owner
+                    _buildQuotaControlSection(roleAccentColor),
 
                     const SizedBox(height: 24),
 
@@ -1931,6 +2121,424 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildQuotaControlSection(Color roleAccentColor) {
+    if (widget.targetRole == SubscriptionTargetRole.tenant) {
+      // 7 Tenant Facilities
+      return Column(
+        children: [
+          // 1. Max rental Demand allowed
+          _buildFacilityControlItem(
+            icon: Icons.post_add_rounded,
+            iconColor: const Color(0xFF0D9488),
+            titleBn: '১. ভাড়ার চাহিদা (Demand) পোস্ট লিমিট',
+            titleEn: '1. Max Rental Demand Allowed',
+            descBn: 'ভাড়াটিয়া সর্বোচ্চ কতটি বাসা খোঁজার চাহিদা পোস্ট করতে পারবে',
+            descEn: 'Maximum number of rental demands tenant can post',
+            isEnabled: _enableMaxPosts,
+            onToggleEnabled: (val) => _enableMaxPosts = val,
+            isUnlimited: _isUnlimitedPosts,
+            onToggleUnlimited: (val) => _isUnlimitedPosts = val,
+            controller: _maxPostsController,
+            hintText: '5',
+            roleAccentColor: roleAccentColor,
+          ),
+
+          // 2. Contact Numbers unlock limit
+          _buildFacilityControlItem(
+            icon: Icons.phone_in_talk_rounded,
+            iconColor: const Color(0xFF2563EB),
+            titleBn: '২. বাড়িওয়ালার কন্টাক্ট নম্বর আনলক লিমিট',
+            titleEn: '2. Landlord Contact Numbers Unlock Limit',
+            descBn: 'ভাড়াটিয়া সর্বোচ্চ কতজন বাড়িওয়ালার সরাসরি ফোন নম্বর আনলক করতে পারবে',
+            descEn: 'Maximum landlord contact numbers tenant can unlock',
+            isEnabled: _enableUnlockNumbers,
+            onToggleEnabled: (val) => _enableUnlockNumbers = val,
+            isUnlimited: _isUnlimitedUnlocks,
+            onToggleUnlimited: (val) => _isUnlimitedUnlocks = val,
+            controller: _unlockNumbersController,
+            hintText: '10',
+            roleAccentColor: roleAccentColor,
+          ),
+
+          // 3. Sub area unlock limit
+          _buildFacilityControlItem(
+            icon: Icons.location_city_rounded,
+            iconColor: const Color(0xFF059669),
+            titleBn: '৩. সাব-এরিয়া লোকেশন আনলক লিমিট',
+            titleEn: '3. Sub-Area Location Unlock Limit',
+            descBn: 'বাসার বিস্তারিত সাব-এরিয়া / এলাকা দেখার এক্সেস লিমিট',
+            descEn: 'Access to specific sub-area addresses and locations',
+            isEnabled: _enableSubArea,
+            onToggleEnabled: (val) => _enableSubArea = val,
+            isUnlimited: _isUnlimitedSubArea,
+            onToggleUnlimited: (val) => _isUnlimitedSubArea = val,
+            controller: _subAreaController,
+            hintText: '5',
+            roleAccentColor: roleAccentColor,
+          ),
+
+          // 4. Full photo Gallery Access limit
+          _buildFacilityControlItem(
+            icon: Icons.photo_library_rounded,
+            iconColor: const Color(0xFF9333EA),
+            titleBn: '৪. সকল অতিরিক্ত ছবি ও ফুল গ্যালারি এক্সেস লিমিট',
+            titleEn: '4. Full Photo Gallery Access Limit',
+            descBn: 'বাসার সকল রুম ও ওয়াশরুমের অতিরিক্ত ছবি দেখার লিমিট',
+            descEn: 'Access full gallery of all owner photos beyond preview',
+            isEnabled: _enablePhotoGallery,
+            onToggleEnabled: (val) => _enablePhotoGallery = val,
+            isUnlimited: _isUnlimitedPhotoGallery,
+            onToggleUnlimited: (val) => _isUnlimitedPhotoGallery = val,
+            controller: _photoGalleryController,
+            hintText: '10',
+            roleAccentColor: roleAccentColor,
+          ),
+
+          // 5. Nearby or Radius Search limit
+          _buildFacilityControlItem(
+            icon: Icons.radar_rounded,
+            iconColor: const Color(0xFFEA580C),
+            titleBn: '৫. কাছাকাছি (রেডিয়াস) সার্চ লিমিট',
+            titleEn: '5. Nearby / Radius Search Limit',
+            descBn: 'মানচিত্র ও জিপিএস দিয়ে আশেপাশের বাসা খোঁজার লিমিট',
+            descEn: 'Radius search based on GPS & nearby landmarks',
+            isEnabled: _enableNearbySearch,
+            onToggleEnabled: (val) => _enableNearbySearch = val,
+            isUnlimited: _isUnlimitedNearby,
+            onToggleUnlimited: (val) => _isUnlimitedNearby = val,
+            controller: _nearbySearchController,
+            hintText: '10',
+            roleAccentColor: roleAccentColor,
+          ),
+
+          // 6. Google Map Directions limit
+          _buildFacilityControlItem(
+            icon: Icons.directions_rounded,
+            iconColor: const Color(0xFF0284C7),
+            titleBn: '৬. গুগল ম্যাপস দিকনির্দেশনা (Directions) লিমিট',
+            titleEn: '6. Google Map Directions Limit',
+            descBn: 'গুগল ম্যাপে লাইভ রুট ও দিকনির্দেশনা ব্যবহারের লিমিট',
+            descEn: 'Navigation and directions limit via Google Maps',
+            isEnabled: _enableMapDirections,
+            onToggleEnabled: (val) => _enableMapDirections = val,
+            isUnlimited: _isUnlimitedDirections,
+            onToggleUnlimited: (val) => _isUnlimitedDirections = val,
+            controller: _mapDirectionsController,
+            hintText: '10',
+            roleAccentColor: roleAccentColor,
+          ),
+
+          // 7. AI Assistant Search limit
+          _buildFacilityControlItem(
+            icon: Icons.auto_awesome_rounded,
+            iconColor: const Color(0xFFD946EF),
+            titleBn: '৭. এআই সহকারী (AI Assistant) সার্চ লিমিট',
+            titleEn: '7. AI Assistant Search Limit',
+            descBn: 'স্মার্ট এআই দিয়ে বাসা খোঁজার ও তথ্য পাওয়ার লিমিট',
+            descEn: 'Smart AI-powered house hunting & matching searches',
+            isEnabled: _enableAiAssistant,
+            onToggleEnabled: (val) => _enableAiAssistant = val,
+            isUnlimited: _isUnlimitedAi,
+            onToggleUnlimited: (val) => _isUnlimitedAi = val,
+            controller: _aiAssistantController,
+            hintText: '50',
+            roleAccentColor: roleAccentColor,
+          ),
+        ],
+      );
+    } else {
+      // 4 House Owner Facilities
+      return Column(
+        children: [
+          // 1. Max rental Listings allowed
+          _buildFacilityControlItem(
+            icon: Icons.home_work_rounded,
+            iconColor: const Color(0xFFD97706),
+            titleBn: '১. বাসাভাড়া বিজ্ঞাপন পোস্ট লিমিট',
+            titleEn: '1. Max Rental Listings Allowed',
+            descBn: 'বাড়িওয়ালা সর্বোচ্চ কতটি বাসাভাড়া বিজ্ঞাপন পোস্ট করতে পারবে',
+            descEn: 'Maximum rental listings landlord can publish',
+            isEnabled: _enableMaxPosts,
+            onToggleEnabled: (val) => _enableMaxPosts = val,
+            isUnlimited: _isUnlimitedPosts,
+            onToggleUnlimited: (val) => _isUnlimitedPosts = val,
+            controller: _maxPostsController,
+            hintText: '10',
+            roleAccentColor: roleAccentColor,
+          ),
+
+          // 2. Contact Numbers of tenant unlock limit
+          _buildFacilityControlItem(
+            icon: Icons.contact_phone_rounded,
+            iconColor: const Color(0xFF2563EB),
+            titleBn: '২. ভাড়াটিয়াদের নম্বর আনলক লিমিট',
+            titleEn: '2. Tenant Contact Numbers Unlock Limit',
+            descBn: 'চাহিদা প্রকাশকারী ভাড়াটিয়াদের সরাসরি ফোন নম্বর আনলক লিমিট',
+            descEn: 'Direct unlock of tenant phone numbers from demands',
+            isEnabled: _enableUnlockNumbers,
+            onToggleEnabled: (val) => _enableUnlockNumbers = val,
+            isUnlimited: _isUnlimitedUnlocks,
+            onToggleUnlimited: (val) => _isUnlimitedUnlocks = val,
+            controller: _unlockNumbersController,
+            hintText: '10',
+            roleAccentColor: roleAccentColor,
+          ),
+
+          // 3. Sub area unlock limit
+          _buildFacilityControlItem(
+            icon: Icons.map_rounded,
+            iconColor: const Color(0xFF059669),
+            titleBn: '৩. চাহিদার সাব-এরিয়া লোকেশন আনলক লিমিট',
+            titleEn: '3. Demand Sub-Area Unlock Limit',
+            descBn: 'ভাড়াটিয়াদের চাহিদার বিস্তারিত সাব-এরিয়া দেখার এক্সেস লিমিট',
+            descEn: 'Access to tenant demand sub-area locations',
+            isEnabled: _enableSubArea,
+            onToggleEnabled: (val) => _enableSubArea = val,
+            isUnlimited: _isUnlimitedSubArea,
+            onToggleUnlimited: (val) => _isUnlimitedSubArea = val,
+            controller: _subAreaController,
+            hintText: '5',
+            roleAccentColor: roleAccentColor,
+          ),
+
+          // 4. AI Assistant Search limit
+          _buildFacilityControlItem(
+            icon: Icons.auto_awesome_rounded,
+            iconColor: const Color(0xFFD946EF),
+            titleBn: '৪. এআই সহকারী (AI Assistant) সার্চ লিমিট',
+            titleEn: '4. AI Assistant Search Limit',
+            descBn: 'উপযুক্ত ভাড়াটিয়া খোঁজা ও রেন্টাল পরামর্শের এআই লিমিট',
+            descEn: 'Smart AI assistant search for finding prospective tenants',
+            isEnabled: _enableAiAssistant,
+            onToggleEnabled: (val) => _enableAiAssistant = val,
+            isUnlimited: _isUnlimitedAi,
+            onToggleUnlimited: (val) => _isUnlimitedAi = val,
+            controller: _aiAssistantController,
+            hintText: '50',
+            roleAccentColor: roleAccentColor,
+          ),
+        ],
+      );
+    }
+  }
+
+  Widget _buildFacilityControlItem({
+    required IconData icon,
+    required Color iconColor,
+    required String titleBn,
+    required String titleEn,
+    required String descBn,
+    required String descEn,
+    required bool isEnabled,
+    required ValueChanged<bool> onToggleEnabled,
+    required bool isUnlimited,
+    required ValueChanged<bool> onToggleUnlimited,
+    required TextEditingController controller,
+    required String hintText,
+    required Color roleAccentColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: widget.isDark ? const Color(0xFF14201E) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isEnabled
+              ? roleAccentColor.withValues(alpha: 0.35)
+              : (widget.isDark ? const Color(0xFF253734) : const Color(0xFFE2E8F0)),
+          width: isEnabled ? 1.5 : 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: widget.isDark ? 0.2 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Row 1: Header with Icon, Bilingual Title & Clickable ON/OFF Switch
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: isEnabled
+                      ? iconColor.withValues(alpha: 0.15)
+                      : (widget.isDark ? Colors.grey[800] : Colors.grey[200]),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: isEnabled ? iconColor : Colors.grey,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.isBn ? titleBn : titleEn,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13.5,
+                        color: isEnabled
+                            ? (widget.isDark ? Colors.white : Colors.black87)
+                            : (widget.isDark ? Colors.grey[400] : Colors.grey[600]),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.isBn ? descBn : descEn,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: widget.isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Clickable ON / OFF Button / Switch
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Switch.adaptive(
+                    value: isEnabled,
+                    activeTrackColor: roleAccentColor,
+                    activeThumbColor: Colors.white,
+                    onChanged: (val) {
+                      onToggleEnabled(val);
+                      setState(() {});
+                    },
+                  ),
+                  Text(
+                    isEnabled
+                        ? (widget.isBn ? 'সক্রিয় (ON)' : 'Active (ON)')
+                        : (widget.isBn ? 'বন্ধ (OFF)' : 'Inactive (OFF)'),
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      color: isEnabled ? roleAccentColor : Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Row 2: Limit Selector (Only visible if isEnabled == true)
+          if (isEnabled) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: roleAccentColor.withValues(alpha: widget.isDark ? 0.08 : 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: roleAccentColor.withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.isBn ? 'সুবিধার মাত্রা নির্ধারণ করুন:' : 'Configure Limit Mode:',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDark ? Colors.grey[300] : Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      // Choice 1: Set Number
+                      ChoiceChip(
+                        avatar: const Icon(Icons.pin_rounded, size: 15),
+                        label: Text(widget.isBn ? 'নির্দিষ্ট সংখ্যা (Set Number)' : 'Set Number'),
+                        selected: !isUnlimited,
+                        selectedColor: roleAccentColor.withValues(alpha: 0.2),
+                        onSelected: (selected) {
+                          if (selected) {
+                            onToggleUnlimited(false);
+                            setState(() {});
+                          }
+                        },
+                      ),
+                      // Choice 2: Unlimited
+                      ChoiceChip(
+                        avatar: const Icon(Icons.all_inclusive_rounded, size: 15),
+                        label: Text(widget.isBn ? 'আনলিমিটেড (Unlimited)' : 'Unlimited'),
+                        selected: isUnlimited,
+                        selectedColor: roleAccentColor.withValues(alpha: 0.2),
+                        onSelected: (selected) {
+                          if (selected) {
+                            onToggleUnlimited(true);
+                            setState(() {});
+                          }
+                        },
+                      ),
+                      // Numeric input field if !isUnlimited
+                      if (!isUnlimited) ...[
+                        const SizedBox(width: 6),
+                        SizedBox(
+                          width: 130,
+                          height: 38,
+                          child: TextField(
+                            controller: controller,
+                            keyboardType: TextInputType.number,
+                            onChanged: (_) => setState(() {}),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            decoration: InputDecoration(
+                              hintText: hintText,
+                              suffixText: widget.isBn ? 'বার/টি' : 'Times',
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.block_rounded, size: 14, color: Colors.grey),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    widget.isBn
+                        ? 'এই সুবিধাটি এই প্যাকেজে সম্পূর্ণ বন্ধ (Disabled). ইউজার এটি দেখতে বা ব্যবহার করতে পারবে না।'
+                        : 'Disabled for this plan. Users will not have access to this facility.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: widget.isDark ? Colors.grey[400] : Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -2373,14 +2981,6 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
     );
   }
 
-  Widget _quickPerkChip(String bn, String en) {
-    return ActionChip(
-      avatar: const Icon(Icons.add_rounded, size: 14),
-      label: Text(bn, style: const TextStyle(fontSize: 11)),
-      onPressed: () => _addSuggestedPerk(bn.replaceFirst('+ ', ''), en.replaceFirst('+ ', '')),
-    );
-  }
-
   Widget _sectionTitle(String title, Color color) {
     return Text(
       title,
@@ -2410,7 +3010,25 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
         ? (_badgeEnController.text.trim().isNotEmpty ? _badgeEnController.text.trim() : '20% OFF')
         : (_badgeBnController.text.trim().isNotEmpty ? _badgeBnController.text.trim() : '২০% ছাড়');
 
-    final perks = _perkPairs.map((p) => _previewInEnglish ? p.enController.text.trim() : p.bnController.text.trim()).where((t) => t.isNotEmpty).toList();
+    // Auto-generate bilingual perks dynamically based on enabled facilities and limits
+    final perksMap = SubscriptionPlanModel.generateBilingualPerks(
+      targetRole: widget.targetRole,
+      maxPostsLimit: _getFacilityVal(_enableMaxPosts, _isUnlimitedPosts, _maxPostsController, widget.targetRole == SubscriptionTargetRole.tenant ? 5 : 10),
+      unlockNumbersLimit: _getFacilityVal(_enableUnlockNumbers, _isUnlimitedUnlocks, _unlockNumbersController, 10),
+      subAreaUnlockLimit: _getFacilityVal(_enableSubArea, _isUnlimitedSubArea, _subAreaController, 5),
+      fullPhotoGalleryLimit: widget.targetRole == SubscriptionTargetRole.tenant
+          ? _getFacilityVal(_enablePhotoGallery, _isUnlimitedPhotoGallery, _photoGalleryController, 10)
+          : 0,
+      nearbySearchLimit: widget.targetRole == SubscriptionTargetRole.tenant
+          ? _getFacilityVal(_enableNearbySearch, _isUnlimitedNearby, _nearbySearchController, 10)
+          : 0,
+      mapDirectionsLimit: widget.targetRole == SubscriptionTargetRole.tenant
+          ? _getFacilityVal(_enableMapDirections, _isUnlimitedDirections, _mapDirectionsController, 10)
+          : 0,
+      aiAssistantLimit: _getFacilityVal(_enableAiAssistant, _isUnlimitedAi, _aiAssistantController, 50),
+    );
+
+    final perks = _previewInEnglish ? (perksMap['en'] ?? []) : (perksMap['bn'] ?? []);
 
     return Container(
       decoration: BoxDecoration(
@@ -2438,21 +3056,23 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
-                        ),
-                        if (description.isNotEmpty) ...[
-                          const SizedBox(height: 2),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            description,
-                            style: TextStyle(fontSize: 12, color: widget.isDark ? Colors.grey[400] : Colors.grey[600]),
+                            title,
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
                           ),
+                          if (description.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              description,
+                              style: TextStyle(fontSize: 12, color: widget.isDark ? Colors.grey[400] : Colors.grey[600]),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -2490,28 +3110,37 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
                 const SizedBox(height: 14),
 
                 Text(
-                  _previewInEnglish ? 'Included Plan Perks:' : 'প্যাকেজ অ্যাক্টিভ করলে যা যা পাবেনঃ',
+                  _previewInEnglish ? 'Included Plan Perks (Auto-generated):' : 'প্যাকেজ অ্যাক্টিভ করলে যা যা পাবেন (অটো-জেনারেটেড):',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: roleAccentColor),
                 ),
                 const SizedBox(height: 8),
 
-                Column(
-                  children: perks.map((perk) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(Icons.check_circle_rounded, size: 16, color: roleAccentColor),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(perk, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, height: 1.3)),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
+                if (perks.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      widget.isBn ? 'কোনো সুবিধা সক্রিয় করা হয়নি' : 'No facilities enabled yet',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey, fontStyle: FontStyle.italic),
+                    ),
+                  )
+                else
+                  Column(
+                    children: perks.map((perk) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.check_circle_rounded, size: 16, color: roleAccentColor),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(perk, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, height: 1.3)),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
 
                 const SizedBox(height: 16),
                 SizedBox(
@@ -2597,8 +3226,6 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
         : '$duration Days';
 
     final offer = _hasOffer ? double.tryParse(_offerPriceController.text.trim().toEnglishDigits()) : null;
-    final perksBn = _perkPairs.map((p) => p.bnController.text.trim()).where((t) => t.isNotEmpty).toList();
-    final perksEn = _perkPairs.map((p) => p.enController.text.trim()).where((t) => t.isNotEmpty).toList();
 
     final isEdit = widget.existingPlan != null;
     final planId = isEdit
@@ -2611,6 +3238,36 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
     );
     final durationValue = matchedPreset?.value ?? duration;
     final durationUnit = matchedPreset?.unit ?? 'day';
+
+    // Calculate structured limits: 0 = disabled, -1 = unlimited, >0 = count
+    final int maxPosts = _getFacilityVal(_enableMaxPosts, _isUnlimitedPosts, _maxPostsController, widget.targetRole == SubscriptionTargetRole.tenant ? 5 : 10);
+    final int unlockNumbers = _getFacilityVal(_enableUnlockNumbers, _isUnlimitedUnlocks, _unlockNumbersController, 10);
+    final int subAreaUnlocks = _getFacilityVal(_enableSubArea, _isUnlimitedSubArea, _subAreaController, 5);
+    final int photoGallery = widget.targetRole == SubscriptionTargetRole.tenant
+        ? _getFacilityVal(_enablePhotoGallery, _isUnlimitedPhotoGallery, _photoGalleryController, 10)
+        : 0;
+    final int nearbySearches = widget.targetRole == SubscriptionTargetRole.tenant
+        ? _getFacilityVal(_enableNearbySearch, _isUnlimitedNearby, _nearbySearchController, 10)
+        : 0;
+    final int mapDirections = widget.targetRole == SubscriptionTargetRole.tenant
+        ? _getFacilityVal(_enableMapDirections, _isUnlimitedDirections, _mapDirectionsController, 10)
+        : 0;
+    final int aiQueries = _getFacilityVal(_enableAiAssistant, _isUnlimitedAi, _aiAssistantController, 50);
+
+    // Auto-generate bilingual perks
+    final perksMap = SubscriptionPlanModel.generateBilingualPerks(
+      targetRole: widget.targetRole,
+      maxPostsLimit: maxPosts,
+      unlockNumbersLimit: unlockNumbers,
+      subAreaUnlockLimit: subAreaUnlocks,
+      fullPhotoGalleryLimit: photoGallery,
+      nearbySearchLimit: nearbySearches,
+      mapDirectionsLimit: mapDirections,
+      aiAssistantLimit: aiQueries,
+    );
+
+    final perksBn = perksMap['bn'] ?? [];
+    final perksEn = perksMap['en'] ?? [];
 
     final finalPlan = SubscriptionPlanModel(
       id: planId,
@@ -2633,6 +3290,14 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
       perksEn: perksEn.isNotEmpty ? perksEn : perksBn,
       isPopular: _isPopular,
       displayOrder: isEdit ? widget.existingPlan!.displayOrder : 99,
+      maxPostsLimit: maxPosts,
+      unlockNumbersLimit: unlockNumbers,
+      subAreaUnlockLimit: subAreaUnlocks,
+      fullPhotoGalleryLimit: photoGallery,
+      canAccessAdditionalPhotos: photoGallery != 0,
+      nearbySearchLimit: nearbySearches,
+      mapDirectionsLimit: mapDirections,
+      aiAssistantLimit: aiQueries,
     );
 
     Navigator.pop(context);
@@ -2659,14 +3324,853 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
   }
 }
 
-class _PerkPairControllers {
-  final TextEditingController bnController;
-  final TextEditingController enController;
+/// =========================================================================
+/// 🛡️ ADMIN FREE TIER POLICY TAB (TAB 4)
+/// =========================================================================
+class _AdminFreeTierPolicyTab extends StatefulWidget {
+  final bool isBn;
+  final bool isDark;
 
-  _PerkPairControllers({
-    required this.bnController,
-    required this.enController,
+  const _AdminFreeTierPolicyTab({
+    required this.isBn,
+    required this.isDark,
   });
+
+  @override
+  State<_AdminFreeTierPolicyTab> createState() => _AdminFreeTierPolicyTabState();
+}
+
+class _AdminFreeTierPolicyTabState extends State<_AdminFreeTierPolicyTab> {
+  bool _isInitialized = false;
+  bool _isSavingTenant = false;
+  bool _isSavingOwner = false;
+  late final Stream<FreeTierPolicyModel> _policyStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _policyStream = SubscriptionFirestoreService().streamFreeTierPolicy();
+  }
+
+  // Tenant Free Quotas (7 Facilities)
+  bool _tMaxDemandsEnabled = true;
+  bool _tMaxDemandsUnlimited = false;
+  final _tMaxDemandsCtrl = TextEditingController(text: '1');
+
+  bool _tUnlockNumbersEnabled = true;
+  bool _tUnlockNumbersUnlimited = false;
+  final _tUnlockNumbersCtrl = TextEditingController(text: '5');
+
+  bool _tSubAreaEnabled = false;
+  bool _tSubAreaUnlimited = false;
+  final _tSubAreaCtrl = TextEditingController(text: '0');
+
+  bool _tPhotoGalleryEnabled = false;
+  bool _tPhotoGalleryUnlimited = false;
+  final _tPhotoGalleryCtrl = TextEditingController(text: '0');
+
+  bool _tNearbyEnabled = true;
+  bool _tNearbyUnlimited = false;
+  final _tNearbyCtrl = TextEditingController(text: '3');
+
+  bool _tMapDirectionsEnabled = true;
+  bool _tMapDirectionsUnlimited = false;
+  final _tMapDirectionsCtrl = TextEditingController(text: '2');
+
+  bool _tAiAssistantEnabled = true;
+  bool _tAiAssistantUnlimited = false;
+  final _tAiAssistantCtrl = TextEditingController(text: '2');
+
+  // House Owner Free Quotas (4 Facilities)
+  bool _oMaxListingsEnabled = true;
+  bool _oMaxListingsUnlimited = false;
+  final _oMaxListingsCtrl = TextEditingController(text: '1');
+
+  bool _oUnlockNumbersEnabled = true;
+  bool _oUnlockNumbersUnlimited = false;
+  final _oUnlockNumbersCtrl = TextEditingController(text: '2');
+
+  bool _oSubAreaEnabled = false;
+  bool _oSubAreaUnlimited = false;
+  final _oSubAreaCtrl = TextEditingController(text: '0');
+
+  bool _oAiAssistantEnabled = true;
+  bool _oAiAssistantUnlimited = false;
+  final _oAiAssistantCtrl = TextEditingController(text: '2');
+
+  @override
+  void dispose() {
+    _tMaxDemandsCtrl.dispose();
+    _tUnlockNumbersCtrl.dispose();
+    _tSubAreaCtrl.dispose();
+    _tPhotoGalleryCtrl.dispose();
+    _tNearbyCtrl.dispose();
+    _tMapDirectionsCtrl.dispose();
+    _tAiAssistantCtrl.dispose();
+    _oMaxListingsCtrl.dispose();
+    _oUnlockNumbersCtrl.dispose();
+    _oSubAreaCtrl.dispose();
+    _oAiAssistantCtrl.dispose();
+    super.dispose();
+  }
+
+  void _initFromPolicy(FreeTierPolicyModel p) {
+    // Tenant
+    _tMaxDemandsEnabled = p.tenantMaxDemands != 0;
+    _tMaxDemandsUnlimited = p.tenantMaxDemands == -1;
+    _tMaxDemandsCtrl.text = (_tMaxDemandsUnlimited || !_tMaxDemandsEnabled) ? '1' : p.tenantMaxDemands.toString();
+
+    _tUnlockNumbersEnabled = p.tenantUnlockNumbers != 0;
+    _tUnlockNumbersUnlimited = p.tenantUnlockNumbers == -1;
+    _tUnlockNumbersCtrl.text = (_tUnlockNumbersUnlimited || !_tUnlockNumbersEnabled) ? '5' : p.tenantUnlockNumbers.toString();
+
+    _tSubAreaEnabled = p.tenantSubAreaUnlocks != 0;
+    _tSubAreaUnlimited = p.tenantSubAreaUnlocks == -1;
+    _tSubAreaCtrl.text = (_tSubAreaUnlimited || !_tSubAreaEnabled) ? '2' : p.tenantSubAreaUnlocks.toString();
+
+    _tPhotoGalleryEnabled = p.tenantFullPhotoGallery != 0;
+    _tPhotoGalleryUnlimited = p.tenantFullPhotoGallery == -1;
+    _tPhotoGalleryCtrl.text = (_tPhotoGalleryUnlimited || !_tPhotoGalleryEnabled) ? '2' : p.tenantFullPhotoGallery.toString();
+
+    _tNearbyEnabled = p.tenantNearbySearches != 0;
+    _tNearbyUnlimited = p.tenantNearbySearches == -1;
+    _tNearbyCtrl.text = (_tNearbyUnlimited || !_tNearbyEnabled) ? '3' : p.tenantNearbySearches.toString();
+
+    _tMapDirectionsEnabled = p.tenantMapDirections != 0;
+    _tMapDirectionsUnlimited = p.tenantMapDirections == -1;
+    _tMapDirectionsCtrl.text = (_tMapDirectionsUnlimited || !_tMapDirectionsEnabled) ? '2' : p.tenantMapDirections.toString();
+
+    _tAiAssistantEnabled = p.tenantAiAssistant != 0;
+    _tAiAssistantUnlimited = p.tenantAiAssistant == -1;
+    _tAiAssistantCtrl.text = (_tAiAssistantUnlimited || !_tAiAssistantEnabled) ? '2' : p.tenantAiAssistant.toString();
+
+    // Owner
+    _oMaxListingsEnabled = p.ownerMaxListings != 0;
+    _oMaxListingsUnlimited = p.ownerMaxListings == -1;
+    _oMaxListingsCtrl.text = (_oMaxListingsUnlimited || !_oMaxListingsEnabled) ? '1' : p.ownerMaxListings.toString();
+
+    _oUnlockNumbersEnabled = p.ownerUnlockNumbers != 0;
+    _oUnlockNumbersUnlimited = p.ownerUnlockNumbers == -1;
+    _oUnlockNumbersCtrl.text = (_oUnlockNumbersUnlimited || !_oUnlockNumbersEnabled) ? '2' : p.ownerUnlockNumbers.toString();
+
+    _oSubAreaEnabled = p.ownerSubAreaUnlocks != 0;
+    _oSubAreaUnlimited = p.ownerSubAreaUnlocks == -1;
+    _oSubAreaCtrl.text = (_oSubAreaUnlimited || !_oSubAreaEnabled) ? '2' : p.ownerSubAreaUnlocks.toString();
+
+    _oAiAssistantEnabled = p.ownerAiAssistant != 0;
+    _oAiAssistantUnlimited = p.ownerAiAssistant == -1;
+    _oAiAssistantCtrl.text = (_oAiAssistantUnlimited || !_oAiAssistantEnabled) ? '2' : p.ownerAiAssistant.toString();
+
+    _isInitialized = true;
+  }
+
+  int _getFacilityVal(bool enabled, bool isUnlimited, TextEditingController ctrl, int defaultVal) {
+    if (!enabled) return 0;
+    if (isUnlimited) return -1;
+    final parsed = int.tryParse(ctrl.text.trim().toEnglishDigits());
+    return (parsed != null && parsed > 0) ? parsed : defaultVal;
+  }
+
+  Future<void> _saveTenantPolicy() async {
+    setState(() => _isSavingTenant = true);
+    final tenantData = {
+      'tenantMaxDemands': _getFacilityVal(_tMaxDemandsEnabled, _tMaxDemandsUnlimited, _tMaxDemandsCtrl, 1),
+      'tenantUnlockNumbers': _getFacilityVal(_tUnlockNumbersEnabled, _tUnlockNumbersUnlimited, _tUnlockNumbersCtrl, 5),
+      'tenantSubAreaUnlocks': _getFacilityVal(_tSubAreaEnabled, _tSubAreaUnlimited, _tSubAreaCtrl, 0),
+      'tenantFullPhotoGallery': _getFacilityVal(_tPhotoGalleryEnabled, _tPhotoGalleryUnlimited, _tPhotoGalleryCtrl, 0),
+      'tenantNearbySearches': _getFacilityVal(_tNearbyEnabled, _tNearbyUnlimited, _tNearbyCtrl, 3),
+      'tenantMapDirections': _getFacilityVal(_tMapDirectionsEnabled, _tMapDirectionsUnlimited, _tMapDirectionsCtrl, 2),
+      'tenantAiAssistant': _getFacilityVal(_tAiAssistantEnabled, _tAiAssistantUnlimited, _tAiAssistantCtrl, 2),
+    };
+
+    try {
+      await context.read<SubscriptionProvider>().saveTenantFreeTierPolicy(tenantData);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.isBn
+                  ? 'ভাড়াটিয়া ফ্রি পলিসি সফলভাবে সংরক্ষিত ও কার্যকর হয়েছে!'
+                  : 'Tenant free tier policy saved and updated successfully!',
+            ),
+            backgroundColor: const Color(0xFF0D9488),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving tenant policy: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSavingTenant = false);
+    }
+  }
+
+  Future<void> _saveOwnerPolicy() async {
+    setState(() => _isSavingOwner = true);
+    final ownerData = {
+      'ownerMaxListings': _getFacilityVal(_oMaxListingsEnabled, _oMaxListingsUnlimited, _oMaxListingsCtrl, 1),
+      'ownerUnlockNumbers': _getFacilityVal(_oUnlockNumbersEnabled, _oUnlockNumbersUnlimited, _oUnlockNumbersCtrl, 2),
+      'ownerSubAreaUnlocks': _getFacilityVal(_oSubAreaEnabled, _oSubAreaUnlimited, _oSubAreaCtrl, 0),
+      'ownerAiAssistant': _getFacilityVal(_oAiAssistantEnabled, _oAiAssistantUnlimited, _oAiAssistantCtrl, 2),
+    };
+
+    try {
+      await context.read<SubscriptionProvider>().saveOwnerFreeTierPolicy(ownerData);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.isBn
+                  ? 'বাড়িওয়ালা ফ্রি পলিসি সফলভাবে সংরক্ষিত ও কার্যকর হয়েছে!'
+                  : 'House owner free tier policy saved and updated successfully!',
+            ),
+            backgroundColor: const Color(0xFFD97706),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving owner policy: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSavingOwner = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<FreeTierPolicyModel>(
+      stream: _policyStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !_isInitialized) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: CircularProgressIndicator(color: AppColors.themeColor)),
+          );
+        }
+
+        if (snapshot.hasData && !_isInitialized) {
+          _initFromPolicy(snapshot.data!);
+        } else if (!_isInitialized) {
+          _initFromPolicy(FreeTierPolicyModel.defaultPolicy());
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Banner Header
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: widget.isDark
+                        ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
+                        : [const Color(0xFFEEF2FF), const Color(0xFFE0E7FF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.shield_outlined, color: Color(0xFF6366F1), size: 28),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.isBn
+                                ? 'ফ্রি অ্যাকাউন্ট পলিসি ও ডিফল্ট কোটা নিয়ন্ত্রণ'
+                                : 'Free Tier Policy & Baseline Quotas',
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.isBn
+                                ? 'কোনো পেইড সাবস্ক্রিপশন প্ল্যান গ্রহণ না করলেও ব্যবহারকারীরা ফ্রিতে যেসকল সুবিধা কতবার ব্যবহার করতে পারবেন তা এখান থেকে নিয়ন্ত্রণ করুন।'
+                                : 'Configure the default free usage limits and feature toggles for users without an active subscription.',
+                            style: TextStyle(fontSize: 12, color: widget.isDark ? Colors.grey[400] : Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.restart_alt_rounded, size: 18),
+                      label: Text(widget.isBn ? 'ডিফল্ট রিসেট' : 'Reset Defaults'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF6366F1),
+                        side: const BorderSide(color: Color(0xFF6366F1)),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _initFromPolicy(FreeTierPolicyModel.defaultPolicy());
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Section 1: Tenant Free Policy (7 Facilities)
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0D9488),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    widget.isBn
+                        ? 'ভাড়াটিয়া ফ্রি অ্যাকাউন্ট পলিসি (Tenant Free Facilities - 7 Features)'
+                        : 'Tenant Free Account Policy (7 Features)',
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Color(0xFF0D9488)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              _buildPolicyItem(
+                icon: Icons.post_add_rounded,
+                iconColor: const Color(0xFF0D9488),
+                titleBn: '১. ভাড়ার চাহিদা (Demand) পোস্ট লিমিট',
+                titleEn: '1. Max Rental Demand Allowed',
+                descBn: 'ফ্রি ভাড়াটিয়া সর্বোচ্চ কতটি বাসা খোঁজার চাহিদা পোস্ট করতে পারবে',
+                descEn: 'Maximum rental demands allowed for free tenants',
+                isEnabled: _tMaxDemandsEnabled,
+                onToggleEnabled: (v) => setState(() => _tMaxDemandsEnabled = v),
+                isUnlimited: _tMaxDemandsUnlimited,
+                onToggleUnlimited: (v) => setState(() => _tMaxDemandsUnlimited = v),
+                controller: _tMaxDemandsCtrl,
+                hintText: '1',
+                accentColor: const Color(0xFF0D9488),
+              ),
+
+              _buildPolicyItem(
+                icon: Icons.phone_in_talk_rounded,
+                iconColor: const Color(0xFF2563EB),
+                titleBn: '২. বাড়িওয়ালার কন্টাক্ট নম্বর আনলক লিমিট',
+                titleEn: '2. Landlord Contact Numbers Unlock Limit',
+                descBn: 'ফ্রি ভাড়াটিয়া সর্বোচ্চ কতজন বাড়িওয়ালার সরাসরি ফোন নম্বর দেখতে পারবে',
+                descEn: 'Maximum landlord contacts free tenants can unlock',
+                isEnabled: _tUnlockNumbersEnabled,
+                onToggleEnabled: (v) => setState(() => _tUnlockNumbersEnabled = v),
+                isUnlimited: _tUnlockNumbersUnlimited,
+                onToggleUnlimited: (v) => setState(() => _tUnlockNumbersUnlimited = v),
+                controller: _tUnlockNumbersCtrl,
+                hintText: '5',
+                accentColor: const Color(0xFF0D9488),
+              ),
+
+              _buildPolicyItem(
+                icon: Icons.location_city_rounded,
+                iconColor: const Color(0xFF059669),
+                titleBn: '৩. সাব-এরিয়া লোকেশন আনলক লিমিট',
+                titleEn: '3. Sub-Area Location Unlock Limit',
+                descBn: 'বাসার বিস্তারিত সাব-এরিয়া বা পাড়া দেখার ফ্রি এক্সেস লিমিট',
+                descEn: 'Access to detailed sub-area addresses for free tenants',
+                isEnabled: _tSubAreaEnabled,
+                onToggleEnabled: (v) => setState(() => _tSubAreaEnabled = v),
+                isUnlimited: _tSubAreaUnlimited,
+                onToggleUnlimited: (v) => setState(() => _tSubAreaUnlimited = v),
+                controller: _tSubAreaCtrl,
+                hintText: '0',
+                accentColor: const Color(0xFF0D9488),
+              ),
+
+              _buildPolicyItem(
+                icon: Icons.photo_library_rounded,
+                iconColor: const Color(0xFF9333EA),
+                titleBn: '৪. সকল অতিরিক্ত ছবি ও ফুল গ্যালারি এক্সেস লিমিট',
+                titleEn: '4. Full Photo Gallery Access Limit',
+                descBn: 'বাসার সকল রুম ও ওয়াশরুমের অতিরিক্ত ছবি দেখার ফ্রি লিমিট',
+                descEn: 'Free access to full photo galleries of properties',
+                isEnabled: _tPhotoGalleryEnabled,
+                onToggleEnabled: (v) => setState(() => _tPhotoGalleryEnabled = v),
+                isUnlimited: _tPhotoGalleryUnlimited,
+                onToggleUnlimited: (v) => setState(() => _tPhotoGalleryUnlimited = v),
+                controller: _tPhotoGalleryCtrl,
+                hintText: '0',
+                accentColor: const Color(0xFF0D9488),
+              ),
+
+              _buildPolicyItem(
+                icon: Icons.radar_rounded,
+                iconColor: const Color(0xFFEA580C),
+                titleBn: '৫. কাছাকাছি (রেডিয়াস) সার্চ লিমিট',
+                titleEn: '5. Nearby / Radius Search Limit',
+                descBn: 'ম্যাপে জিপিএস দিয়ে আশেপাশের বাসা খোঁজার ফ্রি লিমিট',
+                descEn: 'Free radius searches based on GPS location',
+                isEnabled: _tNearbyEnabled,
+                onToggleEnabled: (v) => setState(() => _tNearbyEnabled = v),
+                isUnlimited: _tNearbyUnlimited,
+                onToggleUnlimited: (v) => setState(() => _tNearbyUnlimited = v),
+                controller: _tNearbyCtrl,
+                hintText: '3',
+                accentColor: const Color(0xFF0D9488),
+              ),
+
+              _buildPolicyItem(
+                icon: Icons.directions_rounded,
+                iconColor: const Color(0xFF0284C7),
+                titleBn: '৬. গুগল ম্যাপস দিকনির্দেশনা (Directions) লিমিট',
+                titleEn: '6. Google Map Directions Limit',
+                descBn: 'গুগল ম্যাপে লাইভ রুট ও ডিরেকশন ব্যবহারের ফ্রি লিমিট',
+                descEn: 'Free Google Maps directions and navigation access',
+                isEnabled: _tMapDirectionsEnabled,
+                onToggleEnabled: (v) => setState(() => _tMapDirectionsEnabled = v),
+                isUnlimited: _tMapDirectionsUnlimited,
+                onToggleUnlimited: (v) => setState(() => _tMapDirectionsUnlimited = v),
+                controller: _tMapDirectionsCtrl,
+                hintText: '2',
+                accentColor: const Color(0xFF0D9488),
+              ),
+
+              _buildPolicyItem(
+                icon: Icons.auto_awesome_rounded,
+                iconColor: const Color(0xFFD946EF),
+                titleBn: '৭. এআই সহকারী (AI Assistant) সার্চ লিমিট',
+                titleEn: '7. AI Assistant Search Limit',
+                descBn: 'স্মার্ট এআই দিয়ে বাসা খোঁজার ও তথ্য পাওয়ার ফ্রি লিমিট',
+                descEn: 'Free AI assistant searches for rental queries',
+                isEnabled: _tAiAssistantEnabled,
+                onToggleEnabled: (v) => setState(() => _tAiAssistantEnabled = v),
+                isUnlimited: _tAiAssistantUnlimited,
+                onToggleUnlimited: (v) => setState(() => _tAiAssistantUnlimited = v),
+                controller: _tAiAssistantCtrl,
+                hintText: '2',
+                accentColor: const Color(0xFF0D9488),
+              ),
+
+              // Tenant Policy Dedicated Save Action Bar
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                decoration: BoxDecoration(
+                  color: widget.isDark ? const Color(0xFF132A26) : const Color(0xFFF0FDFA),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: const Color(0xFF0D9488).withValues(alpha: 0.35),
+                    width: 1.2,
+                  ),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxWidth < 650;
+                    return Flex(
+                      direction: isCompact ? Axis.vertical : Axis.horizontal,
+                      crossAxisAlignment: isCompact ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          flex: isCompact ? 0 : 1,
+                          child: Row(
+                            children: [
+                              const Icon(Icons.person_pin_rounded, color: Color(0xFF0D9488), size: 24),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.isBn ? 'ভাড়াটিয়া ফ্রি পলিসি সংরক্ষণ' : 'Save Tenant Free Policy',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                                    ),
+                                    Text(
+                                      widget.isBn
+                                          ? 'উপরের ৭টি ফ্রি সুবিধার পরিবর্তন ভাড়াটিয়া অ্যাকাউন্টে অবিলম্বে কার্যকর হবে।'
+                                          : 'Saves and updates the 7 tenant free tier baseline facilities immediately.',
+                                      style: TextStyle(fontSize: 11.5, color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isCompact) const SizedBox(height: 12) else const SizedBox(width: 16),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF0D9488),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          icon: _isSavingTenant
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                )
+                              : const Icon(Icons.cloud_upload_rounded, size: 18),
+                          label: Text(
+                            widget.isBn ? 'ভাড়াটিয়া ফ্রি পলিসি সংরক্ষণ করুন' : 'Save Tenant Free Policy',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                          onPressed: _isSavingTenant ? null : _saveTenantPolicy,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              // Section 2: House Owner Free Policy (4 Facilities)
+              Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    widget.isBn
+                        ? 'বাড়িওয়ালা ফ্রি অ্যাকাউন্ট পলিসি (House Owner Free Facilities - 4 Features)'
+                        : 'House Owner Free Account Policy (4 Features)',
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Color(0xFFF59E0B)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              _buildPolicyItem(
+                icon: Icons.home_work_rounded,
+                iconColor: const Color(0xFFD97706),
+                titleBn: '১. বাসাভাড়া বিজ্ঞাপন পোস্ট লিমিট',
+                titleEn: '1. Max Rental Listings Allowed',
+                descBn: 'ফ্রি বাড়িওয়ালা সর্বোচ্চ কতটি বাসাভাড়া বিজ্ঞাপন পোস্ট করতে পারবে',
+                descEn: 'Maximum rental listings allowed for free landlords',
+                isEnabled: _oMaxListingsEnabled,
+                onToggleEnabled: (v) => setState(() => _oMaxListingsEnabled = v),
+                isUnlimited: _oMaxListingsUnlimited,
+                onToggleUnlimited: (v) => setState(() => _oMaxListingsUnlimited = v),
+                controller: _oMaxListingsCtrl,
+                hintText: '1',
+                accentColor: const Color(0xFFF59E0B),
+              ),
+
+              _buildPolicyItem(
+                icon: Icons.contact_phone_rounded,
+                iconColor: const Color(0xFF2563EB),
+                titleBn: '২. ভাড়াটিয়াদের নম্বর আনলক লিমিট',
+                titleEn: '2. Tenant Contact Numbers Unlock Limit',
+                descBn: 'চাহিদা প্রকাশকারী ভাড়াটিয়াদের সরাসরি ফোন নম্বর আনলক করার ফ্রি লিমিট',
+                descEn: 'Direct unlock of prospective tenant contacts for free landlords',
+                isEnabled: _oUnlockNumbersEnabled,
+                onToggleEnabled: (v) => setState(() => _oUnlockNumbersEnabled = v),
+                isUnlimited: _oUnlockNumbersUnlimited,
+                onToggleUnlimited: (v) => setState(() => _oUnlockNumbersUnlimited = v),
+                controller: _oUnlockNumbersCtrl,
+                hintText: '2',
+                accentColor: const Color(0xFFF59E0B),
+              ),
+
+              _buildPolicyItem(
+                icon: Icons.map_rounded,
+                iconColor: const Color(0xFF059669),
+                titleBn: '৩. চাহিদার সাব-এরিয়া লোকেশন আনলক লিমিট',
+                titleEn: '3. Demand Sub-Area Unlock Limit',
+                descBn: 'ভাড়াটিয়াদের চাহিদার বিস্তারিত সাব-এরিয়া লোকেশন দেখার ফ্রি লিমিট',
+                descEn: 'Access to tenant demand sub-areas for free landlords',
+                isEnabled: _oSubAreaEnabled,
+                onToggleEnabled: (v) => setState(() => _oSubAreaEnabled = v),
+                isUnlimited: _oSubAreaUnlimited,
+                onToggleUnlimited: (v) => setState(() => _oSubAreaUnlimited = v),
+                controller: _oSubAreaCtrl,
+                hintText: '0',
+                accentColor: const Color(0xFFF59E0B),
+              ),
+
+              _buildPolicyItem(
+                icon: Icons.auto_awesome_rounded,
+                iconColor: const Color(0xFFD946EF),
+                titleBn: '৪. এআই সহকারী (AI Assistant) সার্চ লিমিট',
+                titleEn: '4. AI Assistant Search Limit',
+                descBn: 'উপযুক্ত ভাড়াটিয়া খোঁজা ও রেন্টাল পরামর্শের ফ্রি এআই লিমিট',
+                descEn: 'Free AI assistant searches for finding prospective tenants',
+                isEnabled: _oAiAssistantEnabled,
+                onToggleEnabled: (v) => setState(() => _oAiAssistantEnabled = v),
+                isUnlimited: _oAiAssistantUnlimited,
+                onToggleUnlimited: (v) => setState(() => _oAiAssistantUnlimited = v),
+                controller: _oAiAssistantCtrl,
+                hintText: '2',
+                accentColor: const Color(0xFFF59E0B),
+              ),
+
+              // House Owner Policy Dedicated Save Action Bar
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                decoration: BoxDecoration(
+                  color: widget.isDark ? const Color(0xFF2C2210) : const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
+                    width: 1.2,
+                  ),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxWidth < 650;
+                    return Flex(
+                      direction: isCompact ? Axis.vertical : Axis.horizontal,
+                      crossAxisAlignment: isCompact ? CrossAxisAlignment.stretch : CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          flex: isCompact ? 0 : 1,
+                          child: Row(
+                            children: [
+                              const Icon(Icons.home_work_rounded, color: Color(0xFFF59E0B), size: 24),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.isBn ? 'বাড়িওয়ালা ফ্রি পলিসি সংরক্ষণ' : 'Save House Owner Free Policy',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                                    ),
+                                    Text(
+                                      widget.isBn
+                                          ? 'উপরের ৪টি ফ্রি সুবিধার পরিবর্তন বাড়িওয়ালা অ্যাকাউন্টে অবিলম্বে কার্যকর হবে।'
+                                          : 'Saves and updates the 4 house owner free tier baseline facilities immediately.',
+                                      style: TextStyle(fontSize: 11.5, color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isCompact) const SizedBox(height: 12) else const SizedBox(width: 16),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFFD97706),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          icon: _isSavingOwner
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                )
+                              : const Icon(Icons.cloud_upload_rounded, size: 18),
+                          label: Text(
+                            widget.isBn ? 'বাড়িওয়ালা ফ্রি পলিসি সংরক্ষণ করুন' : 'Save House Owner Free Policy',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                          onPressed: _isSavingOwner ? null : _saveOwnerPolicy,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 32),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPolicyItem({
+    required IconData icon,
+    required Color iconColor,
+    required String titleBn,
+    required String titleEn,
+    required String descBn,
+    required String descEn,
+    required bool isEnabled,
+    required ValueChanged<bool> onToggleEnabled,
+    required bool isUnlimited,
+    required ValueChanged<bool> onToggleUnlimited,
+    required TextEditingController controller,
+    required String hintText,
+    required Color accentColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: widget.isDark ? const Color(0xFF14201E) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isEnabled
+              ? accentColor.withValues(alpha: 0.3)
+              : (widget.isDark ? const Color(0xFF253734) : const Color(0xFFE2E8F0)),
+          width: isEnabled ? 1.5 : 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: isEnabled ? iconColor.withValues(alpha: 0.15) : (widget.isDark ? Colors.grey[800] : Colors.grey[200]),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: isEnabled ? iconColor : Colors.grey, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.isBn ? titleBn : titleEn,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13.5,
+                        color: isEnabled
+                            ? (widget.isDark ? Colors.white : Colors.black87)
+                            : (widget.isDark ? Colors.grey[400] : Colors.grey[600]),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.isBn ? descBn : descEn,
+                      style: TextStyle(fontSize: 11.5, color: widget.isDark ? Colors.grey[400] : Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Switch.adaptive(
+                    value: isEnabled,
+                    activeTrackColor: accentColor,
+                    activeThumbColor: Colors.white,
+                    onChanged: onToggleEnabled,
+                  ),
+                  Text(
+                    isEnabled ? (widget.isBn ? 'সক্রিয় (ON)' : 'ON') : (widget.isBn ? 'বন্ধ (OFF)' : 'OFF'),
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      color: isEnabled ? accentColor : Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          if (isEnabled) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: widget.isDark ? 0.08 : 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: accentColor.withValues(alpha: 0.2)),
+              ),
+              child: Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ChoiceChip(
+                    avatar: const Icon(Icons.pin_rounded, size: 15),
+                    label: Text(widget.isBn ? 'নির্দিষ্ট সংখ্যা' : 'Set Limit'),
+                    selected: !isUnlimited,
+                    selectedColor: accentColor.withValues(alpha: 0.2),
+                    onSelected: (selected) {
+                      if (selected) onToggleUnlimited(false);
+                    },
+                  ),
+                  ChoiceChip(
+                    avatar: const Icon(Icons.all_inclusive_rounded, size: 15),
+                    label: Text(widget.isBn ? 'আনলিমিটেড' : 'Unlimited'),
+                    selected: isUnlimited,
+                    selectedColor: accentColor.withValues(alpha: 0.2),
+                    onSelected: (selected) {
+                      if (selected) onToggleUnlimited(true);
+                    },
+                  ),
+                  if (!isUnlimited) ...[
+                    const SizedBox(width: 6),
+                    SizedBox(
+                      width: 120,
+                      height: 38,
+                      child: TextField(
+                        controller: controller,
+                        keyboardType: TextInputType.number,
+                        onChanged: (_) => setState(() {}),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: hintText,
+                          suffixText: widget.isBn ? 'বার/টি' : 'Times',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: 6),
+            Text(
+              widget.isBn
+                  ? '⛔ ফ্রি অ্যাকাউন্টে এই সুবিধাটি বন্ধ (ইউজার দেখতে বা ব্যবহার করতে পারবে না)'
+                  : 'Disabled for free users (Cannot view or access)',
+              style: TextStyle(fontSize: 11, color: widget.isDark ? Colors.grey[500] : Colors.grey[600], fontStyle: FontStyle.italic),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _DurationPresetItem {

@@ -23,21 +23,27 @@ class LocaleProvider extends ChangeNotifier {
     await _setCurrentLocale();
   }
 
-  Future<void> _saveCurrentLocale(Locale locale) async{
-    SharedPreferences sharedPreferences=await
-    SharedPreferences.getInstance();
-    await sharedPreferences.setString(_localeKey, locale.languageCode);
-    
+  Future<void> _saveCurrentLocale(Locale locale) async {
+    try {
+      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+      await sharedPreferences.setString(_localeKey, locale.languageCode);
+    } catch (e) {
+      debugPrint('⚠️ Error saving locale to SharedPreferences: $e');
+    }
   }
 
-  Future<void> _setCurrentLocale()async{
-    SharedPreferences sharedPreferences=await
-    SharedPreferences.getInstance();
-    String? languageCode=sharedPreferences.getString(_localeKey);
-    if(languageCode!=null){
-      _currentLocale=Locale(languageCode);
-    
-  }
+  Future<void> _setCurrentLocale() async {
+    try {
+      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+      String? languageCode = sharedPreferences.getString(_localeKey);
+      if (languageCode != null) {
+        _currentLocale = Locale(languageCode);
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error loading locale from SharedPreferences: $e');
+      _currentLocale = const Locale('en');
+    }
   }
   
 }

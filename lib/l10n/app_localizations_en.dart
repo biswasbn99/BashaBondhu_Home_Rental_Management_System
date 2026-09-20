@@ -1091,13 +1091,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unlockMap => 'Unlock Map';
 
   @override
-  String unlockInfoAndNumberWithQuota(String remaining) {
-    return 'Unlock Info & Contacts ($remaining/5 Free Remaining)';
+  String unlockInfoAndNumberWithQuota(String remaining, String total) {
+    return 'Unlock Info & Contacts ($remaining/$total Free Remaining)';
   }
 
   @override
-  String unlockInfoAndNumberWithQuotaOwner(String remaining) {
-    return 'Unlock Tenant Contact ($remaining/2 Free Remaining)';
+  String unlockInfoAndNumberWithQuotaOwner(String remaining, String total) {
+    return 'Unlock Tenant Contact ($remaining/$total Free Remaining)';
   }
 
   @override
@@ -1110,16 +1110,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unlockPropertyDialogTitle => 'Unlock Property Details & Contact';
 
   @override
-  String unlockPropertyDialogContent(String remaining) {
-    return 'Do you want to use 1 free credit to unlock the exact sub-area, landlord\'s contact numbers, and all gallery photos?\n\n(Your free unlocks remaining: $remaining/5)';
+  String unlockPropertyDialogContent(String remaining, String total) {
+    return 'Do you want to use 1 free credit to unlock the exact sub-area, landlord\'s contact numbers, and all gallery photos?\n\n(Your free unlocks remaining: $remaining/$total)';
   }
 
   @override
   String get unlockDemandDialogTitle => 'Unlock Tenant Contact Number';
 
   @override
-  String unlockDemandDialogContent(String remaining) {
-    return 'Do you want to use 1 free credit to unlock this tenant\'s phone and WhatsApp number?\n\n(Your free unlocks remaining: $remaining/2)';
+  String unlockDemandDialogContent(String remaining, String total) {
+    return 'Do you want to use 1 free credit to unlock this tenant\'s phone and WhatsApp number?\n\n(Your free unlocks remaining: $remaining/$total)';
   }
 
   @override
@@ -1152,8 +1152,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get radiusLimitReachedTitle => 'Free Radius Searches Limit Reached';
 
   @override
-  String get radiusLimitReachedSubtitle =>
-      'You have used all 3 free radius searches. Activate any support package to enjoy unlimited radius searches.';
+  String radiusLimitReachedSubtitle(String limit) {
+    return 'You have used all $limit free nearby searches. Activate a support package to enjoy additional or unlimited nearby searches.';
+  }
 
   @override
   String get maybeLater => 'Maybe Later';

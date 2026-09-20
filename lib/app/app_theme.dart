@@ -3,9 +3,18 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppTheme {
+  static const List<String> _fontFamilyFallback = [
+    'Noto Sans Bengali',
+    'Roboto',
+    'Arial',
+    'sans-serif',
+  ];
+
   static ThemeData get lightTheme => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
+    fontFamily: 'Noto Sans Bengali',
+    fontFamilyFallback: _fontFamilyFallback,
     colorSchemeSeed: AppColors.themeColor,
     scaffoldBackgroundColor: const Color(0xFFF4F7F6),
     cardColor: Colors.white,
@@ -25,6 +34,8 @@ class AppTheme {
   static ThemeData get darkTheme => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+    fontFamily: 'Noto Sans Bengali',
+    fontFamilyFallback: _fontFamilyFallback,
     colorSchemeSeed: AppColors.themeColor,
     scaffoldBackgroundColor: const Color(0xFF0E1615),
     cardColor: const Color(0xFF162120),

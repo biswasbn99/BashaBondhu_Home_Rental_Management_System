@@ -6,24 +6,36 @@ class DecoratedSectionHeader extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.fitTitle = true,
   });
 
   final String title;
   final String? subtitle;
+  final bool fitTitle;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
+    final titleWidget = Text(
+      title,
+      maxLines: fitTitle ? 1 : null,
+      softWrap: !fitTitle,
+      style: theme.textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.bold,
+        fontSize: 14.5,
+        color: theme.colorScheme.onSurface,
+      ),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 2),
               width: 4,
               height: 18,
               decoration: BoxDecoration(
@@ -33,14 +45,13 @@ class DecoratedSectionHeader extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                title,
-                softWrap: true,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
+              child: fitTitle
+                  ? FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: titleWidget,
+                    )
+                  : titleWidget,
             ),
           ],
         ),

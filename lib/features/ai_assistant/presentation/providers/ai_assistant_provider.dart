@@ -13,6 +13,8 @@ import '../../../../features/shared/data/models/division_model.dart';
 import '../../../../features/shared/data/models/sub_area_model.dart';
 import '../../../../features/shared/data/services/policy_firestore_service.dart';
 import '../../../../features/shared/data/services/tenant_demand_firestore_service.dart';
+import '../../../../features/subscription/data/models/free_tier_policy_model.dart';
+import '../../../../features/subscription/data/services/subscription_firestore_service.dart';
 import '../../../../features/tenant/data/models/tenant_demand_model.dart';
 import '../../data/models/ai_message_model.dart';
 import '../../data/services/ai_gemini_service.dart';
@@ -22,6 +24,7 @@ enum WizardMode { none, findHome, postDemand, ownerViewDemands }
 class AIAssistantProvider extends ChangeNotifier {
   final AIGeminiService _geminiService = AIGeminiService();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final SubscriptionFirestoreService _subscriptionService = SubscriptionFirestoreService();
   final stt.SpeechToText _speechToText = stt.SpeechToText();
   final FlutterTts _flutterTts = FlutterTts();
 
@@ -243,11 +246,19 @@ class AIAssistantProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _incrementAiQuery(UserModel user) async {
+    try {
+      await _subscriptionService.incrementAiQueryCount(user.uid, isSubscribed: user.isSubscribed);
+    } catch (_) {}
+  }
+
   /// User Input Handler (Text or 1-tap chip)
   Future<void> handleUserInput({
     required String text,
     required UserModel user,
     required String languageCode,
+    FreeTierPolicyModel? policy,
+    VoidCallback? onAiQueryConsumed,
   }) async {
     final cleanInput = text.trim();
     if (cleanInput.isEmpty) return;
@@ -264,6 +275,58 @@ class AIAssistantProvider extends ChangeNotifier {
       ),
     );
     notifyListeners();
+
+    final lower = cleanInput.toLowerCase();
+
+    // Check if input is purely a package/subscription trigger
+    final isPackagesOnly = cleanInput.contains('প্যাকেজ') ||
+        cleanInput.contains('সাবস্ক্রিপশন') ||
+        lower.contains('subscription') ||
+        lower.contains('package') ||
+        cleanInput.contains('হিস্ট্রি') ||
+        lower.contains('history');
+
+    // Enforce AI Assistant Quota
+    final canUseAi = user.canUseAiAssistantForRole(policy: policy);
+    if (!user.isAdmin && !canUseAi && !isPackagesOnly) {
+      _activeWizard = WizardMode.none;
+      final int freeLimit = user.isHouseOwner
+          ? (policy?.ownerAiAssistant ?? 2)
+          : (policy?.tenantAiAssistant ?? 2);
+      final freeLimitStr = freeLimit.toString().toLocalizedDigits(languageCode);
+
+      final quotaMsg = isBn
+          ? (user.isSubscribed
+              ? '⚠️ আপনার সাবস্ক্রিপশন প্যাকেজের **এআই সহকারী ব্যবহারের কোটা শেষ** হয়ে গেছে। নিরবচ্ছিন্ন এআই সহায়তা ও সকল অপশন ব্যবহারের জন্য অনুগ্রহ করে প্যাকেজ আপগ্রেড বা রিনিউ করুন।'
+              : (freeLimit <= 0
+                  ? '⚠️ ফ্রি অ্যাকাউন্টে **এআই সহকারী সুবিধা বন্ধ** রয়েছে। বাসাবন্ধু এআই সহকারীর সহায়তা পেতে অনুগ্রহ করে সাবস্ক্রিপশন প্যাকেজ গ্রহণ করুন।'
+                  : '⚠️ আপনার ফ্রি অ্যাকাউন্টের নির্ধারিত **$freeLimitStrটি এআই ব্যবহারের কোটা শেষ** হয়ে গেছে। বাসাবন্ধু এআই সহকারীর সহায়তা ও সকল অপশন পেতে অনুগ্রহ করে সাবস্ক্রিপশন প্যাকেজ গ্রহণ বা আপগ্রেড করুন।'))
+          : (user.isSubscribed
+              ? '⚠️ You have reached your subscription package AI Assistant query quota. Please upgrade or renew your plan to continue using all AI features.'
+              : (freeLimit <= 0
+                  ? '⚠️ AI Assistant is not available on the free tier. Please subscribe to a package to access all AI features.'
+                  : '⚠️ You have used all $freeLimit of your free AI queries. Please upgrade to a subscription package to continue using AI Assistant.'));
+
+      history.add(
+        AIMessageModel(
+          id: 'quota_${DateTime.now().millisecondsSinceEpoch}',
+          text: quotaMsg,
+          sender: AIMessageSender.ai,
+          actionCardType: AIActionCardType.subscriptionPackages,
+          interactiveChips: isBn ? ['💳 সাবস্ক্রিপশন প্যাকেজ'] : ['💳 Subscription Packages'],
+        ),
+      );
+      notifyListeners();
+      return;
+    }
+
+    if (!user.isAdmin && !isPackagesOnly) {
+      if (onAiQueryConsumed != null) {
+        onAiQueryConsumed();
+      } else {
+        _incrementAiQuery(user);
+      }
+    }
 
     // Check if user clicked early Search in Wizard
     if (cleanInput.contains('🔍') || cleanInput.toLowerCase().contains('search now') || cleanInput.contains('সার্চ করব')) {
@@ -287,9 +350,6 @@ class AIAssistantProvider extends ChangeNotifier {
       await _showOwnerTenantDemands(user, languageCode, targetArea: cleanInput);
       return;
     }
-
-    // Check Trigger Keywords for Starting Wizards
-    final lower = cleanInput.toLowerCase();
 
     // ==========================================
     // HOUSE OWNER 4 CORE OPTIONS & PERSISTENT TRIGGER
@@ -1582,13 +1642,35 @@ $topBudgetListEn
   // ==========================================
 
   /// Public method to trigger the 3 core options menu for tenants
-  void showTenant3Options(UserModel user, String languageCode) {
-    _showTenant3Options(user, languageCode);
+  void showTenant3Options(UserModel user, String languageCode, [FreeTierPolicyModel? policy]) {
+    _showTenant3Options(user, languageCode, policy);
   }
 
-  void _showTenant3Options(UserModel user, String languageCode) {
+  void _showTenant3Options(UserModel user, String languageCode, [FreeTierPolicyModel? policy]) {
     final isBn = languageCode == 'bn';
     final history = _userSessions[_activeUserId] ??= [];
+
+    if (!user.isAdmin && !user.canUseAiAssistantForRole(policy: policy)) {
+      final int freeLimit = policy?.tenantAiAssistant ?? 2;
+      final freeLimitStr = freeLimit.toString().toLocalizedDigits(languageCode);
+      history.add(
+        AIMessageModel(
+          id: 'quota_${DateTime.now().millisecondsSinceEpoch}',
+          text: isBn
+              ? (user.isSubscribed
+                  ? '⚠️ আপনার সাবস্ক্রিপশন প্যাকেজের **এআই সহকারী ব্যবহারের কোটা শেষ** হয়ে গেছে। নিরবচ্ছিন্ন এআই সহায়তা ও সকল অপশন ব্যবহারের জন্য অনুগ্রহ করে প্যাকেজ আপগ্রেড বা রিনিউ করুন।'
+                  : '⚠️ ফ্রি অ্যাকাউন্টের নির্ধারিত **$freeLimitStrটি এআই ব্যবহারের কোটা শেষ** হয়ে গেছে। এআই সহকারীর সকল অপশন ও সুবিধা পেতে অনুগ্রহ করে একটি সাবস্ক্রিপশন প্ল্যান গ্রহণ বা আপগ্রেড করুন।')
+              : (user.isSubscribed
+                  ? '⚠️ You have reached your subscription package AI Assistant query quota. Please upgrade or renew your plan.'
+                  : '⚠️ You have used all $freeLimit of your free AI queries. Please upgrade to a subscription plan to continue.'),
+          sender: AIMessageSender.ai,
+          actionCardType: AIActionCardType.subscriptionPackages,
+          interactiveChips: isBn ? ['💳 সাবস্ক্রিপশন প্যাকেজ'] : ['💳 Subscription Packages'],
+        ),
+      );
+      notifyListeners();
+      return;
+    }
     history.add(
       AIMessageModel(
         id: 'opt_${DateTime.now().millisecondsSinceEpoch}',
@@ -1897,13 +1979,35 @@ $topPriceListEn
   // ==========================================
 
   /// Public method to trigger the 4 core options menu at any time
-  void showHouseOwner4Options(UserModel user, String languageCode) {
-    _showHouseOwner4Options(user, languageCode);
+  void showHouseOwner4Options(UserModel user, String languageCode, [FreeTierPolicyModel? policy]) {
+    _showHouseOwner4Options(user, languageCode, policy);
   }
 
-  void _showHouseOwner4Options(UserModel user, String languageCode) {
+  void _showHouseOwner4Options(UserModel user, String languageCode, [FreeTierPolicyModel? policy]) {
     final isBn = languageCode == 'bn';
     final history = _userSessions[_activeUserId] ??= [];
+
+    if (!user.isAdmin && !user.canUseAiAssistantForRole(policy: policy)) {
+      final int freeLimit = policy?.ownerAiAssistant ?? 2;
+      final freeLimitStr = freeLimit.toString().toLocalizedDigits(languageCode);
+      history.add(
+        AIMessageModel(
+          id: 'quota_${DateTime.now().millisecondsSinceEpoch}',
+          text: isBn
+              ? (user.isSubscribed
+                  ? '⚠️ আপনার সাবস্ক্রিপশন প্যাকেজের **এআই সহকারী ব্যবহারের কোটা শেষ** হয়ে গেছে। নিরবচ্ছিন্ন এআই সহায়তা ও সকল অপশন ব্যবহারের জন্য অনুগ্রহ করে প্যাকেজ আপগ্রেড বা রিনিউ করুন।'
+                  : '⚠️ ফ্রি অ্যাকাউন্টের নির্ধারিত **$freeLimitStrটি এআই ব্যবহারের কোটা শেষ** হয়ে গেছে। এআই সহকারীর সকল অপশন ও সুবিধা পেতে অনুগ্রহ করে একটি সাবস্ক্রিপশন প্ল্যান গ্রহণ বা আপগ্রেড করুন।')
+              : (user.isSubscribed
+                  ? '⚠️ You have reached your subscription package AI Assistant query quota. Please upgrade or renew your plan.'
+                  : '⚠️ You have used all $freeLimit of your free AI queries. Please upgrade to a subscription plan to continue.'),
+          sender: AIMessageSender.ai,
+          actionCardType: AIActionCardType.subscriptionPackages,
+          interactiveChips: isBn ? ['💳 সাবস্ক্রিপশন প্যাকেজ'] : ['💳 Subscription Packages'],
+        ),
+      );
+      notifyListeners();
+      return;
+    }
     history.add(
       AIMessageModel(
         id: 'opt_${DateTime.now().millisecondsSinceEpoch}',

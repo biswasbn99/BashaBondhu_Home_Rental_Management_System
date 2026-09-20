@@ -7,8 +7,21 @@ import '../../../auth/data/models/user_model.dart';
 import '../../data/providers/admin_provider.dart';
 import '../../data/services/admin_firestore_service.dart';
 
-class AdminSidebar extends StatelessWidget {
+class AdminSidebar extends StatefulWidget {
   const AdminSidebar({super.key});
+
+  @override
+  State<AdminSidebar> createState() => _AdminSidebarState();
+}
+
+class _AdminSidebarState extends State<AdminSidebar> {
+  late final Stream<List<UserModel>> _usersStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _usersStream = AdminFirestoreService().streamAllUsers();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +35,7 @@ class AdminSidebar extends StatelessWidget {
     final Color borderColor = isDark ? const Color(0xFF1A332E) : const Color(0xFFE2E8F0);
 
     return StreamBuilder<List<UserModel>>(
-      stream: AdminFirestoreService().streamAllUsers(),
+      stream: _usersStream,
       builder: (context, snapshot) {
         final pendingCount = (snapshot.data ?? []).where((u) => u.isVerificationPending).length;
 

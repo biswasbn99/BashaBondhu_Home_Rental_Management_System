@@ -53,7 +53,6 @@ class PrivacyHelper {
     required List<String> unlockedPropertyIds,
   }) {
     if (isGuest) return false;
-    if (isSubscribed) return true;
     return unlockedPropertyIds.contains(propertyId);
   }
 
@@ -65,7 +64,6 @@ class PrivacyHelper {
     required List<String> unlockedDemandIds,
   }) {
     if (isGuest) return false;
-    if (isSubscribed) return true;
     return unlockedDemandIds.contains(demandId);
   }
 

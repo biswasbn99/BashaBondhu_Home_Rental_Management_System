@@ -15,6 +15,22 @@ class PaymentMethodBottomSheet {
     final isDark = theme.brightness == Brightness.dark;
     final isBn = Localizations.localeOf(context).languageCode == 'bn';
 
+    if (user.isSubscribed && !user.canUpgradeOrAddPlan()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            isBn
+                ? 'আপনার বর্তমান সক্রিয় প্যাকেজের সকল কোটা এখনও অবশিষ্ট রয়েছে। যেকোন একটি কোটা শেষ হলে আপনি নতুন প্ল্যান যোগ বা আপগ্রেড করতে পারবেন।'
+                : 'All quotas in your active plan(s) are still available. You can add or upgrade a plan once any quota is exhausted.',
+          ),
+          backgroundColor: Colors.orange.shade800,
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

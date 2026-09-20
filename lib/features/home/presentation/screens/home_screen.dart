@@ -4,12 +4,17 @@ import 'package:provider/provider.dart';
 import '../../../../app/app_colors.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../auth/data/models/user_model.dart';
 import '../../../auth/data/providers/user_provider.dart';
+import '../../../shared/data/providers/app_settings_provider.dart';
 import '../../../shared/data/services/property_firestore_service.dart';
 import '../../../shared/presentation/providers/main_nav_holder_provider.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
 import '../../../shared/presentation/widgets/language_action_button.dart';
 import '../../../shared/presentation/widgets/post_icon.dart';
+import '../../../subscription/data/models/free_tier_policy_model.dart';
+import '../../../subscription/data/providers/subscription_provider.dart';
+import '../../../subscription/presentation/screens/tenant_subscription_screen.dart';
 import '../../../wishlist/data/providers/wishlist_provider.dart';
 import '../../../ai_assistant/presentation/widgets/ai_floating_button.dart';
 import '../../data/models/property_model.dart';
@@ -137,7 +142,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final userProvider = Provider.of<UserProvider>(context);
-    final bool isGuest = userProvider.isGuest;
+    final user = userProvider.user;
+    final bool isGuest = userProvider.isGuest || user == null;
+    final subProvider = context.watch<SubscriptionProvider>();
+    final policy = subProvider.currentPolicy ?? FreeTierPolicyModel.defaultPolicy();
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isBn = languageCode == 'bn';
 
     return Scaffold(
       appBar: MainAppBar(
@@ -173,9 +183,23 @@ class _HomeScreenState extends State<HomeScreen> {
               if (index == 0) {
                 return _buildBanners(context);
               }
-              // Item 1: Spacer
+              // Item 1: Spacer & Google Map Direction Quota Bar for Tenant
               if (index == 1) {
-                return const SizedBox(height: 20);
+                final showQuotaBar = !isGuest && !user.isHouseOwner && !user.isAdmin;
+                return Column(
+                  children: [
+                    const SizedBox(height: 14),
+                    if (showQuotaBar)
+                      _buildMapDirectionQuotaBar(
+                        context: context,
+                        user: user,
+                        policy: policy,
+                        isBn: isBn,
+                        isDark: isDark,
+                        languageCode: languageCode,
+                      ),
+                  ],
+                );
               }
               // Item 2: Header with sort dropdown
               if (index == 2) {
@@ -361,6 +385,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = context.localizations;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final appSettings = context.watch<AppSettingsProvider>();
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isBn = languageCode == 'bn';
+
+    final String bannerText = appSettings.getBannerNotice(languageCode);
+    final bool hasCustomNotice = bannerText.trim().isNotEmpty;
 
     return Material(
       color: Colors.transparent,
@@ -399,7 +429,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            l10n.bannerTitle,
+                            hasCustomNotice
+                                ? (isBn ? 'জরুরি নোটিশ / ঘোষণা' : 'Notice & Announcement')
+                                : l10n.bannerTitle,
                             style: const TextStyle(
                               color: Colors.deepOrange,
                               fontWeight: FontWeight.bold,
@@ -411,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      l10n.bannerSubtitle,
+                      hasCustomNotice ? bannerText : l10n.bannerSubtitle,
                       style: TextStyle(
                         fontSize: 11.5,
                         height: 1.35,
@@ -437,6 +469,110 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMapDirectionQuotaBar({
+    required BuildContext context,
+    required UserModel user,
+    required FreeTierPolicyModel policy,
+    required bool isBn,
+    required bool isDark,
+    required String languageCode,
+  }) {
+    final canUse = user.canOpenMapDirectionsForPolicy(policy: policy);
+    final remaining = user.remainingMapDirectionsForPolicy(policy: policy);
+    final isUnlimited = remaining >= 999;
+    final remainingStr = remaining.toString().toLocalizedDigits(languageCode);
+
+    final int configuredLimit = user.isSubscribed
+        ? (user.activeSubscriptionPlans.isNotEmpty
+            ? user.activeSubscriptionPlans.first.mapDirectionsLimit
+            : user.subscriptionMaxMapDirections)
+        : policy.tenantMapDirections;
+    final limitStr = configuredLimit == -1
+        ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
+        : configuredLimit.toString().toLocalizedDigits(languageCode);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: !canUse
+            ? (isDark ? const Color(0xFF331616) : const Color(0xFFFEF2F2))
+            : (isDark ? const Color(0xFF132A26) : const Color(0xFFF0FDFA)),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: !canUse
+              ? Colors.redAccent.withValues(alpha: 0.35)
+              : const Color(0xFF0D9488).withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            !canUse ? Icons.lock_outline_rounded : Icons.directions_rounded,
+            size: 16,
+            color: !canUse ? Colors.redAccent : const Color(0xFF0D9488),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              !canUse
+                  ? (isBn
+                      ? '⚠️ গুগল ম্যাপ ডিরেকশন সীমা শেষ ($limitStrটির সব ব্যবহৃত)! আপগ্রেড করুন'
+                      : '⚠️ Google Maps navigation limit reached ($limitStr used)! Upgrade')
+                  : (isUnlimited
+                      ? (isBn
+                          ? '⭐ প্রিমিয়াম: গুগল ম্যাপে আনলিমিটেড ডিরেকশন সুবিধা'
+                          : '⭐ Premium: Unlimited Google Maps directions')
+                      : (isBn
+                          ? 'গুগল ম্যাপ ডিরেকশন বাকি: $remainingStrটি (মোট $limitStrটি)'
+                          : 'Google Map Directions: $remainingStr left of $limitStr')),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: !canUse
+                    ? Colors.redAccent
+                    : (isDark ? const Color(0xFF5EEAD4) : const Color(0xFF0F766E)),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () => Navigator.pushNamed(context, TenantSubscriptionScreen.name),
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+              decoration: BoxDecoration(
+                color: !canUse ? Colors.redAccent : const Color(0xFF0D9488),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    !canUse ? Icons.rocket_launch_rounded : Icons.star_rounded,
+                    size: 12,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    isBn ? (!canUse ? 'আপগ্রেড' : 'প্ল্যান') : (!canUse ? 'Upgrade' : 'Plans'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

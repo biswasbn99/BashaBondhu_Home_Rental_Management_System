@@ -254,8 +254,23 @@ class TenantDemandFirestoreService {
     });
   }
 
+  Stream<List<TenantDemandModel>>? _cachedDemandsOnlyActive;
+  Stream<List<TenantDemandModel>>? _cachedDemandsAll;
+
+  void invalidateCache() {
+    _cachedDemandsOnlyActive = null;
+    _cachedDemandsAll = null;
+  }
+
   /// Stream all tenant demands for House Owners (only approved and active by default, respecting verification gating)
   Stream<List<TenantDemandModel>> streamAllDemands({bool onlyActive = true}) {
+    if (onlyActive && _cachedDemandsOnlyActive != null) {
+      return _cachedDemandsOnlyActive!;
+    }
+    if (!onlyActive && _cachedDemandsAll != null) {
+      return _cachedDemandsAll!;
+    }
+
     StreamSubscription? demandSub;
     StreamSubscription? settSub;
     QuerySnapshot? lastDemands;
@@ -267,8 +282,10 @@ class TenantDemandFirestoreService {
       if (lastDemands == null) return;
       bool requireVerified = false;
       if (lastSettings != null && lastSettings!.exists && lastSettings!.data() != null) {
-        final data = lastSettings!.data() as Map<String, dynamic>;
-        requireVerified = (data['requireVerifiedTenantForDemands'] as bool?) ?? false;
+        final rawSettings = lastSettings!.data();
+        if (rawSettings is Map) {
+          requireVerified = (rawSettings['requireVerifiedTenantForDemands'] as bool?) ?? false;
+        }
       }
 
       final List<TenantDemandModel> list = [];
@@ -301,14 +318,24 @@ class TenantDemandFirestoreService {
 
     controller = StreamController<List<TenantDemandModel>>.broadcast(
       onListen: () {
-        settSub = _settingsDoc.snapshots().listen(
+        if (lastDemands != null) {
+          emit();
+        }
+        settSub ??= _settingsDoc.snapshots().listen(
           (snap) {
-            lastSettings = snap;
+            try {
+              lastSettings = snap;
+              emit();
+            } catch (e) {
+              debugPrint('⚠️ Error processing settings in demands stream: $e');
+            }
+          },
+          onError: (e) {
+            debugPrint('⚠️ Settings stream error in demands (using defaults): $e');
             emit();
           },
-          onError: (e) => debugPrint('Error in settings stream: $e'),
         );
-        demandSub = _demandsCollection.snapshots().listen(
+        demandSub ??= _demandsCollection.snapshots().listen(
           (snap) {
             lastDemands = snap;
             emit();
@@ -319,12 +346,17 @@ class TenantDemandFirestoreService {
         );
       },
       onCancel: () {
-        demandSub?.cancel();
-        settSub?.cancel();
+        // Cached broadcast stream retains listeners for responsiveness
       },
     );
 
-    return controller.stream;
+    final stream = controller.stream;
+    if (onlyActive) {
+      _cachedDemandsOnlyActive = stream;
+    } else {
+      _cachedDemandsAll = stream;
+    }
+    return stream;
   }
 
   /// Toggle demand fulfilled status (isFulfilled = true/false)

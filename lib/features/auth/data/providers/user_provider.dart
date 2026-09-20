@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import '../../../subscription/data/models/subscription_model.dart';
 
 class UserProvider extends ChangeNotifier {
   static const String _kCachedUserKey = 'cached_user_profile';
@@ -107,6 +108,58 @@ class UserProvider extends ChangeNotifier {
 
   StreamSubscription<DocumentSnapshot>? _userSubscription;
 
+  Future<Map<String, dynamic>> _enrichUserSubscriptionData(Map<String, dynamic> data, String uid) async {
+    final planId = data['subscriptionPlanId'] as String?;
+    final expiryStr = data['subscriptionExpiryDate'] as String?;
+    final activePlans = data['activeSubscriptionPlans'] as List?;
+
+    if (planId != null && planId.isNotEmpty && (activePlans == null || activePlans.isEmpty)) {
+      if (expiryStr != null && expiryStr.isNotEmpty) {
+        final expiry = DateTime.tryParse(expiryStr);
+        if (expiry != null && expiry.isAfter(DateTime.now())) {
+          try {
+            final planDoc = await _firestore.collection('subscription_plans').doc(planId).get();
+            if (planDoc.exists && planDoc.data() != null) {
+              final planMap = planDoc.data()!;
+              final userPlan = UserSubscriptionPlan(
+                id: planId,
+                planId: planId,
+                titleBn: planMap['titleBn'] ?? 'সক্রিয় প্যাকেজ',
+                titleEn: planMap['titleEn'] ?? 'Active Package',
+                purchasedAt: DateTime.now().subtract(const Duration(days: 1)),
+                expiresAt: expiry,
+                amountPaid: (planMap['regularPrice'] as num?)?.toDouble() ?? 0.0,
+                durationDays: (planMap['durationDays'] as num?)?.toInt() ?? 30,
+                maxPostsLimit: (planMap['maxPostsLimit'] as num?)?.toInt() ?? 3,
+                postsUsed: (data['subscriptionPostsCount'] as num?)?.toInt() ?? 0,
+                unlockNumbersLimit: (planMap['unlockNumbersLimit'] as num?)?.toInt() ?? 3,
+                unlocksUsed: (data['subscriptionUnlocksCount'] as num?)?.toInt() ?? 0,
+                subAreaUnlockLimit: (planMap['subAreaUnlockLimit'] as num?)?.toInt() ?? 3,
+                subAreaUnlocksUsed: 0,
+                fullPhotoGalleryLimit: (planMap['fullPhotoGalleryLimit'] as num?)?.toInt() ?? 3,
+                photoGalleryUsed: 0,
+                nearbySearchLimit: (planMap['nearbySearchLimit'] as num?)?.toInt() ?? 3,
+                nearbySearchUsed: (data['subscriptionNearbySearchCount'] as num?)?.toInt() ?? 0,
+                mapDirectionsLimit: (planMap['mapDirectionsLimit'] as num?)?.toInt() ?? 3,
+                mapDirectionsUsed: (data['subscriptionMapDirectionsCount'] as num?)?.toInt() ?? 0,
+                aiAssistantLimit: (planMap['aiAssistantLimit'] as num?)?.toInt() ?? 3,
+                aiAssistantUsed: (data['aiAssistantQueryCount'] as num?)?.toInt() ?? 0,
+              );
+
+              data['activeSubscriptionPlans'] = [userPlan.toMap()];
+              await _firestore.collection('users').doc(uid).set({
+                'activeSubscriptionPlans': [userPlan.toMap()],
+              }, SetOptions(merge: true));
+            }
+          } catch (e) {
+            debugPrint('Error enriching active subscription plan: $e');
+          }
+        }
+      }
+    }
+    return data;
+  }
+
   Future<void> fetchUserData(String uid) async {
     _isLoading = true;
     notifyListeners();
@@ -115,22 +168,24 @@ class UserProvider extends ChangeNotifier {
       // 1. Initial immediate fetch
       DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists && doc.data() != null) {
-        final data = Map<String, dynamic>.from(doc.data() as Map);
+        var data = Map<String, dynamic>.from(doc.data() as Map);
         if (!data.containsKey('uid') || (data['uid'] as String).isEmpty) {
           data['uid'] = uid;
         }
+        data = await _enrichUserSubscriptionData(data, uid);
         _user = UserModel.fromMap(data);
         await _saveToCache(_user!);
       }
 
       // 2. Real-time stream subscription so any admin verification/unverification updates live instantly
       _userSubscription?.cancel();
-      _userSubscription = _firestore.collection('users').doc(uid).snapshots().listen((snapshot) {
+      _userSubscription = _firestore.collection('users').doc(uid).snapshots().listen((snapshot) async {
         if (snapshot.exists && snapshot.data() != null) {
-          final liveData = Map<String, dynamic>.from(snapshot.data() as Map);
+          var liveData = Map<String, dynamic>.from(snapshot.data() as Map);
           if (!liveData.containsKey('uid') || (liveData['uid'] as String).isEmpty) {
             liveData['uid'] = uid;
           }
+          liveData = await _enrichUserSubscriptionData(liveData, uid);
           _user = UserModel.fromMap(liveData);
           _saveToCache(_user!);
           notifyListeners();

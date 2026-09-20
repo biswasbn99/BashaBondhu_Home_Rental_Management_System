@@ -2169,14 +2169,14 @@ abstract class AppLocalizations {
   /// No description provided for @unlockInfoAndNumberWithQuota.
   ///
   /// In en, this message translates to:
-  /// **'Unlock Info & Contacts ({remaining}/5 Free Remaining)'**
-  String unlockInfoAndNumberWithQuota(String remaining);
+  /// **'Unlock Info & Contacts ({remaining}/{total} Free Remaining)'**
+  String unlockInfoAndNumberWithQuota(String remaining, String total);
 
   /// No description provided for @unlockInfoAndNumberWithQuotaOwner.
   ///
   /// In en, this message translates to:
-  /// **'Unlock Tenant Contact ({remaining}/2 Free Remaining)'**
-  String unlockInfoAndNumberWithQuotaOwner(String remaining);
+  /// **'Unlock Tenant Contact ({remaining}/{total} Free Remaining)'**
+  String unlockInfoAndNumberWithQuotaOwner(String remaining, String total);
 
   /// No description provided for @loginToUnlockInfo.
   ///
@@ -2199,8 +2199,8 @@ abstract class AppLocalizations {
   /// No description provided for @unlockPropertyDialogContent.
   ///
   /// In en, this message translates to:
-  /// **'Do you want to use 1 free credit to unlock the exact sub-area, landlord\'s contact numbers, and all gallery photos?\n\n(Your free unlocks remaining: {remaining}/5)'**
-  String unlockPropertyDialogContent(String remaining);
+  /// **'Do you want to use 1 free credit to unlock the exact sub-area, landlord\'s contact numbers, and all gallery photos?\n\n(Your free unlocks remaining: {remaining}/{total})'**
+  String unlockPropertyDialogContent(String remaining, String total);
 
   /// No description provided for @unlockDemandDialogTitle.
   ///
@@ -2211,8 +2211,8 @@ abstract class AppLocalizations {
   /// No description provided for @unlockDemandDialogContent.
   ///
   /// In en, this message translates to:
-  /// **'Do you want to use 1 free credit to unlock this tenant\'s phone and WhatsApp number?\n\n(Your free unlocks remaining: {remaining}/2)'**
-  String unlockDemandDialogContent(String remaining);
+  /// **'Do you want to use 1 free credit to unlock this tenant\'s phone and WhatsApp number?\n\n(Your free unlocks remaining: {remaining}/{total})'**
+  String unlockDemandDialogContent(String remaining, String total);
 
   /// No description provided for @unlockSuccessMessage.
   ///
@@ -2265,8 +2265,8 @@ abstract class AppLocalizations {
   /// No description provided for @radiusLimitReachedSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'You have used all 3 free radius searches. Activate any support package to enjoy unlimited radius searches.'**
-  String get radiusLimitReachedSubtitle;
+  /// **'You have used all {limit} free nearby searches. Activate a support package to enjoy additional or unlimited nearby searches.'**
+  String radiusLimitReachedSubtitle(String limit);
 
   /// No description provided for @maybeLater.
   ///

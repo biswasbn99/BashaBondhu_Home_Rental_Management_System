@@ -360,32 +360,36 @@
   "mapLockedTitle": "Map & GPS Location Locked",
   "mapLockedSubtitle": "Unlock property details to view exact location and Google Maps navigation directions.",
   "unlockMap": "Unlock Map",
-  "unlockInfoAndNumberWithQuota": "Unlock Info & Contacts ({remaining}/5 Free Remaining)",
+  "unlockInfoAndNumberWithQuota": "Unlock Info & Contacts ({remaining}/{total} Free Remaining)",
   "@unlockInfoAndNumberWithQuota": {
     "placeholders": {
-      "remaining": {"type": "String"}
+      "remaining": {"type": "String"},
+      "total": {"type": "String"}
     }
   },
-  "unlockInfoAndNumberWithQuotaOwner": "Unlock Tenant Contact ({remaining}/2 Free Remaining)",
+  "unlockInfoAndNumberWithQuotaOwner": "Unlock Tenant Contact ({remaining}/{total} Free Remaining)",
   "@unlockInfoAndNumberWithQuotaOwner": {
     "placeholders": {
-      "remaining": {"type": "String"}
+      "remaining": {"type": "String"},
+      "total": {"type": "String"}
     }
   },
   "loginToUnlockInfo": "Login to Unlock Info & Contacts",
   "unlockWithSupportPackage": "👑 Get Support Package to Unlock",
   "unlockPropertyDialogTitle": "Unlock Property Details & Contact",
-  "unlockPropertyDialogContent": "Do you want to use 1 free credit to unlock the exact sub-area, landlord's contact numbers, and all gallery photos?\n\n(Your free unlocks remaining: {remaining}/5)",
+  "unlockPropertyDialogContent": "Do you want to use 1 free credit to unlock the exact sub-area, landlord's contact numbers, and all gallery photos?\n\n(Your free unlocks remaining: {remaining}/{total})",
   "@unlockPropertyDialogContent": {
     "placeholders": {
-      "remaining": {"type": "String"}
+      "remaining": {"type": "String"},
+      "total": {"type": "String"}
     }
   },
   "unlockDemandDialogTitle": "Unlock Tenant Contact Number",
-  "unlockDemandDialogContent": "Do you want to use 1 free credit to unlock this tenant's phone and WhatsApp number?\n\n(Your free unlocks remaining: {remaining}/2)",
+  "unlockDemandDialogContent": "Do you want to use 1 free credit to unlock this tenant's phone and WhatsApp number?\n\n(Your free unlocks remaining: {remaining}/{total})",
   "@unlockDemandDialogContent": {
     "placeholders": {
-      "remaining": {"type": "String"}
+      "remaining": {"type": "String"},
+      "total": {"type": "String"}
     }
   },
   "unlockSuccessMessage": "Property details, sub-area, and landlord contact unlocked successfully!",
@@ -403,7 +407,12 @@
   "loginToUnlockTenantContact": "Login to View Tenant Contact",
   "unlockWithHouseOwnerPackage": "👑 Get House Owner Package to Unlock",
   "radiusLimitReachedTitle": "Free Radius Searches Limit Reached",
-  "radiusLimitReachedSubtitle": "You have used all 3 free radius searches. Activate any support package to enjoy unlimited radius searches.",
+  "radiusLimitReachedSubtitle": "You have used all {limit} free nearby searches. Activate a support package to enjoy additional or unlimited nearby searches.",
+  "@radiusLimitReachedSubtitle": {
+    "placeholders": {
+      "limit": {"type": "String"}
+    }
+  },
   "maybeLater": "Maybe Later",
   "viewPackages": "View Packages",
   "tenantQuotaOverviewTitle": "Free Account Limit Overview",

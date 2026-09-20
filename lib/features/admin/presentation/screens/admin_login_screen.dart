@@ -1,3 +1,4 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -64,9 +65,27 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       );
     } else {
       final rawError = adminProvider.lastErrorMessage;
-      final errorMsg = !isBn && (rawError == null || rawError.contains('ভুল') || rawError.contains('ব্যর্থ'))
-          ? 'Invalid email or password! Please check your credentials.'
-          : (rawError ?? (isBn ? 'ভুল ইমেইল বা পাসওয়ার্ড! সঠিক তথ্য দিন।' : 'Invalid email or password! Please check your credentials.'));
+      String errorMsg;
+      if (isBn) {
+        if (rawError == null ||
+            rawError.contains('Invalid') ||
+            rawError.contains('wrong-password') ||
+            rawError.contains('invalid-credential')) {
+          errorMsg = 'ভুল ইমেইল বা পাসওয়ার্ড! সঠিক তথ্য দিয়ে চেষ্টা করুন।';
+        } else if (rawError.contains('not authorized')) {
+          errorMsg = 'এই অ্যাকাউন্টটি অ্যাডমিন হিসেবে অনুমোদিত নয়।';
+        } else {
+          errorMsg = rawError;
+        }
+      } else {
+        if (rawError != null && rawError.contains('অনুমোদিত নয়')) {
+          errorMsg = 'This account is not authorized as an Admin.';
+        } else if (rawError != null && (rawError.contains('ভুল') || rawError.contains('ব্যর্থ'))) {
+          errorMsg = 'Invalid email or password! Please check your credentials.';
+        } else {
+          errorMsg = rawError ?? 'Login failed! Please try again.';
+        }
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -216,10 +235,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           prefixIcon: const Icon(Icons.email_outlined),
                         ),
                         validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
+                          final trimmed = val?.trim() ?? '';
+                          if (trimmed.isEmpty) {
                             return isBn ? 'অনুগ্রহ করে ইমেইল অ্যাড্রেস লিখুন' : 'Please enter your email address';
                           }
-                          if (!val.contains('@') || !val.contains('.')) {
+                          if (!EmailValidator.validate(trimmed)) {
                             return isBn ? 'সঠিক ইমেইল অ্যাড্রেস লিখুন' : 'Please enter a valid email address';
                           }
                           return null;
@@ -246,8 +266,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           ),
                         ),
                         validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
+                          final trimmed = val?.trim() ?? '';
+                          if (trimmed.isEmpty) {
                             return isBn ? 'অনুগ্রহ করে পাসওয়ার্ড লিখুন' : 'Please enter your password';
+                          }
+                          if (trimmed.length < 6) {
+                            return isBn ? 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে' : 'Password must be at least 6 characters';
                           }
                           return null;
                         },

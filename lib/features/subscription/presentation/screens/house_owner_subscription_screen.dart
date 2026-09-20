@@ -11,6 +11,7 @@ import '../../data/models/subscription_model.dart';
 import '../../data/providers/subscription_provider.dart';
 import 'subscription_history_screen.dart';
 import '../widgets/payment_method_sheet.dart';
+import '../widgets/subscription_status_details_modal.dart';
 
 class HouseOwnerSubscriptionScreen extends StatelessWidget {
   const HouseOwnerSubscriptionScreen({super.key});
@@ -148,11 +149,6 @@ class HouseOwnerSubscriptionScreen extends StatelessWidget {
                 );
               },
             ),
-
-            const SizedBox(height: 20),
-
-            // --- 5. Owner Free Limit Summary ---
-            _buildOwnerFreeTierStatusCard(context, user, isDark),
           ],
         ),
       ),
@@ -232,7 +228,15 @@ class HouseOwnerSubscriptionScreen extends StatelessWidget {
 
   Widget _buildActivePlanCard(BuildContext context, UserModel user, bool isDark, bool isBn) {
     final expiry = user.expiryDateTime;
-    final diffDays = expiry != null ? expiry.difference(DateTime.now()).inDays : 0;
+    final diffDays = expiry != null ? (expiry.difference(DateTime.now()).inHours / 24).ceil() : 0;
+    final activePlans = user.activePlans;
+
+    String formatQuota(int remaining) {
+      if (remaining >= 999) {
+        return isBn ? 'আনলিমিটেড' : 'Unlimited';
+      }
+      return remaining.toString().toLocalizedDigits(isBn ? 'bn' : 'en');
+    }
 
     return Container(
       width: double.infinity,
@@ -243,116 +247,176 @@ class HouseOwnerSubscriptionScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.green.shade600, width: 1.5),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.verified_rounded, color: Colors.green, size: 32),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isBn ? 'আপনার বাড়িওয়ালা প্রিমিয়াম প্যাকেজ সক্রিয় আছে' : 'Your House Owner Premium Plan is Active',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14.5,
-                    color: Colors.green,
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.verified_rounded, color: Colors.green, size: 30),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      activePlans.length > 1
+                          ? (isBn
+                              ? 'আপনার ${activePlans.length.toString().toLocalizedDigits("bn")}টি বাড়িওয়ালা প্যাকেজ সক্রিয়'
+                              : 'You Have ${activePlans.length} Active Owner Plans')
+                          : (isBn ? 'আপনার বাড়িওয়ালা প্যাকেজ সক্রিয়' : 'Active House Owner Plan'),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.green,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isBn
+                          ? 'সর্বোচ্চ মেয়াদ বাকি: ${diffDays.toString().toLocalizedDigits("bn")} দিন'
+                          : 'Max remaining validity: $diffDays Days',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.grey[300] : Colors.grey[800],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  isBn
-                      ? 'মেয়াদ বাকি: ${diffDays.toString().toLocalizedDigits("bn")} দিন (আনলিমিটেড বিজ্ঞাপন পোস্ট ও ভাড়াটিয়া ডাটাবেস সক্রিয়)'
-                      : 'Remaining: $diffDays Days (Unlimited rental listings & tenant database active)',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[300] : Colors.grey[800],
+              ),
+            ],
+          ),
+
+          // Multiple Active Plans Badges
+          if (activePlans.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: activePlans.asMap().entries.map((entry) {
+                final idx = entry.key + 1;
+                final p = entry.value;
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green.shade400, width: 1),
+                  ),
+                  child: Text(
+                    isBn
+                        ? 'প্ল্যান $idx: ${p.titleBn.isNotEmpty ? p.titleBn : p.titleEn} (${p.remainingDays.toString().toLocalizedDigits("bn")} দিন বাকি)'
+                        : 'Plan $idx: ${p.titleEn.isNotEmpty ? p.titleEn : p.titleBn} (${p.remainingDays}d left)',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.green.shade300 : Colors.green.shade900,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Colors.green),
+          const SizedBox(height: 10),
+          Text(
+            isBn ? 'প্যাকেজের বর্তমান অবশিষ্ট সর্বমোট কোটাঃ' : 'Total Remaining Quotas (Across Active Plans):',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green),
+          ),
+          const SizedBox(height: 8),
+          _buildQuotaRow(
+            isBn ? '🏠 বাড়ি ভাড়া বিজ্ঞাপন পোস্ট বাকি' : 'Rental Listings Remaining',
+            formatQuota(user.remainingPosts),
+            user.canCreatePost,
+          ),
+          const SizedBox(height: 6),
+          _buildQuotaRow(
+            isBn ? '🔓 ভাড়াটিয়ার নম্বর আনলক বাকি' : 'Tenant Contact Unlocks Remaining',
+            formatQuota(user.remainingContactUnlocks),
+            user.canUnlockContact,
+          ),
+          const SizedBox(height: 6),
+          _buildQuotaRow(
+            isBn ? '📍 চাহিদার সাব-এরিয়া আনলক বাকি' : 'Demand Sub-Areas Remaining',
+            formatQuota(user.remainingSubAreaUnlocks),
+            user.canUnlockSubArea,
+          ),
+          const SizedBox(height: 6),
+          _buildQuotaRow(
+            isBn ? '🤖 এআই সহকারী প্রশ্ন বাকি' : 'AI Assistant Queries Remaining',
+            formatQuota(user.remainingAiQueries),
+            user.canUseAiAssistant,
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.blue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, size: 16, color: Colors.blue),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    isBn
+                        ? '💡 কোটা শেষ হলে নিচে থেকে যেকোনো প্যাকেজ নিয়ে সাথে সাথে আপগ্রেড করতে পারবেন। সব প্ল্যানের কোটা একাউন্টে যুক্ত থাকবে।'
+                        : '💡 If quota runs out, you can instantly purchase another plan below to upgrade. Quotas accumulate automatically.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.blue.shade200 : Colors.blue.shade900,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOwnerFreeTierStatusCard(BuildContext context, UserModel user, bool isDark) {
-    final int usedUnlocks = user.unlockedDemandIds.length;
-
-    final languageCode = Localizations.localeOf(context).languageCode;
-    final l10n = context.localizations;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[900] : Colors.grey[100],
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? Colors.grey[800]! : Colors.grey[300]!,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.info_outline_rounded, size: 18, color: Colors.grey[600]),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  l10n.ownerQuotaOverviewTitle,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 10),
-          _buildQuotaRow(
-            l10n.ownerDemandUnlocksQuotaLabel,
-            l10n.quotaRemainingWithUsed(
-              user.freeDemandUnlocksRemaining.toLocalizedDigits(languageCode),
-              2.toLocalizedDigits(languageCode),
-              usedUnlocks.toLocalizedDigits(languageCode),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.green),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              icon: const Icon(Icons.visibility_rounded, size: 16, color: Colors.green),
+              label: Text(
+                isBn ? 'সকল প্ল্যানের বিস্তারিত ব্রেকডাউন দেখুন' : 'View Detailed Active Plans Breakdown',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.green),
+              ),
+              onPressed: () => SubscriptionStatusDetailsModal.show(context, user),
             ),
-            user.freeDemandUnlocksRemaining > 0,
-          ),
-          const SizedBox(height: 6),
-          _buildQuotaRow(
-            l10n.ownerPostQuotaLabel,
-            l10n.maxTwoFree,
-            true,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildQuotaRow(String title, String count, bool hasLeft) {
+  Widget _buildQuotaRow(String label, String value, bool isAvailable) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 12),
-          ),
+        Icon(
+          isAvailable ? Icons.check_circle_outline : Icons.cancel_outlined,
+          size: 15,
+          color: isAvailable ? Colors.green : Colors.redAccent,
         ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: hasLeft ? Colors.green.withValues(alpha: 0.12) : Colors.red.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            count,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: hasLeft ? Colors.green : Colors.redAccent,
-            ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(label, style: const TextStyle(fontSize: 12.5)),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12.5,
+            fontWeight: FontWeight.bold,
+            color: isAvailable ? Colors.green.shade700 : Colors.redAccent,
           ),
         ),
       ],
@@ -389,7 +453,11 @@ class _OwnerPackageCard extends StatelessWidget {
         : (plan.descriptionEn.isNotEmpty ? plan.descriptionEn : plan.descriptionBn);
 
     final perks = isBn ? plan.perksBn : plan.perksEn;
-    final displayPerks = perks.isNotEmpty ? perks : (isBn ? plan.perksEn : plan.perksBn);
+    final rawPerks = perks.isNotEmpty ? perks : (isBn ? plan.perksEn : plan.perksBn);
+    final displayPerks = rawPerks.where((p) {
+      final lower = p.toLowerCase();
+      return !lower.contains('ad-free') && !lower.contains('বিজ্ঞাপন মুক্ত');
+    }).toList();
 
     final offerBadge = isBn
         ? (plan.offerBadgeTextBn.isNotEmpty ? plan.offerBadgeTextBn : plan.offerBadgeTextEn)
@@ -407,22 +475,31 @@ class _OwnerPackageCard extends StatelessWidget {
         ? '/ ${plan.durationBn.isNotEmpty ? plan.durationBn : "${plan.durationDays.toString().toLocalizedDigits('bn')} দিন"}'
         : '/ ${plan.durationEn.isNotEmpty ? plan.durationEn : "${plan.durationDays} Days"}';
 
+    final bool isSubscribed = user.isSubscribed;
+    final bool isCurrentPlan = isSubscribed && user.subscriptionPlanId == plan.id;
+    final expiry = user.expiryDateTime;
+    final diffDays = expiry != null ? (expiry.difference(DateTime.now()).inHours / 24).ceil() : 0;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF172220) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isPopular
-              ? Colors.amber.shade700
-              : (isDark ? const Color(0xFF263936) : const Color(0xFFE2EBE9)),
-          width: isPopular ? 2 : 1,
+          color: isCurrentPlan
+              ? Colors.green.shade600
+              : (isPopular
+                  ? Colors.amber.shade700
+                  : (isDark ? const Color(0xFF263936) : const Color(0xFFE2EBE9))),
+          width: isCurrentPlan ? 2.2 : (isPopular ? 2 : 1),
         ),
         boxShadow: [
           BoxShadow(
-            color: isPopular
-                ? Colors.amber.withValues(alpha: 0.12)
-                : Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            color: isCurrentPlan
+                ? Colors.green.withValues(alpha: 0.15)
+                : (isPopular
+                    ? Colors.amber.withValues(alpha: 0.12)
+                    : Colors.black.withValues(alpha: isDark ? 0.2 : 0.04)),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -441,7 +518,7 @@ class _OwnerPackageCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.only(right: (hasOffer || isPopular) ? 75 : 0),
+                        padding: EdgeInsets.only(right: (isCurrentPlan || hasOffer || isPopular) ? 75 : 0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -481,7 +558,9 @@ class _OwnerPackageCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
-                        color: isPopular ? Colors.amber.shade700 : AppColors.themeColor,
+                        color: isCurrentPlan
+                            ? Colors.green.shade600
+                            : (isPopular ? Colors.amber.shade700 : AppColors.themeColor),
                       ),
                     ),
                     Text(
@@ -503,12 +582,48 @@ class _OwnerPackageCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
+
+                // Structured Quota Badges
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    _quotaBadge(
+                      Icons.post_add_rounded,
+                      isBn
+                          ? 'বিজ্ঞাপন: ${plan.maxPostsLimit == -1 ? "আনলিমিটেড" : plan.maxPostsLimit.toString().toLocalizedDigits("bn")}'
+                          : 'Listings: ${plan.maxPostsLimit == -1 ? "Unlimited" : plan.maxPostsLimit}',
+                      Colors.blue,
+                    ),
+                    _quotaBadge(
+                      Icons.lock_open_rounded,
+                      isBn
+                          ? 'ভাড়াটিয়া আনলক: ${plan.unlockNumbersLimit == -1 ? "আনলিমিটেড" : plan.unlockNumbersLimit.toString().toLocalizedDigits("bn")}'
+                          : 'Tenant Unlocks: ${plan.unlockNumbersLimit == -1 ? "Unlimited" : plan.unlockNumbersLimit}',
+                      Colors.orange,
+                    ),
+                    _quotaBadge(
+                      Icons.auto_awesome_rounded,
+                      isBn
+                          ? 'এআই: ${plan.aiAssistantLimit == -1 ? "আনলিমিটেড" : plan.aiAssistantLimit.toString().toLocalizedDigits("bn")}'
+                          : 'AI: ${plan.aiAssistantLimit == -1 ? "Unlimited" : plan.aiAssistantLimit}',
+                      Colors.purple,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
 
                 // Perks Header
                 Text(
                   isBn ? 'প্যাকেজ অ্যাক্টিভ করলে যা যা পাবেনঃ' : 'Included Plan Perks:',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: isPopular ? Colors.amber.shade700 : AppColors.themeColor),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: isCurrentPlan
+                        ? Colors.green.shade600
+                        : (isPopular ? Colors.amber.shade700 : AppColors.themeColor),
+                  ),
                 ),
                 const SizedBox(height: 8),
 
@@ -520,7 +635,13 @@ class _OwnerPackageCard extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.check_circle_rounded, size: 16, color: isPopular ? Colors.amber.shade700 : AppColors.themeColor),
+                          Icon(
+                            Icons.check_circle_rounded,
+                            size: 16,
+                            color: isCurrentPlan
+                                ? Colors.green.shade600
+                                : (isPopular ? Colors.amber.shade700 : AppColors.themeColor),
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -535,35 +656,131 @@ class _OwnerPackageCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // Choose Plan Button
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () {
-                      PaymentMethodBottomSheet.show(
-                        context: context,
-                        plan: plan,
-                        user: user,
-                      );
-                    },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: isPopular ? Colors.amber.shade700 : AppColors.themeColor,
-                      foregroundColor: isPopular ? Colors.black : Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(
-                      '$formattedEffectivePrice • ${l10n.choosePlan}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                // Choose Plan Button or Active Plan Indicator
+                if (isCurrentPlan) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
+                      label: Text(
+                        isBn ? 'বর্তমান সক্রিয় প্যাকেজ' : 'Currently Active Plan',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.green),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.green, width: 1.5),
+                        backgroundColor: Colors.green.withValues(alpha: 0.08),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () => _showActivePlanDialog(context, isBn, diffDays, title),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.replay_rounded, size: 16),
+                      label: Text(
+                        '$formattedEffectivePrice • ${isBn ? "পুনরায় কিনুন / কোটা বৃদ্ধি" : "Renew / Add More Quota"}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.themeColor,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        PaymentMethodBottomSheet.show(
+                          context: context,
+                          plan: plan,
+                          user: user,
+                        );
+                      },
+                    ),
+                  ),
+                ] else if (isSubscribed)
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.upgrade_rounded, size: 18),
+                      label: Text(
+                        '$formattedEffectivePrice • ${isBn ? "আপগ্রেড / প্যাকেজ যোগ করুন" : "Add / Upgrade Plan"}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: isPopular ? Colors.amber.shade700 : AppColors.themeColor,
+                        foregroundColor: isPopular ? Colors.black : Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        PaymentMethodBottomSheet.show(
+                          context: context,
+                          plan: plan,
+                          user: user,
+                        );
+                      },
+                    ),
+                  )
+                else
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        PaymentMethodBottomSheet.show(
+                          context: context,
+                          plan: plan,
+                          user: user,
+                        );
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: isPopular ? Colors.amber.shade700 : AppColors.themeColor,
+                        foregroundColor: isPopular ? Colors.black : Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text(
+                        '$formattedEffectivePrice • ${l10n.choosePlan}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
 
-          // Offer / Popular Tag Top Right
-          if (hasOffer && offerBadge.isNotEmpty)
+          // Offer / Active / Popular Tag Top Right
+          if (isCurrentPlan)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade700,
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(18),
+                    bottomLeft: Radius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_circle_rounded, color: Colors.white, size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      isBn ? 'বর্তমান প্যাকেজ' : 'ACTIVE PLAN',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (hasOffer && offerBadge.isNotEmpty)
             Positioned(
               top: 0,
               right: 0,
@@ -609,6 +826,65 @@ class _OwnerPackageCard extends StatelessWidget {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  void _showActivePlanDialog(BuildContext context, bool isBn, int remainingDays, String planName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.verified_rounded, color: Colors.green),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                isBn ? 'প্যাকেজ সক্রিয় আছে' : 'Plan Already Active',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          isBn
+              ? 'আপনার "$planName" প্যাকেজটি বর্তমানে সক্রিয় রয়েছে।\n\nমেয়াদ বাকি: ${remainingDays.toString().toLocalizedDigits("bn")} দিন।\nমেয়াদ শেষ না হওয়া পর্যন্ত এটি পুনরায় কেনার প্রয়োজন নেই।'
+              : 'Your "$planName" plan is currently active.\n\nRemaining: $remainingDays days.\nYou cannot repurchase it until it expires.',
+          style: const TextStyle(fontSize: 14, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(isBn ? 'বুঝেছি' : 'OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _quotaBadge(IconData icon, String label, MaterialColor color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color.shade700),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.bold,
+              color: color.shade800,
+            ),
+          ),
         ],
       ),
     );

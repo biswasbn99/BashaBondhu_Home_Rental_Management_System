@@ -27,6 +27,14 @@ class _UserManagementViewState extends State<UserManagementView> {
   final _searchController = TextEditingController();
   final AdminFirestoreService _adminService = AdminFirestoreService();
 
+  late final Stream<List<UserModel>> _usersStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _usersStream = _adminService.streamAllUsers();
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -42,8 +50,38 @@ class _UserManagementViewState extends State<UserManagementView> {
     _selectedFilter = adminProvider.userManagementFilter;
 
     return StreamBuilder<List<UserModel>>(
-      stream: _adminService.streamAllUsers(),
+      stream: _usersStream,
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 60),
+              child: CircularProgressIndicator(color: AppColors.themeColor),
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 60),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline_rounded, size: 48, color: Colors.redAccent),
+                  const SizedBox(height: 12),
+                  Text(isBn ? 'ইউজার ডেটা লোড করতে ত্রুটি হয়েছে' : 'Error loading users data'),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: () => setState(() {}),
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(isBn ? 'পুনরায় চেষ্টা করুন' : 'Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         final allUsers = snapshot.data ?? [];
 
         // Apply Search & Filter

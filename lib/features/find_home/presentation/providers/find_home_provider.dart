@@ -195,7 +195,7 @@ class FindHomeProvider extends ChangeNotifier {
         return List.generate(8, (i) => "${localizations.emptySeat} - ${i + 1}");
       case HouseType.unit:
       case null:
-        return const [];
+        return List.generate(8, (i) => "${localizations.room} - ${i + 1}");
     }
   }
 
@@ -423,6 +423,10 @@ class FindHomeProvider extends ChangeNotifier {
         searchLongitude: searchLongitude,
         searchRadiusKm: searchRadiusKm,
         searchCenterAddress: searchLocationName,
+        division: selectedDivision,
+        district: selectedDistrict,
+        upazila: selectedUpazila,
+        area: selectedArea,
         month: selectedMonth,
         houseType: selectedHouseType,
         budgetRange: selectedBudgetRange,

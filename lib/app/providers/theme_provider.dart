@@ -25,14 +25,24 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   Future<void> _saveCurrentThemeMode(ThemeMode mode) async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    await sharedPreferences.setString(_themeKey, mode.name);
+    try {
+      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+      await sharedPreferences.setString(_themeKey, mode.name);
+    } catch (e) {
+      debugPrint('⚠️ Error saving theme mode to SharedPreferences: $e');
+    }
   }
 
   Future<void> _setCurrentThemeMode() async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String? themeMode = sharedPreferences.getString(_themeKey);
-    _currentThemeMode = _getThemeMode(themeMode);
+    try {
+      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+      String? themeMode = sharedPreferences.getString(_themeKey);
+      _currentThemeMode = _getThemeMode(themeMode);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('⚠️ Error loading theme mode from SharedPreferences: $e');
+      _currentThemeMode = ThemeMode.system;
+    }
   }
 
   ThemeMode _getThemeMode(String? themeMode) {
