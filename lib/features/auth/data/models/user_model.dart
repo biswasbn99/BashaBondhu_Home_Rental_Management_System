@@ -258,6 +258,9 @@ class UserModel {
 
   int get remainingPosts => remainingPostsForPolicy();
 
+  /// Helper alias for tenants where posts represent demands
+  int remainingDemandsForPolicy({FreeTierPolicyModel? policy}) => remainingPostsForPolicy(policy: policy);
+
   /// Can unlock contact number (property landlord or tenant demand)
   bool canUnlockContactForPolicy({FreeTierPolicyModel? policy}) {
     if (isSubscribed) {

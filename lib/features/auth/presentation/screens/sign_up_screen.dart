@@ -231,19 +231,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         l10n.alreadyHaveAnAccount,
                         style: context.textTheme.labelLarge,
                       ),
                       TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         onPressed: _onTapSignInNavigation,
                         child: Text(l10n.signIn),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -269,7 +275,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
         if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           const SnackBar(content: Text('Account created successfully! Please sign in.')),
         );
 
@@ -283,12 +289,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
       } on FirebaseAuthException catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           SnackBar(content: Text(e.message ?? 'Registration failed')),
         );
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           SnackBar(content: Text(e.toString().replaceAll('Exception:', '').trim())),
         );
       } finally {
@@ -299,7 +305,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _onTapSignInNavigation() {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
     Navigator.pushReplacementNamed(
       context,
       SignInScreen.name,

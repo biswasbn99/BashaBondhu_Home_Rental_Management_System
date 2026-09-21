@@ -18,7 +18,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get signInSubTitle => 'এগিয়ে যেতে আপনার তথ্য দিন';
 
   @override
-  String get alreadyHaveAnAccount => 'আগে থেকেই কি কোনো অ্যাকাউন্ট আছে?';
+  String get alreadyHaveAnAccount => 'আগে থেকেই অ্যাকাউন্ট আছে?';
 
   @override
   String get doNotHaveAnAccount => 'অ্যাকাউন্ট নেই?';

@@ -119,12 +119,12 @@ class AppImageWidget extends StatelessWidget {
       }
 
       // 3. Base64 Image
-      if (str.startsWith('data:image') || str.startsWith('/9j/') || str.startsWith('iVBOR')) {
+      if (str.startsWith('data:image') || str.startsWith('/9j/') || str.startsWith('iVBOR') || str.length > 255) {
         try {
           final cacheKey = "${str.length}_${str.substring(0, str.length > 30 ? 30 : str.length)}";
           final Uint8List bytes = _base64Cache.putIfAbsent(cacheKey, () {
             final base64Content = str.contains(',') ? str.split(',').last : str;
-            return base64Decode(base64Content.trim());
+            return base64Decode(base64Content.replaceAll(RegExp(r'\s+'), ''));
           });
 
           return Image.memory(

@@ -851,63 +851,90 @@ All users must adhere to the following community standards and platform terms:
   }
 
   /// Generate decorated, high-converting property ad description using Gemini API or built-in fallback
+  /// Strictly avoids sub-area in location (only Area, District, Division) and only generates options explicitly selected by the owner.
   Future<String> generateDecoratedPropertyDescription({
-    required String area,
+    String? area,
     String? subArea,
     String? district,
     String? division,
     String? shortAddress,
-    required String houseType,
-    required String roomOrSeat,
+    String? houseType,
+    String? roomOrSeat,
     String? tenantType,
     String? month,
-    required String floor,
-    required String amount,
+    String? floor,
+    String? amount,
     int? commonBathrooms,
     int? attachedBathrooms,
     int? kitchenCount,
     int? balconies,
     String? electricityBillType,
-    required List<String> amenities,
+    List<String> amenities = const [],
     String? marketDistance,
     required String languageCode,
   }) async {
     final isBn = languageCode == 'bn';
 
-    // Build comprehensive location string
+    // Strict Location: Division, District, Area ONLY (Sub-area is completely avoided)
     final locParts = <String>[
-      if (shortAddress != null && shortAddress.trim().isNotEmpty) shortAddress.trim(),
-      if (subArea != null && subArea.trim().isNotEmpty) subArea.trim(),
-      if (area.trim().isNotEmpty) area.trim(),
-      if (district != null && district.trim().isNotEmpty && (area.isEmpty || district.trim() != area.trim())) district.trim(),
-      if (division != null && division.trim().isNotEmpty && (district == null || division.trim() != district.trim())) division.trim(),
+      if (division != null && division.trim().isNotEmpty)
+        (isBn && !division.contains('বিভাগ')
+            ? '${division.trim()} বিভাগ'
+            : (!isBn && !division.toLowerCase().contains('division') ? '${division.trim()} Division' : division.trim())),
+      if (district != null && district.trim().isNotEmpty)
+        (isBn && !district.contains('জেলা') ? '${district.trim()} জেলা' : district.trim()),
+      if (area != null && area.trim().isNotEmpty)
+        area.trim(),
     ];
-    final fullLocation = locParts.isNotEmpty ? locParts.join(', ') : (isBn ? 'ঢাকা' : 'Dhaka');
+    final fullLocation = locParts.isNotEmpty ? locParts.join(', ') : (isBn ? 'বাংলাদেশ' : 'Bangladesh');
+
+    // Build list of strictly provided details for Gemini prompt
+    final providedDetails = <String>[
+      '- Location (Division, District, Area): $fullLocation',
+      if (houseType != null && houseType.trim().isNotEmpty)
+        '- Property Type: ${houseType.trim()}${roomOrSeat != null && roomOrSeat.trim().isNotEmpty ? " (${roomOrSeat.trim()})" : ""}'
+      else if (roomOrSeat != null && roomOrSeat.trim().isNotEmpty)
+        '- Room / Unit Size: ${roomOrSeat.trim()}',
+      if (floor != null && floor.trim().isNotEmpty)
+        '- Floor Level: ${floor.trim()}',
+      if ((attachedBathrooms != null && attachedBathrooms > 0) || (commonBathrooms != null && commonBathrooms > 0))
+        '- Bathrooms: ${[
+          if (attachedBathrooms != null && attachedBathrooms > 0) '$attachedBathrooms attached',
+          if (commonBathrooms != null && commonBathrooms > 0) '$commonBathrooms common',
+        ].join(', ')}',
+      if (kitchenCount != null && kitchenCount > 0)
+        '- Kitchen: $kitchenCount',
+      if (balconies != null && balconies > 0)
+        '- Balcony: $balconies',
+      if (electricityBillType != null && electricityBillType.trim().isNotEmpty)
+        '- Electricity Bill: ${electricityBillType.trim()}',
+      if (amenities.isNotEmpty)
+        '- Selected Amenities: ${amenities.join(', ')}',
+      if (marketDistance != null && marketDistance.trim().isNotEmpty)
+        '- Market / Road Distance: ${marketDistance.trim()}',
+      if (month != null && month.trim().isNotEmpty)
+        '- Available From: ${month.trim()}',
+      if (tenantType != null && tenantType.trim().isNotEmpty)
+        '- Preferred Tenant: ${tenantType.trim()}',
+      if (amount != null && amount.trim().isNotEmpty)
+        '- Monthly Rent: ৳ ${amount.trim()} BDT'
+      else
+        '- Monthly Rent: Negotiable / আলোচনা সাপেক্ষে',
+    ];
 
     final userPrompt = '''
 You are a professional real estate advertising expert for "বাসাবন্ধু (BashaBondhu)" home rental platform in Bangladesh.
 Generate a richly decorated, well-structured, eye-catching, and comprehensive property To-Let advertisement in ${isBn ? "Bengali (বাংলা)" : "English"}.
 
-PROPERTY DETAILS:
-- Location / Address: $fullLocation
-- House / Unit Type: $houseType ($roomOrSeat)
-- Floor Level: $floor
-- Bathrooms: ${attachedBathrooms ?? 0} attached, ${commonBathrooms ?? 0} common
-- Kitchen: ${kitchenCount ?? 1}
-- Balconies / Veranda: ${balconies ?? 0}
-- Electricity / Utility Bill: ${electricityBillType ?? (isBn ? 'প্রিপেইড মিটার' : 'Prepaid Meter')}
-- Special Amenities: ${amenities.isNotEmpty ? amenities.join(', ') : (isBn ? 'লিফট, জেনারেটর, সিসিটিভি ও সার্বক্ষণিক নিরাপত্তা' : 'Lift, Generator, CCTV, 24/7 Security')}
-- Market / Transit Distance: ${marketDistance ?? (isBn ? 'হেঁটে ২-৩ মিনিট' : '2-3 mins walking distance')}
-- Available From: ${month ?? (isBn ? 'চলতি মাস' : 'Current Month')}
-- Preferred Tenant: ${tenantType ?? (isBn ? 'পরিবার / ব্যাচেলর / চাকরিজীবী' : 'Family / Executive')}
-- Monthly Rent: ৳ $amount BDT (Negotiable)
+EXPLICIT DETAILS PROVIDED BY THE OWNER:
+${providedDetails.join('\n')}
 
-REQUIREMENTS:
-1. Write in natural, polite, and persuasive ${isBn ? "Bengali" : "English"}.
-2. Use appropriate real estate emojis (🏠, 📍, 🏢, ✨, 💡, 👥, 📅, 💰, 📞).
-3. Decorate with clear section headers and bullet points.
-4. Keep the output clean without markdown code fences (no ```).
-5. Must be complete and ready for the landlord to publish.
+STRICT RULES & CONSTRAINTS:
+1. ONLY include and describe the features, specifications, and amenities explicitly provided in the details above.
+2. DO NOT invent, hallucinate, or assume any feature not listed (for example: DO NOT mention lift, parking, generator, wifi, CCTV, security guard, floor, bathrooms, balconies, or utilities unless they are explicitly in the provided details).
+3. For Location, ONLY write '$fullLocation'. DO NOT invent or add any sub-area or street names.
+4. Decorate with appropriate real estate emojis (🏠, 📍, 🏢, ✨, 💡, 👥, 📅, 💰, 📞), clear section headers, and bullet points.
+5. Keep the output clean without markdown code fences (no ```).
 ''';
 
     try {
@@ -928,7 +955,7 @@ REQUIREMENTS:
             body: jsonEncode({
               "contents": contents,
               "generationConfig": {
-                "temperature": 0.4,
+                "temperature": 0.3,
                 "topK": 32,
                 "topP": 0.9,
                 "maxOutputTokens": 800,
@@ -955,7 +982,7 @@ REQUIREMENTS:
       debugPrint('⚠️ Gemini ad description generation fallback triggered: $e');
     }
 
-    // Fallback: Rich, beautifully decorated structured description template
+    // Fallback: Rich, beautifully decorated structured description template containing ONLY provided options
     return _generateFallbackDecoratedAd(
       fullLocation: fullLocation,
       houseType: houseType,
@@ -977,10 +1004,10 @@ REQUIREMENTS:
 
   String _generateFallbackDecoratedAd({
     required String fullLocation,
-    required String houseType,
-    required String roomOrSeat,
-    required String floor,
-    required String amount,
+    String? houseType,
+    String? roomOrSeat,
+    String? floor,
+    String? amount,
     String? month,
     String? tenantType,
     int? commonBathrooms,
@@ -988,95 +1015,121 @@ REQUIREMENTS:
     int? kitchenCount,
     int? balconies,
     String? electricityBillType,
-    required List<String> amenities,
+    List<String> amenities = const [],
     String? marketDistance,
     required bool isBn,
   }) {
-    final totalBaths = (attachedBathrooms ?? 0) + (commonBathrooms ?? 0);
-    final bathDetails = isBn
-        ? '$totalBaths টি ${attachedBathrooms != null && attachedBathrooms > 0 ? "(সংযুক্ত: $attachedBathrooms, " : "("}কমন: ${commonBathrooms ?? 1})'
-        : '$totalBaths ${attachedBathrooms != null && attachedBathrooms > 0 ? "(Attached: $attachedBathrooms, " : "("}Common: ${commonBathrooms ?? 1})';
-
-    final balconyText = (balconies != null && balconies > 0)
-        ? (isBn ? '$balconies টি খোলা বারান্দা' : '$balconies open balcony(ies)')
-        : (isBn ? 'খোলামেলা মনোরম বারান্দা' : 'Open airy balcony');
-
-    final kitchenText = (kitchenCount != null && kitchenCount > 0)
-        ? (isBn ? '$kitchenCount টি সুপরিসর রান্নাঘর' : '$kitchenCount spacious kitchen')
-        : (isBn ? 'আধুনিক সুপরিসর রান্নাঘর' : 'Modern spacious kitchen');
-
-    final electricityText = electricityBillType ?? (isBn ? 'প্রিপেইড কার্ড / মিটার অনুযায়ী' : 'Prepaid card / As per meter');
-    final availableMonth = month ?? (isBn ? 'চলতি মাস' : 'Immediate / Next month');
-    final targetTenant = tenantType ?? (isBn ? 'পরিবার / শান্ত ভদ্র চাকরিজীবী' : 'Family / Executives');
-    final marketDistText = marketDistance ?? (isBn ? 'হেঁটে ২-৩ মিনিট' : '2-3 mins walking distance');
-
-    final defaultAmenities = isBn
-        ? ['লিফট সুবিধা', 'জেনারেটর ব্যাকআপ', 'সিসিটিভি নজরদারি', '২৪ ঘণ্টা নিরাপত্তা প্রহরী', 'পর্যাপ্ত আলো-বাতাস']
-        : ['Lift access', 'Generator backup', 'CCTV surveillance', '24/7 Security guard', 'Ample natural light & airflow'];
-
-    final amenityList = amenities.isNotEmpty ? amenities : defaultAmenities;
-    final amenityBullets = amenityList.map((a) => '• $a').join('\n');
-
-    if (isBn) {
-      return '''🏠 **আকর্ষণীয় বাসাভাড়া বিজ্ঞাপন (To-Let)**
-━━━━━━━━━━━━━━━━━━━━━━━
-📍 **ঠিকানা ও লোকেশন:**
-• $fullLocation
-• শান্ত, মনোরম ও সম্পূর্ণ নিরাপদ পরিবেশ
-• 🛒 বাজার ও প্রধান রাস্তা: $marketDistText
-
-🏢 **বাসার বিবরণ ও লেআউট:**
-• বাসার ধরণ: $houseType ($roomOrSeat)
-• ফ্লোর: $floor তলা
-• বাথরুম: $bathDetails
-• বারান্দা: $balconyText
-• রান্নাঘর: $kitchenText
-
-✨ **বিশেষ সুযোগ-সুবিধাসমূহ:**
-$amenityBullets
-• সার্বক্ষণিক নিরবচ্ছিন্ন পানি ও গ্যাস সুবিধা
-• দক্ষিণমুখী প্রশস্ত আলো-বাতাসপূর্ণ রুম
-
-💡 **ইউটিলিটি ও বিল:**
-• বিদ্যুৎ বিল: $electricityText
-• সার্বক্ষণিক পরিচ্ছন্ন ও সুব্যবস্থাপনা
-
-👥 **কাদের জন্য উপযুক্ত:** $targetTenant
-📅 **কবে থেকে ভাড়া হবে:** $availableMonth মাস থেকে
-
-💰 **মাসিক ভাড়া:** ৳ $amount (আলোচনা সাপেক্ষে)
-━━━━━━━━━━━━━━━━━━━━━━━
-📞 আগ্রহী প্রকৃত ভাড়াটিয়াদের বিস্তারিত জানতে ও বাসা দেখতে সরাসরি যোগাযোগের অনুরোধ করা যাচ্ছে।''';
-    } else {
-      return '''🏠 **Attractive To-Let / House Rental Notice**
-━━━━━━━━━━━━━━━━━━━━━━━
-📍 **Location & Neighborhood:**
-• $fullLocation
-• Quiet, pleasant and highly secure residential environment
-• 🛒 Market & Transport Hub: $marketDistText
-
-🏢 **Property Specifications & Layout:**
-• Property Type: $houseType ($roomOrSeat)
-• Floor Level: Floor $floor
-• Bathrooms: $bathDetails
-• Balcony: $balconyText
-• Kitchen: $kitchenText
-
-✨ **Amenities & Highlights:**
-$amenityBullets
-• 24/7 uninterrupted water and gas supply
-• Bright, south-facing rooms with generous natural light & ventilation
-
-💡 **Utilities & Metering:**
-• Electricity: $electricityText
-• Dedicated building maintenance and security
-
-👥 **Preferred Tenant:** $targetTenant
-📅 **Available From:** $availableMonth onwards
-
-💰 **Monthly Rent:** ৳ $amount (Negotiable)
-━━━━━━━━━━━━━━━━━━━━━━━
-📞 Interested and genuine tenants are warmly requested to contact directly for viewing appointments.''';
+    // 1. Property Layout Lines (ONLY include what's provided)
+    final layoutLines = <String>[];
+    if ((houseType != null && houseType.trim().isNotEmpty) || (roomOrSeat != null && roomOrSeat.trim().isNotEmpty)) {
+      final typeStr = [
+        if (houseType != null && houseType.trim().isNotEmpty) houseType.trim(),
+        if (roomOrSeat != null && roomOrSeat.trim().isNotEmpty) roomOrSeat.trim(),
+      ].join(' - ');
+      layoutLines.add(isBn ? '• বাসার ধরন: $typeStr' : '• Property Type: $typeStr');
     }
+    if (floor != null && floor.trim().isNotEmpty) {
+      layoutLines.add(isBn ? '• ফ্লোর: ${floor.trim()} তলা' : '• Floor Level: ${floor.trim()} Floor');
+    }
+    final hasAttached = attachedBathrooms != null && attachedBathrooms > 0;
+    final hasCommon = commonBathrooms != null && commonBathrooms > 0;
+    if (hasAttached || hasCommon) {
+      final totalBaths = (attachedBathrooms ?? 0) + (commonBathrooms ?? 0);
+      if (hasAttached && hasCommon) {
+        layoutLines.add(isBn
+            ? '• বাথরুম: $totalBaths টি (সংযুক্ত: $attachedBathrooms, কমন: $commonBathrooms)'
+            : '• Bathrooms: $totalBaths (Attached: $attachedBathrooms, Common: $commonBathrooms)');
+      } else if (hasAttached) {
+        layoutLines.add(isBn
+            ? '• বাথরুম: $attachedBathrooms টি (সংযুক্ত বাথরুম)'
+            : '• Bathrooms: $attachedBathrooms (Attached)');
+      } else {
+        layoutLines.add(isBn
+            ? '• বাথরুম: $commonBathrooms টি (কমন বাথরুম)'
+            : '• Bathrooms: $commonBathrooms (Common)');
+      }
+    }
+    if (balconies != null && balconies > 0) {
+      layoutLines.add(isBn ? '• বারান্দা: $balconies টি খোলা বারান্দা' : '• Balcony: $balconies open balcony(ies)');
+    }
+    if (kitchenCount != null && kitchenCount > 0) {
+      layoutLines.add(isBn ? '• রান্নাঘর: $kitchenCount টি সুপরিসর রান্নাঘর' : '• Kitchen: $kitchenCount spacious kitchen(s)');
+    }
+
+    // 2. Build structured decorated sections
+    final sections = <String>[];
+
+    // Header
+    sections.add(isBn ? '🏠 **আকর্ষণীয় বাসাভাড়া বিজ্ঞাপন (To-Let)**' : '🏠 **Attractive House Rental Notice (To-Let)**');
+    sections.add('━━━━━━━━━━━━━━━━━━━━━━━');
+
+    // Location
+    final locBuffer = StringBuffer();
+    locBuffer.writeln(isBn ? '📍 **ঠিকানা ও অবস্থান:**' : '📍 **Location & Area:**');
+    locBuffer.writeln(isBn ? '• অবস্থান: $fullLocation' : '• Location: $fullLocation');
+    locBuffer.writeln(isBn ? '• শান্ত, মনোরম ও সম্পূর্ণ নিরাপদ আবাসিক পরিবেশ' : '• Quiet, pleasant and secure residential environment');
+    if (marketDistance != null && marketDistance.trim().isNotEmpty) {
+      locBuffer.writeln(isBn ? '• 🛒 বাজার ও যাতায়াত: ${marketDistance.trim()}' : '• 🛒 Market & Transit: ${marketDistance.trim()}');
+    }
+    sections.add(locBuffer.toString().trimRight());
+
+    // Specifications / Layout (Only if any layout detail provided)
+    if (layoutLines.isNotEmpty) {
+      final specBuffer = StringBuffer();
+      specBuffer.writeln(isBn ? '🏢 **বাসার বিবরণ ও সুবিধা:**' : '🏢 **Property Specifications:**');
+      specBuffer.writeln(layoutLines.join('\n'));
+      sections.add(specBuffer.toString().trimRight());
+    }
+
+    // Amenities (ONLY if owner selected amenities - NO FAKE DEFAULTS)
+    if (amenities.isNotEmpty) {
+      final amBuffer = StringBuffer();
+      amBuffer.writeln(isBn ? '✨ **বিশেষ সুযোগ-সুবিধাসমূহ:**' : '✨ **Special Amenities:**');
+      for (final a in amenities) {
+        amBuffer.writeln('• $a');
+      }
+      sections.add(amBuffer.toString().trimRight());
+    }
+
+    // Utility (Only if provided)
+    if (electricityBillType != null && electricityBillType.trim().isNotEmpty) {
+      final utilBuffer = StringBuffer();
+      utilBuffer.writeln(isBn ? '💡 **ইউটিলিটি ও বিল:**' : '💡 **Utilities:**');
+      utilBuffer.writeln(isBn ? '• বিদ্যুৎ বিল: ${electricityBillType.trim()}' : '• Electricity Bill: ${electricityBillType.trim()}');
+      sections.add(utilBuffer.toString().trimRight());
+    }
+
+    // Tenant & Availability (Only if provided)
+    final hasTenant = tenantType != null && tenantType.trim().isNotEmpty;
+    final hasMonth = month != null && month.trim().isNotEmpty;
+    if (hasTenant || hasMonth) {
+      final availBuffer = StringBuffer();
+      if (hasTenant) {
+        availBuffer.writeln(isBn ? '👥 **কাদের জন্য উপযুক্ত:** ${tenantType.trim()}' : '👥 **Preferred Tenant:** ${tenantType.trim()}');
+      }
+      if (hasMonth) {
+        availBuffer.writeln(isBn ? '📅 **কবে থেকে ভাড়া হবে:** ${month.trim()} মাস থেকে' : '📅 **Available From:** From ${month.trim()}');
+      }
+      sections.add(availBuffer.toString().trimRight());
+    }
+
+    // Rent
+    if (amount != null && amount.trim().isNotEmpty) {
+      sections.add(isBn
+          ? '💰 **মাসিক ভাড়া:** ৳ ${amount.trim()} (আলোচনা সাপেক্ষে)'
+          : '💰 **Monthly Rent:** ৳ ${amount.trim()} (Negotiable)');
+    } else {
+      sections.add(isBn
+          ? '💰 **মাসিক ভাড়া:** আলোচনা সাপেক্ষে'
+          : '💰 **Monthly Rent:** Negotiable');
+    }
+
+    // Footer
+    sections.add('━━━━━━━━━━━━━━━━━━━━━━━');
+    sections.add(isBn
+        ? '📞 আগ্রহী প্রকৃত ভাড়াটিয়াদের বিস্তারিত জানতে ও বাসা দেখতে সরাসরি যোগাযোগের অনুরোধ করা যাচ্ছে।'
+        : '📞 Genuine interested tenants are warmly requested to contact directly for more details and viewing.');
+
+    return sections.join('\n\n');
   }
 }

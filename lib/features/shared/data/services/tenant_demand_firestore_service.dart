@@ -314,7 +314,12 @@ class TenantDemandFirestoreService {
     if (_lastSettings != null && _lastSettings!.exists && _lastSettings!.data() != null) {
       final rawSettings = _lastSettings!.data();
       if (rawSettings is Map) {
-        requireVerified = (rawSettings['requireVerifiedTenantForDemands'] as bool?) ?? false;
+        final val = rawSettings['requireVerifiedTenantForDemands'];
+        if (val is bool) {
+          requireVerified = val;
+        } else if (val is String) {
+          requireVerified = val.trim().toLowerCase() == 'true';
+        }
       }
     }
 
@@ -326,7 +331,7 @@ class TenantDemandFirestoreService {
         final data = doc.data();
         if (data is Map) {
           final d = TenantDemandModel.fromMap(Map<String, dynamic>.from(data), doc.id);
-          final bool isLive = !d.isFulfilled && d.approvalStatus == 'approved';
+          final bool isLive = !d.isFulfilled && d.isApproved;
           allList.add(d);
 
           if (isLive && (!requireVerified || d.isTenantVerified)) {

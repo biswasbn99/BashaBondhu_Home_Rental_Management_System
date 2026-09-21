@@ -895,15 +895,13 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
                       final isBn = languageCode == 'bn';
                       final division = _selectedDivision?.getLocalizedName(languageCode);
                       final district = _selectedDistrict?.getLocalizedName(languageCode);
-                      final area = _selectedArea?.getLocalizedName(languageCode) ?? (isBn ? 'ঢাকা' : 'Dhaka');
-                      final subArea = _selectedSubArea?.getLocalizedName(languageCode);
-                      final shortAddress = _shortAddress;
-                      final houseType = _selectedHouseType?.getLocalizedLabel(l10n) ?? (isBn ? 'ফ্ল্যাট' : 'Flat');
-                      final roomOrSeat = _selectedRoomOrSeat ?? (isBn ? '২ বেডরুম' : '2 Bedrooms');
+                      final area = _selectedArea?.getLocalizedName(languageCode);
+                      final houseType = _selectedHouseType?.getLocalizedLabel(l10n);
+                      final roomOrSeat = _selectedRoomOrSeat;
                       final tenantType = _selectedTenantType?.getLocalizedLabel(l10n);
                       final month = _selectedMonth;
-                      final floor = _floorNumber?.toString() ?? (isBn ? '৩' : '3');
-                      final amount = _amount.isNotEmpty ? _amount : '15000';
+                      final floor = _floorNumber?.toString();
+                      final amount = _amount.trim().isNotEmpty ? _amount.trim() : null;
                       final electricityBillType = _electricityBillType;
                       final marketDistance = _marketDistance;
                       final commonBathrooms = _commonBathrooms;
@@ -921,6 +919,18 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
 
                       final messenger = ScaffoldMessenger.of(context);
                       final aiProvider = context.read<AIAssistantProvider>();
+
+                      // Check if at least some basic info (location or property type) is selected
+                      if (division == null && district == null && area == null && houseType == null) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(isBn ? 'অনুগ্রহ করে প্রথমে এলাকা বা বাসার ধরন নির্বাচন করুন' : 'Please select location or property type first'),
+                            backgroundColor: Colors.orange,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
 
                       messenger.showSnackBar(
                         SnackBar(
@@ -941,10 +951,10 @@ class _EditRentPostScreenState extends State<EditRentPostScreen> {
 
                       final genText = await aiProvider.generateAdDescriptionForOwner(
                             area: area,
-                            subArea: subArea,
+                            subArea: null, // Avoid sub-area strictly as requested
                             district: district,
                             division: division,
-                            shortAddress: shortAddress,
+                            shortAddress: null, // Avoid short address
                             houseType: houseType,
                             roomOrSeat: roomOrSeat,
                             tenantType: tenantType,

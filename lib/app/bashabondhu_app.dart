@@ -24,6 +24,9 @@ import 'package:bashabondhu_home_rental_management_system/features/wishlist/data
 class BashabondhuApp extends StatefulWidget {
   const BashabondhuApp({super.key});
 
+  static final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
+
   @override
   State<BashabondhuApp> createState() => _BashabondhuAppState();
 }
@@ -61,6 +64,7 @@ class _BashabondhuAppState extends State<BashabondhuApp> {
           return Consumer<LocaleProvider>(
             builder: (context, _, _) {
               return MaterialApp(
+            scaffoldMessengerKey: BashabondhuApp.scaffoldMessengerKey,
             debugShowCheckedModeBanner: false,
             title:'Bashabondhu',
             initialRoute: kIsWeb ? AdminMainScreen.name : SplashScreen.name,

@@ -25,6 +25,7 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/providers/demand_home_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/tenant/presentation/screens/my_demand_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/tenant_subscription_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/data/models/free_tier_policy_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/data/providers/subscription_provider.dart';
 
 class DemandHomeScreen extends StatelessWidget {
@@ -504,13 +505,19 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
     }
 
     final user = userProvider.user!;
-    if (!user.canCreatePost) {
-      final int limitToShow = user.activePlans.isNotEmpty
-          ? user.activePlans.first.maxPostsLimit
-          : user.subscriptionMaxPosts;
+    final subProvider = Provider.of<SubscriptionProvider>(context, listen: false);
+    final policy = subProvider.currentPolicy ?? FreeTierPolicyModel.defaultPolicy();
+    if (!user.canCreatePostForPolicy(policy: policy)) {
+      final int limitToShow = user.isSubscribed
+          ? (user.activePlans.isNotEmpty
+              ? user.activePlans.first.maxPostsLimit
+              : user.subscriptionMaxPosts)
+          : policy.tenantMaxDemands;
       final String limitStr = limitToShow == -1
           ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
-          : limitToShow.toString().toLocalizedDigits("bn");
+          : (limitToShow == 0
+              ? (isBn ? 'লক (০)' : 'Locked (0)')
+              : limitToShow.toString().toLocalizedDigits("bn"));
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -531,10 +538,14 @@ class _DemandHomeViewState extends State<_DemandHomeView> {
             isBn
                 ? (user.isSubscribed
                     ? 'আপনার বর্তমান প্যাকেজের ভাড়ার চাহিদা পোস্ট করার লিমিট ($limitStrটি) শেষ হয়ে গেছে। আরও পোস্ট করতে প্যাকেজ আপগ্রেড বা রিনিউ করুন।'
-                    : 'আপনার ফ্রি ভাড়ার চাহিদা পোস্ট করার লিমিট শেষ হয়ে গেছে। আরও চাহিদা পোস্ট করতে সাবস্ক্রিপশন প্যাকেজ সক্রিয় করুন।')
+                    : (limitToShow == 0
+                        ? 'ফ্রি অ্যাকাউন্টের জন্য ভাড়ার চাহিদা পোস্ট করার সুবিধা বর্তমানে লক করা আছে। পোস্ট করতে সাবস্ক্রিপশন প্যাকেজ সক্রিয় করুন।'
+                        : 'আপনার ফ্রি ভাড়ার চাহিদা পোস্ট করার লিমিট ($limitStrটি) শেষ হয়ে গেছে। আরও চাহিদা পোস্ট করতে সাবস্ক্রিপশন প্যাকেজ সক্রিয় করুন।'))
                 : (user.isSubscribed
                     ? 'You have reached your demand post limit ($limitToShow) for this plan. Please upgrade your plan to post more.'
-                    : 'You have reached your free demand post limit. Please subscribe to a package to continue posting.'),
+                    : (limitToShow == 0
+                        ? 'Posting rental demands is currently locked for free tier. Please subscribe to a package to continue posting.'
+                        : 'You have reached your free demand post limit ($limitToShow). Please subscribe to a package to continue posting.')),
             style: const TextStyle(fontSize: 13.5, height: 1.4),
           ),
           actions: [

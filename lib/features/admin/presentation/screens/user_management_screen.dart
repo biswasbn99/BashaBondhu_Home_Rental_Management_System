@@ -2430,26 +2430,36 @@ class _UserManagementViewState extends State<UserManagementView> {
     }
     if (src.startsWith('data:image') || src.startsWith('/9j/') || src.startsWith('iVBOR') || src.length > 255) {
       try {
-        Uint8List? bytes = _base64Cache[src];
+        final cacheKey = "${src.length}_${src.substring(0, src.length > 30 ? 30 : src.length)}";
+        Uint8List? bytes = _base64Cache[cacheKey];
         if (bytes == null) {
           final base64Str = src.contains(',') ? src.split(',').last : src;
-          bytes = base64Decode(base64Str.trim());
+          bytes = base64Decode(base64Str.replaceAll(RegExp(r'\s+'), ''));
           if (_base64Cache.length > 300) {
             _base64Cache.clear();
           }
-          _base64Cache[src] = bytes;
+          _base64Cache[cacheKey] = bytes;
         }
         return Image.memory(
           bytes,
           width: width,
           height: height,
           fit: BoxFit.cover,
-          cacheWidth: 100,
-          cacheHeight: 100,
           gaplessPlayback: true,
+          errorBuilder: (ctx, err, stack) => Container(
+            width: width,
+            height: height,
+            color: Colors.grey[300],
+            child: const Icon(Icons.broken_image, size: 20),
+          ),
         );
       } catch (_) {
-        return const Icon(Icons.broken_image, size: 20);
+        return Container(
+          width: width,
+          height: height,
+          color: Colors.grey[300],
+          child: const Icon(Icons.broken_image, size: 20),
+        );
       }
     } else if (src.startsWith('http://') || src.startsWith('https://')) {
       return Image.network(
@@ -2457,9 +2467,13 @@ class _UserManagementViewState extends State<UserManagementView> {
         width: width,
         height: height,
         fit: BoxFit.cover,
-        cacheWidth: 100,
-        cacheHeight: 100,
         gaplessPlayback: true,
+        errorBuilder: (ctx, err, stack) => Container(
+          width: width,
+          height: height,
+          color: Colors.grey[300],
+          child: const Icon(Icons.broken_image, size: 20),
+        ),
       );
     } else {
       try {
@@ -2469,13 +2483,22 @@ class _UserManagementViewState extends State<UserManagementView> {
             width: width,
             height: height,
             fit: BoxFit.cover,
-            cacheWidth: 100,
-            cacheHeight: 100,
             gaplessPlayback: true,
+            errorBuilder: (ctx, err, stack) => Container(
+              width: width,
+              height: height,
+              color: Colors.grey[300],
+              child: const Icon(Icons.broken_image, size: 20),
+            ),
           );
         }
       } catch (_) {}
-      return Container(width: width, height: height, color: Colors.grey[300], child: const Icon(Icons.broken_image, size: 20));
+      return Container(
+        width: width,
+        height: height,
+        color: Colors.grey[300],
+        child: const Icon(Icons.broken_image, size: 20),
+      );
     }
   }
 

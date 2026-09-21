@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../app/app_colors.dart';
+import '../../../../app/bashabondhu_app.dart';
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../../app/providers/locale_provider.dart';
 import '../widgets/app_logo.dart';
@@ -52,9 +53,7 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   void _clearActiveSnackBars() {
-    if (mounted) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-    }
+    BashabondhuApp.scaffoldMessengerKey.currentState?.clearSnackBars();
   }
 
   @override
@@ -273,14 +272,20 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
                         isBn ? 'কোনো অ্যাকাউন্ট নেই?' : l10n.doNotHaveAnAccount,
                         style: context.textTheme.labelLarge,
                       ),
                       TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         onPressed: (_isLoading || _isNavigating) ? null : _onTapSignUpNavigation,
                         child: Text(isBn ? 'রেজিস্ট্রেশন করুন' : l10n.signUp),
                       ),
@@ -528,12 +533,6 @@ class _SignInScreenState extends State<SignInScreen> {
         'lockUserType': widget.lockUserType,
       },
     );
-  }
-
-  @override
-  void deactivate() {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    super.deactivate();
   }
 
   @override

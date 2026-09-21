@@ -29,6 +29,7 @@ import '../widgets/counter_dropdown.dart';
 import '../widgets/distance_dropdown.dart';
 import '../widgets/electricity_bill_dropdown.dart';
 import '../../../subscription/presentation/screens/house_owner_subscription_screen.dart';
+import '../../../subscription/data/models/free_tier_policy_model.dart';
 import '../../../subscription/data/providers/subscription_provider.dart';
 import '../widgets/multi_image_picker_widget.dart';
 import '../widgets/property_location_picker_card.dart';
@@ -592,18 +593,13 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                     onPressed: () async {
                       final division = provider.selectedDivision?.getLocalizedName(languageCode);
                       final district = provider.selectedDistrict?.getLocalizedName(languageCode);
-                      final area = provider.selectedUpazila?.getLocalizedName(languageCode) ??
-                          (isBn ? 'ঢাকা' : 'Dhaka');
-                      final subArea = provider.selectedArea?.getLocalizedName(languageCode);
-                      final shortAddress = provider.shortAddress;
-                      final houseType = provider.selectedHouseType?.getLocalizedLabel(l10n) ??
-                          (isBn ? 'ফ্ল্যাট' : 'Flat');
-                      final roomOrSeat = provider.selectedRoomOrSeat?.getLocalizedRoomOrSeat(l10n) ??
-                          (isBn ? '২ বেডরুম' : '2 Bedrooms');
+                      final area = provider.selectedUpazila?.getLocalizedName(languageCode);
+                      final houseType = provider.selectedHouseType?.getLocalizedLabel(l10n);
+                      final roomOrSeat = provider.selectedRoomOrSeat?.getLocalizedRoomOrSeat(l10n);
                       final tenantType = provider.selectedTenantType?.getLocalizedLabel(l10n);
                       final month = provider.selectedMonth;
-                      final floor = provider.floorNumber?.toString() ?? (isBn ? '৩' : '3');
-                      final amount = provider.amount.isNotEmpty ? provider.amount : '15000';
+                      final floor = provider.floorNumber?.toString();
+                      final amount = provider.amount.trim().isNotEmpty ? provider.amount.trim() : null;
                       final electricityBillType = provider.electricityBillType;
                       final marketDistance = provider.marketDistance;
                       final commonBathrooms = provider.commonBathrooms;
@@ -618,6 +614,18 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                         if (provider.hasSecurityGuard == true) (isBn ? '২৪ ঘণ্টা দারোয়ান' : '24/7 Security Guard'),
                         if (provider.hasWifi == true) (isBn ? 'উচ্চগতির ওয়াইফাই' : 'High-speed WiFi'),
                       ];
+
+                      // Check if at least some basic info (location or property type) is selected
+                      if (division == null && district == null && area == null && houseType == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(isBn ? 'অনুগ্রহ করে প্রথমে এলাকা বা বাসার ধরন নির্বাচন করুন' : 'Please select location or property type first'),
+                            backgroundColor: Colors.orange,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -638,10 +646,10 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
 
                       final genText = await context.read<AIAssistantProvider>().generateAdDescriptionForOwner(
                             area: area,
-                            subArea: subArea,
+                            subArea: null, // Avoid sub-area strictly as requested
                             district: district,
                             division: division,
-                            shortAddress: shortAddress,
+                            shortAddress: null, // Avoid short address
                             houseType: houseType,
                             roomOrSeat: roomOrSeat,
                             tenantType: tenantType,
@@ -731,13 +739,19 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                           }
 
                           final currentUser = userProvider.user!;
-                          if (!currentUser.canCreatePost) {
-                            final int limitToShow = currentUser.activePlans.isNotEmpty
-                                ? currentUser.activePlans.first.maxPostsLimit
-                                : currentUser.subscriptionMaxPosts;
+                          final subProvider = context.read<SubscriptionProvider>();
+                          final policy = subProvider.currentPolicy ?? FreeTierPolicyModel.defaultPolicy();
+                          if (!currentUser.canCreatePostForPolicy(policy: policy)) {
+                            final int limitToShow = currentUser.isSubscribed
+                                ? (currentUser.activePlans.isNotEmpty
+                                    ? currentUser.activePlans.first.maxPostsLimit
+                                    : currentUser.subscriptionMaxPosts)
+                                : policy.ownerMaxListings;
                             final String limitStr = limitToShow == -1
                                 ? (isBn ? 'আনলিমিটেড' : 'Unlimited')
-                                : limitToShow.toString().toLocalizedDigits("bn");
+                                : (limitToShow == 0
+                                    ? (isBn ? 'লক (০)' : 'Locked (0)')
+                                    : limitToShow.toString().toLocalizedDigits("bn"));
                             showDialog(
                               context: context,
                               builder: (ctx) => AlertDialog(
@@ -758,10 +772,14 @@ class _HomeRentPostViewState extends State<_HomeRentPostView> {
                                   isBn
                                       ? (currentUser.isSubscribed
                                           ? 'আপনার বর্তমান প্যাকেজের বাসা বিজ্ঞাপন পোস্ট করার লিমিট ($limitStrটি) শেষ হয়ে গেছে। আরও পোস্ট করতে প্যাকেজ আপগ্রেড বা রিনিউ করুন।'
-                                          : 'আপনার ফ্রি বাসা বিজ্ঞাপন পোস্ট করার লিমিট শেষ হয়ে গেছে। আরও পোস্ট করতে সাবস্ক্রিপশন প্যাকেজ সক্রিয় করুন।')
+                                          : (limitToShow == 0
+                                              ? 'ফ্রি অ্যাকাউন্টের জন্য বাসা বিজ্ঞাপন পোস্ট করার সুবিধা বর্তমানে লক করা আছে। পোস্ট করতে সাবস্ক্রিপশন প্যাকেজ সক্রিয় করুন।'
+                                              : 'আপনার ফ্রি বাসা বিজ্ঞাপন পোস্ট করার লিমিট ($limitStrটি) শেষ হয়ে গেছে। আরও পোস্ট করতে সাবস্ক্রিপশন প্যাকেজ সক্রিয় করুন।'))
                                       : (currentUser.isSubscribed
                                           ? 'You have reached your listing limit ($limitToShow) for this plan. Please upgrade your plan to post more.'
-                                          : 'You have reached your free listing limit. Please subscribe to a package to continue posting.'),
+                                          : (limitToShow == 0
+                                              ? 'Posting rental listings is currently locked for free tier. Please subscribe to a package to continue posting.'
+                                              : 'You have reached your free listing limit ($limitToShow). Please subscribe to a package to continue posting.')),
                                   style: const TextStyle(fontSize: 13.5, height: 1.4),
                                 ),
                                 actions: [

@@ -29,6 +29,18 @@ class AppSettingsProvider extends ChangeNotifier {
     _listenToSettings();
   }
 
+  bool _parseBool(dynamic val, {bool defaultValue = false}) {
+    if (val == null) return defaultValue;
+    if (val is bool) return val;
+    if (val is String) {
+      final s = val.trim().toLowerCase();
+      if (s == 'true' || s == '1' || s == 'yes') return true;
+      if (s == 'false' || s == '0' || s == 'no') return false;
+    }
+    if (val is num) return val != 0;
+    return defaultValue;
+  }
+
   void _listenToSettings() {
     _settingsSubscription = _adminService.streamSettings().listen(
       (data) {
@@ -43,11 +55,11 @@ class AppSettingsProvider extends ChangeNotifier {
         _youtubeUrl = data['youtubeUrl']?.toString() ?? _youtubeUrl;
         _whatsappNumber = data['whatsappNumber']?.toString() ?? _whatsappNumber;
         _websiteUrl = data['websiteUrl']?.toString() ?? _websiteUrl;
-        _autoApprovalEnabled = (data['autoApprovalEnabled'] as bool?) ?? _autoApprovalEnabled;
+        _autoApprovalEnabled = _parseBool(data['autoApprovalEnabled'], defaultValue: true);
         _requireVerifiedTenantForDemands =
-            (data['requireVerifiedTenantForDemands'] as bool?) ?? _requireVerifiedTenantForDemands;
+            _parseBool(data['requireVerifiedTenantForDemands'], defaultValue: false);
         _requireVerifiedOwnerForProperties =
-            (data['requireVerifiedOwnerForProperties'] as bool?) ?? _requireVerifiedOwnerForProperties;
+            _parseBool(data['requireVerifiedOwnerForProperties'], defaultValue: false);
         _isLoaded = true;
         notifyListeners();
       },

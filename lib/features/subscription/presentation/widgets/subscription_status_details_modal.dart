@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../app/extensions/utility_extension.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../../../auth/data/providers/user_provider.dart';
 import '../../data/models/free_tier_policy_model.dart';
 import '../../data/models/subscription_model.dart';
 import '../../data/providers/subscription_provider.dart';
@@ -33,8 +34,9 @@ class SubscriptionStatusDetailsModal extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final languageCode = Localizations.localeOf(context).languageCode;
     final isBn = languageCode == 'bn';
-    final isSub = user.isSubscribed;
-    final activePlans = user.activePlans;
+    final currentUser = context.watch<UserProvider>().user ?? user;
+    final isSub = currentUser.isSubscribed;
+    final activePlans = currentUser.activePlans;
     final subProvider = context.watch<SubscriptionProvider>();
 
     return StreamBuilder<FreeTierPolicyModel>(
@@ -134,7 +136,7 @@ class SubscriptionStatusDetailsModal extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   child: isSub
                       ? _buildActivePlansList(context, activePlans, policy, isDark, isBn, languageCode)
-                      : _buildFreeTierUsageBreakdown(context, policy, isDark, isBn, languageCode),
+                      : _buildFreeTierUsageBreakdown(context, currentUser, policy, isDark, isBn, languageCode),
                 ),
               ),
 
@@ -158,7 +160,7 @@ class SubscriptionStatusDetailsModal extends StatelessWidget {
                         style: FilledButton.styleFrom(
                           backgroundColor: !isSub
                               ? Colors.deepOrange
-                              : (user.canUpgradeOrAddPlan(policy: policy)
+                              : (currentUser.canUpgradeOrAddPlan(policy: policy)
                                   ? const Color(0xFF0D9488)
                                   : (isDark ? Colors.grey[800] : Colors.grey[400])),
                           foregroundColor: Colors.white,
@@ -169,21 +171,21 @@ class SubscriptionStatusDetailsModal extends StatelessWidget {
                         icon: Icon(
                           !isSub
                               ? Icons.rocket_launch_rounded
-                              : (user.canUpgradeOrAddPlan(policy: policy)
+                              : (currentUser.canUpgradeOrAddPlan(policy: policy)
                                   ? Icons.add_circle_outline_rounded
                                   : Icons.lock_outline_rounded),
                           size: 18,
                         ),
                         label: Text(
                           isSub
-                              ? (user.canUpgradeOrAddPlan(policy: policy)
+                              ? (currentUser.canUpgradeOrAddPlan(policy: policy)
                                   ? (isBn ? '+ নতুন প্ল্যান নিন / আপগ্রেড করুন' : '+ Upgrade / Add New Plan')
                                   : (isBn ? 'কোটা অবশিষ্ট রয়েছে (লক)' : 'Quotas Remaining (Locked)'))
                               : (isBn ? '🚀 প্রিমিয়াম প্ল্যানে আপগ্রেড করুন' : '🚀 Upgrade to Premium Plan'),
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
                         onPressed: () {
-                          if (isSub && !user.canUpgradeOrAddPlan(policy: policy)) {
+                          if (isSub && !currentUser.canUpgradeOrAddPlan(policy: policy)) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
@@ -199,7 +201,7 @@ class SubscriptionStatusDetailsModal extends StatelessWidget {
                             return;
                           }
                           Navigator.pop(context);
-                          if (user.isHouseOwner) {
+                          if (currentUser.isHouseOwner) {
                             Navigator.pushNamed(context, HouseOwnerSubscriptionScreen.name);
                           } else {
                             Navigator.pushNamed(context, TenantSubscriptionScreen.name);
@@ -207,7 +209,7 @@ class SubscriptionStatusDetailsModal extends StatelessWidget {
                         },
                       ),
                     ),
-                    if (isSub && !user.canUpgradeOrAddPlan(policy: policy))
+                    if (isSub && !currentUser.canUpgradeOrAddPlan(policy: policy))
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
                         child: Text(
@@ -238,6 +240,7 @@ class SubscriptionStatusDetailsModal extends StatelessWidget {
 
   Widget _buildFreeTierUsageBreakdown(
     BuildContext context,
+    UserModel user,
     FreeTierPolicyModel policy,
     bool isDark,
     bool isBn,

@@ -172,7 +172,12 @@ class PropertyFirestoreService {
     if (_lastSettings != null && _lastSettings!.exists && _lastSettings!.data() != null) {
       final rawSettings = _lastSettings!.data();
       if (rawSettings is Map) {
-        requireVerified = (rawSettings['requireVerifiedOwnerForProperties'] as bool?) ?? false;
+        final val = rawSettings['requireVerifiedOwnerForProperties'];
+        if (val is bool) {
+          requireVerified = val;
+        } else if (val is String) {
+          requireVerified = val.trim().toLowerCase() == 'true';
+        }
       }
     }
 
@@ -184,7 +189,7 @@ class PropertyFirestoreService {
         final data = doc.data();
         if (data is Map) {
           final p = PropertyModel.fromMap(Map<String, dynamic>.from(data), doc.id);
-          final bool isLive = p.isAvailable && p.approvalStatus == 'approved';
+          final bool isLive = p.isAvailable && p.isApproved;
           allList.add(p);
 
           if (isLive && (!requireVerified || p.isOwnerVerified)) {

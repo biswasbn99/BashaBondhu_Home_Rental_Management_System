@@ -240,17 +240,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       );
 
       if (pickedFile != null) {
-        if (kIsWeb) {
-          final bytes = await pickedFile.readAsBytes();
-          final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-          setState(() {
-            _profileImage = base64String;
-          });
-        } else {
-          setState(() {
-            _profileImage = pickedFile.path;
-          });
-        }
+        final bytes = await pickedFile.readAsBytes();
+        final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        setState(() {
+          _profileImage = base64String;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -277,25 +271,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       );
 
       if (pickedFile != null) {
-        if (kIsWeb) {
-          final bytes = await pickedFile.readAsBytes();
-          final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-          setState(() {
-            if (isFront) {
-              _nidFrontImage = base64String;
-            } else {
-              _nidBackImage = base64String;
-            }
-          });
-        } else {
-          setState(() {
-            if (isFront) {
-              _nidFrontImage = pickedFile.path;
-            } else {
-              _nidBackImage = pickedFile.path;
-            }
-          });
-        }
+        final bytes = await pickedFile.readAsBytes();
+        final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        setState(() {
+          if (isFront) {
+            _nidFrontImage = base64String;
+          } else {
+            _nidBackImage = base64String;
+          }
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -389,6 +373,29 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     }
   }
 
+  Future<String> _ensureBase64(String src) async {
+    final s = src.trim();
+    if (s.isEmpty) return '';
+    if (s.startsWith('data:') || s.startsWith('http://') || s.startsWith('https://')) {
+      return s;
+    }
+    if (!kIsWeb) {
+      try {
+        final cleanPath = s.replaceFirst('file://', '');
+        final file = File(cleanPath);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          final ext = cleanPath.split('.').last.toLowerCase();
+          final mime = ext == 'png' ? 'image/png' : 'image/jpeg';
+          return 'data:$mime;base64,${base64Encode(bytes)}';
+        }
+      } catch (e) {
+        debugPrint('Error converting local file to base64: $e');
+      }
+    }
+    return s;
+  }
+
   Future<void> _saveProfile({bool showSuccessMessage = true}) async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final currentUser = userProvider.user;
@@ -405,6 +412,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     setState(() => _isSaving = true);
 
     try {
+      final finalProfile = await _ensureBase64(_profileImage);
+      final finalNidFront = await _ensureBase64(_nidFrontImage);
+      final finalNidBack = await _ensureBase64(_nidBackImage);
+
+      _profileImage = finalProfile;
+      _nidFrontImage = finalNidFront;
+      _nidBackImage = finalNidBack;
+
       final updatedUser = currentUser.copyWith(
         firstName: _firstNameController.text.trim().isNotEmpty
             ? _firstNameController.text.trim()
@@ -420,9 +435,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             : currentUser.mobile,
         gender: _selectedGender ?? currentUser.gender,
         dateOfBirth: _selectedDob != null ? _selectedDob!.toIso8601String() : currentUser.dateOfBirth,
-        profileImageUrl: _profileImage,
-        nidFrontImageUrl: _nidFrontImage,
-        nidBackImageUrl: _nidBackImage,
+        profileImageUrl: finalProfile,
+        nidFrontImageUrl: finalNidFront,
+        nidBackImageUrl: finalNidBack,
       );
 
       await userProvider.updateUserProfile(updatedUser);
@@ -508,6 +523,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     setState(() => _isSubmittingVerification = true);
 
     try {
+      // Ensure all images are converted to base64 before submitting
+      final finalProfile = await _ensureBase64(_profileImage);
+      final finalNidFront = await _ensureBase64(_nidFrontImage);
+      final finalNidBack = await _ensureBase64(_nidBackImage);
+
+      _profileImage = finalProfile;
+      _nidFrontImage = finalNidFront;
+      _nidBackImage = finalNidBack;
+
       // First save all latest field edits
       final updatedUser = currentUser.copyWith(
         firstName: _firstNameController.text.trim().isNotEmpty ? _firstNameController.text.trim() : currentUser.firstName,
@@ -516,9 +540,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         mobile: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : currentUser.mobile,
         gender: _selectedGender ?? currentUser.gender,
         dateOfBirth: _selectedDob != null ? _selectedDob!.toIso8601String() : currentUser.dateOfBirth,
-        profileImageUrl: _profileImage,
-        nidFrontImageUrl: _nidFrontImage,
-        nidBackImageUrl: _nidBackImage,
+        profileImageUrl: finalProfile,
+        nidFrontImageUrl: finalNidFront,
+        nidBackImageUrl: finalNidBack,
         verificationStatus: 'pending',
         verificationFeedback: '',
       );
@@ -1494,7 +1518,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       try {
         final base64Str = src.contains(',') ? src.split(',').last : src;
         return Image.memory(
-          base64Decode(base64Str.trim()),
+          base64Decode(base64Str.replaceAll(RegExp(r'\s+'), '')),
           width: width,
           height: height,
           fit: BoxFit.cover,

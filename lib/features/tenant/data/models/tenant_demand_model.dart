@@ -46,12 +46,12 @@ class TenantDemandModel {
   final String? rejectionReason;
   final DateTime? approvedAt;
 
-  bool get isTenantVerified => tenantVerificationStatus.toLowerCase() == 'verified';
-  bool get isTenantPending => tenantVerificationStatus.toLowerCase() == 'pending';
+  bool get isTenantVerified => tenantVerificationStatus.trim().toLowerCase() == 'verified';
+  bool get isTenantPending => tenantVerificationStatus.trim().toLowerCase() == 'pending';
   bool get isTenantUnverified => !isTenantVerified && !isTenantPending;
-  bool get isApproved => approvalStatus == 'approved';
-  bool get isPendingApproval => approvalStatus == 'pending';
-  bool get isRejected => approvalStatus == 'rejected';
+  bool get isApproved => approvalStatus.trim().toLowerCase() == 'approved';
+  bool get isPendingApproval => approvalStatus.trim().toLowerCase() == 'pending';
+  bool get isRejected => approvalStatus.trim().toLowerCase() == 'rejected';
 
   TenantDemandModel({
     required this.id,

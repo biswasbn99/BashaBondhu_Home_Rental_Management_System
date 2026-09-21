@@ -8,6 +8,7 @@ import '../../../auth/data/providers/user_provider.dart';
 import '../../../shared/presentation/widgets/app_bar.dart';
 import '../../../shared/presentation/widgets/language_action_button.dart';
 import '../../data/models/subscription_model.dart';
+import '../../data/models/free_tier_policy_model.dart';
 import '../../data/providers/subscription_provider.dart';
 import 'subscription_history_screen.dart';
 import '../widgets/payment_method_sheet.dart';
@@ -73,8 +74,19 @@ class TenantSubscriptionScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 1. Active Plan Status (If Subscribed) ---
-            if (user.isSubscribed) _buildActivePlanCard(context, user, isDark, isBn),
+            // --- 1. Real-Time Active Plan or Free Tier Status Card ---
+            StreamBuilder<FreeTierPolicyModel>(
+              stream: subProvider.streamFreeTierPolicy(),
+              initialData: subProvider.currentPolicy ?? FreeTierPolicyModel.defaultPolicy(),
+              builder: (context, policySnap) {
+                final policy = policySnap.data ?? FreeTierPolicyModel.defaultPolicy();
+                if (user.isSubscribed) {
+                  return _buildActivePlanCard(context, user, isDark, isBn, policy);
+                } else {
+                  return _buildFreeAccountCard(context, user, isDark, isBn, policy);
+                }
+              },
+            ),
 
             // --- 2. Notice Message Modern Card (Localized) ---
             _buildNoticeCard(context, l10n, isDark, isBn),
@@ -226,7 +238,7 @@ class TenantSubscriptionScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActivePlanCard(BuildContext context, UserModel user, bool isDark, bool isBn) {
+  Widget _buildActivePlanCard(BuildContext context, UserModel user, bool isDark, bool isBn, FreeTierPolicyModel policy) {
     final expiry = user.expiryDateTime;
     final diffDays = expiry != null ? (expiry.difference(DateTime.now()).inHours / 24).ceil() : 0;
     final activePlans = user.activePlans;
@@ -329,14 +341,20 @@ class TenantSubscriptionScreen extends StatelessWidget {
           const SizedBox(height: 8),
           _buildQuotaRow(
             isBn ? '📝 ডিমান্ড পোস্ট বাকি' : 'Rental Demands Remaining',
-            formatQuota(user.remainingPosts),
-            user.canCreatePost,
+            formatQuota(user.remainingPostsForPolicy(policy: policy)),
+            user.canCreatePostForPolicy(policy: policy),
           ),
           const SizedBox(height: 6),
           _buildQuotaRow(
-            isBn ? '🔓 নম্বর আনলক বাকি' : 'Contact Unlocks Remaining',
-            formatQuota(user.remainingContactUnlocks),
-            user.canUnlockContact,
+            isBn ? '🔓 বাড়িওয়ালার নম্বর আনলক বাকি' : 'Landlord Contact Unlocks Remaining',
+            formatQuota(user.remainingContactUnlocksForPolicy(policy: policy)),
+            user.canUnlockContactForPolicy(policy: policy),
+          ),
+          const SizedBox(height: 6),
+          _buildQuotaRow(
+            isBn ? '📍 সাব-এরিয়া লোকেশন আনলক বাকি' : 'Sub-Area Unlocks Remaining',
+            formatQuota(user.remainingTenantSubAreaUnlocks(policy: policy)),
+            user.canUnlockSubAreaForTenant(policy: policy),
           ),
           const SizedBox(height: 6),
           _buildQuotaRow(
@@ -347,20 +365,20 @@ class TenantSubscriptionScreen extends StatelessWidget {
           const SizedBox(height: 6),
           _buildQuotaRow(
             isBn ? '📍 নিকটবর্তী সার্চ বাকি' : 'Nearby Searches Remaining',
-            formatQuota(user.remainingNearbySearches),
-            user.canPerformNearbySearch,
+            formatQuota(user.remainingNearbySearchesForPolicy(policy: policy)),
+            user.canPerformNearbySearchForPolicy(policy: policy),
           ),
           const SizedBox(height: 6),
           _buildQuotaRow(
             isBn ? '🗺️ গুগল ম্যাপ দিকনির্দেশনা বাকি' : 'Map Directions Remaining',
-            formatQuota(user.remainingMapDirections),
-            user.canOpenMapDirections,
+            formatQuota(user.remainingMapDirectionsForPolicy(policy: policy)),
+            user.canOpenMapDirectionsForPolicy(policy: policy),
           ),
           const SizedBox(height: 6),
           _buildQuotaRow(
             isBn ? '🤖 এআই সহকারী প্রশ্ন বাকি' : 'AI Assistant Queries Remaining',
-            formatQuota(user.remainingAiQueries),
-            user.canUseAiAssistant,
+            formatQuota(user.remainingAiQueriesForRole(policy: policy)),
+            user.canUseAiAssistantForRole(policy: policy),
           ),
           const SizedBox(height: 12),
           Container(
@@ -405,6 +423,299 @@ class TenantSubscriptionScreen extends StatelessWidget {
               ),
               onPressed: () => SubscriptionStatusDetailsModal.show(context, user),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Dedicated Free Tier Baseline Quotas Card for Tenant (7 Facilities)
+  Widget _buildFreeAccountCard(
+    BuildContext context,
+    UserModel user,
+    bool isDark,
+    bool isBn,
+    FreeTierPolicyModel policy,
+  ) {
+    String formatLimit(int limit) {
+      if (limit == -1) return isBn ? 'আনলিমিটেড' : 'Unlimited';
+      if (limit <= 0) return isBn ? 'লক (০)' : 'Locked (0)';
+      return '${limit.toString().toLocalizedDigits(isBn ? "bn" : "en")}${isBn ? "টি" : ""}';
+    }
+
+    String formatRemaining(int remaining, int limit) {
+      if (limit == -1) return isBn ? 'আনলিমিটেড বাকি' : 'Unlimited left';
+      if (limit <= 0) return isBn ? 'লক (বন্ধ)' : 'Locked';
+      if (remaining <= 0) return isBn ? '০টি বাকি (শেষ)' : '0 left (Exhausted)';
+      return '${remaining.toString().toLocalizedDigits(isBn ? "bn" : "en")}${isBn ? "টি বাকি" : " left"}';
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF132A26) : const Color(0xFFF0FDFA),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF0D9488), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.card_giftcard_rounded, color: Color(0xFF0D9488), size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            isBn ? 'ভাড়াটিয়া ফ্রি পলিসি ও রিয়েল-টাইম কোটা' : 'Tenant Free Baseline Quotas',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                              color: Color(0xFF0D9488),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0D9488).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFF0D9488), width: 0.8),
+                          ),
+                          child: Text(
+                            isBn ? 'লাইভ আপডেট' : 'Live Sync',
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0D9488),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isBn
+                          ? 'এডমিন কর্তৃক নির্ধারিত ফ্রি ব্যবহারের সীমা (৭টি সুবিধা):'
+                          : 'Admin-configured baseline free limits (7 Facilities):',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.grey[300] : Colors.grey[800],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: Color(0xFF0D9488)),
+          const SizedBox(height: 10),
+
+          // 1. Max Rental Demand Allowed Limit
+          _buildPolicyFeatureRow(
+            icon: Icons.post_add_rounded,
+            title: isBn ? '১. ভাড়ার চাহিদা (Demand) পোস্ট লিমিট' : '1. Max Rental Demand Limit',
+            limitText: formatLimit(policy.tenantMaxDemands),
+            statusText: formatRemaining(user.remainingPostsForPolicy(policy: policy), policy.tenantMaxDemands),
+            isAvailable: user.canCreatePostForPolicy(policy: policy),
+            isDark: isDark,
+            isBn: isBn,
+          ),
+          const SizedBox(height: 8),
+
+          // 2. Landlord Contact Numbers Unlock Limit
+          _buildPolicyFeatureRow(
+            icon: Icons.phone_in_talk_rounded,
+            title: isBn ? '২. বাড়িওয়ালার নম্বর আনলক লিমিট' : '2. Landlord Contacts Unlock Limit',
+            limitText: formatLimit(policy.tenantUnlockNumbers),
+            statusText: formatRemaining(user.remainingContactUnlocksForPolicy(policy: policy), policy.tenantUnlockNumbers),
+            isAvailable: user.canUnlockContactForPolicy(policy: policy),
+            isDark: isDark,
+            isBn: isBn,
+          ),
+          const SizedBox(height: 8),
+
+          // 3. Sub-Area Location Unlock Limit
+          _buildPolicyFeatureRow(
+            icon: Icons.location_city_rounded,
+            title: isBn ? '৩. সাব-এরিয়া লোকেশন আনলক লিমিট' : '3. Sub-Area Location Unlock Limit',
+            limitText: formatLimit(policy.tenantSubAreaUnlocks),
+            statusText: formatRemaining(user.remainingTenantSubAreaUnlocks(policy: policy), policy.tenantSubAreaUnlocks),
+            isAvailable: user.canUnlockSubAreaForTenant(policy: policy),
+            isDark: isDark,
+            isBn: isBn,
+          ),
+          const SizedBox(height: 8),
+
+          // 4. Full Photo Gallery Access Limit
+          _buildPolicyFeatureRow(
+            icon: Icons.photo_library_rounded,
+            title: isBn ? '৪. সম্পূর্ণ ফটো গ্যালারি এক্সেস লিমিট' : '4. Photo Gallery Access Limit',
+            limitText: formatLimit(policy.tenantFullPhotoGallery),
+            statusText: formatRemaining(user.remainingPhotoGalleryUnlocks(policy: policy), policy.tenantFullPhotoGallery),
+            isAvailable: user.canUnlockPhotoGallery(policy: policy),
+            isDark: isDark,
+            isBn: isBn,
+          ),
+          const SizedBox(height: 8),
+
+          // 5. Nearby / Radius Search Limit
+          _buildPolicyFeatureRow(
+            icon: Icons.radar_rounded,
+            title: isBn ? '৫. কাছাকাছি (রেডিয়াস) সার্চ লিমিট' : '5. Nearby Radius Search Limit',
+            limitText: formatLimit(policy.tenantNearbySearches),
+            statusText: formatRemaining(user.remainingNearbySearchesForPolicy(policy: policy), policy.tenantNearbySearches),
+            isAvailable: user.canPerformNearbySearchForPolicy(policy: policy),
+            isDark: isDark,
+            isBn: isBn,
+          ),
+          const SizedBox(height: 8),
+
+          // 6. Google Map Directions Limit
+          _buildPolicyFeatureRow(
+            icon: Icons.directions_rounded,
+            title: isBn ? '৬. গুগল ম্যাপস দিকনির্দেশনা লিমিট' : '6. Map Directions Limit',
+            limitText: formatLimit(policy.tenantMapDirections),
+            statusText: formatRemaining(user.remainingMapDirectionsForPolicy(policy: policy), policy.tenantMapDirections),
+            isAvailable: user.canOpenMapDirectionsForPolicy(policy: policy),
+            isDark: isDark,
+            isBn: isBn,
+          ),
+          const SizedBox(height: 8),
+
+          // 7. AI Assistant Search Limit
+          _buildPolicyFeatureRow(
+            icon: Icons.auto_awesome_rounded,
+            title: isBn ? '৭. এআই সহকারী সার্চ লিমিট' : '7. AI Assistant Search Limit',
+            limitText: formatLimit(policy.tenantAiAssistant),
+            statusText: formatRemaining(user.remainingAiQueriesForRole(policy: policy), policy.tenantAiAssistant),
+            isAvailable: user.canUseAiAssistantForRole(policy: policy),
+            isDark: isDark,
+            isBn: isBn,
+          ),
+
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF0D9488).withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF0D9488)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    isBn
+                        ? '💡 যেকোনো ফ্রি কোটা শেষ হলে নিচে থেকে আপনার পছন্দের প্যাকেজ নির্বাচন করে এক-ক্লিকে সাবস্ক্রাইব করুন।'
+                        : '💡 Once free quota is exhausted, choose from the packages below to unlock full unlimited features.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? const Color(0xFF5EEAD4) : const Color(0xFF115E59),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF0D9488)),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              icon: const Icon(Icons.analytics_outlined, size: 16, color: Color(0xFF0D9488)),
+              label: Text(
+                isBn ? 'সকল সুবিধার বিস্তারিত হিসাব দেখুন' : 'View Detailed Usage Breakdown',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0D9488)),
+              ),
+              onPressed: () => SubscriptionStatusDetailsModal.show(context, user),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPolicyFeatureRow({
+    required IconData icon,
+    required String title,
+    required String limitText,
+    required String statusText,
+    required bool isAvailable,
+    required bool isDark,
+    required bool isBn,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF132320) : Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.teal.shade200,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: isAvailable ? const Color(0xFF0D9488) : Colors.grey),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${isBn ? "লিমিট" : "Limit"}: $limitText',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.grey[300] : Colors.grey[700],
+                ),
+              ),
+              Text(
+                statusText,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  color: isAvailable ? Colors.green : Colors.redAccent,
+                ),
+              ),
+            ],
           ),
         ],
       ),

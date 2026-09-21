@@ -23,9 +23,17 @@ class MyDemandScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.localizations;
     final theme = Theme.of(context);
-    final isBn = Localizations.localeOf(context).languageCode == 'bn';
+    final isDark = theme.brightness == Brightness.dark;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final isBn = languageCode == 'bn';
     final userProvider = context.watch<UserProvider>();
     final user = userProvider.user;
+    final appSettings = context.watch<AppSettingsProvider>();
+
+    final bool isGatingActive = appSettings.requireVerifiedTenantForDemands;
+    final bool isUserVerified = user?.isVerified ?? false;
+    final bool isNidPending = user?.isVerificationPending ?? false;
+    final bool showTopBanner = isGatingActive && !isUserVerified;
 
     if (user == null) {
       return Scaffold(
@@ -81,30 +89,171 @@ class MyDemandScreen extends StatelessWidget {
           LanguageActionButton(),
         ],
       ),
-      body: StreamBuilder<List<TenantDemandModel>>(
-        stream: firestoreService.streamTenantDemands(user.uid, tenantEmail: user.email),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.themeColor),
-            );
-          }
+      body: Column(
+        children: [
+          if (showTopBanner)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: _buildTopGatingNoticeBanner(
+                context: context,
+                isBn: isBn,
+                isDark: isDark,
+                isNidPending: isNidPending,
+              ),
+            ),
+          Expanded(
+            child: StreamBuilder<List<TenantDemandModel>>(
+              stream: firestoreService.streamTenantDemands(user.uid, tenantEmail: user.email),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.themeColor),
+                  );
+                }
 
-          final demands = snapshot.data ?? [];
+                final demands = snapshot.data ?? [];
 
-          if (demands.isEmpty) {
-            return _buildEmptyState(context, l10n);
-          }
+                if (demands.isEmpty) {
+                  return _buildEmptyState(context, l10n);
+                }
 
-          return ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            itemCount: demands.length,
-            separatorBuilder: (_, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              return _MyDemandCard(demand: demands[index]);
-            },
-          );
-        },
+                return ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                  itemCount: demands.length,
+                  separatorBuilder: (_, index) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    return _MyDemandCard(demand: demands[index]);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopGatingNoticeBanner({
+    required BuildContext context,
+    required bool isBn,
+    required bool isDark,
+    required bool isNidPending,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A1B0A) : const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.deepOrange.withValues(alpha: isDark ? 0.5 : 0.3),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepOrange.withValues(alpha: isDark ? 0.15 : 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.deepOrange.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.visibility_off_rounded,
+                  size: 18,
+                  color: Colors.deepOrange,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isBn ? 'আপনার চাহিদা পোস্টগুলো বর্তমানে লুকানো (হাইড) রয়েছে' : 'Your demand posts are currently hidden',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isBn
+                          ? 'ভাড়াটিয়া চাহিদা ফিল্টারিং চালু রয়েছে: শুধুমাত্র ভেরিফাইড ভাড়াটিয়াদের চাহিদা বাড়িওয়ালাদের স্ক্রিনে দৃশ্যমান হয়। আপনার NID অনুমোদন হওয়ামাত্রই পোস্টগুলো স্বয়ংক্রিয়ভাবে দৃশ্যমান হবে। অনুগ্রহ করে আপনার প্রোফাইল ভেরিফাই করুন।'
+                          : 'Tenant Demands Gating is active: Only verified tenants\' demand posts appear to house owners. Automatically visible upon NID approval. Please verify your profile.',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        height: 1.35,
+                        color: isDark ? const Color(0xFFFDBA74) : const Color(0xFF9A3412),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (isNidPending)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: isDark ? 0.25 : 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.amber.shade700, width: 0.8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.hourglass_top_rounded, size: 13, color: isDark ? Colors.amberAccent : Colors.amber.shade900),
+                      const SizedBox(width: 4),
+                      Text(
+                        isBn ? 'NID ভেরিফিকেশন পর্যালোচনায় রয়েছে' : 'NID Verification Under Review',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.amberAccent : Colors.amber.shade900,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.deepOrange,
+                    foregroundColor: Colors.white,
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.verified_user_outlined, size: 15),
+                  label: Text(
+                    isBn ? 'প্রোফাইল ভেরিফাই করুন' : 'Verify Profile',
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, MyProfileScreen.name);
+                  },
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -178,9 +327,9 @@ class _MyDemandCard extends StatelessWidget {
     final appSettings = context.watch<AppSettingsProvider>();
 
     final bool isGatingActive = appSettings.requireVerifiedTenantForDemands;
-    final bool isUserVerified = (user?.isVerified ?? false) || demand.isTenantVerified;
-    final bool isHiddenByGating = isGatingActive && !isUserVerified && demand.isApproved && !demand.isFulfilled;
-    final bool isNidPending = (user?.isVerificationPending ?? false) || demand.isTenantPending;
+    final bool isTenantVerified = (user != null) ? user.isVerified : demand.isTenantVerified;
+    final bool isHiddenByGating = isGatingActive && !isTenantVerified && !demand.isFulfilled && !demand.isRejected;
+    final bool isNidPending = (user != null) ? user.isVerificationPending : demand.isTenantPending;
 
     final locationText = [
       if (demand.subArea != null) demand.subArea!.getLocalizedName(languageCode),
@@ -753,7 +902,7 @@ class _MyDemandCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isBn ? 'আপনার এই পোস্টটি বর্তমানে লুকানো (হাইড) রয়েছে' : 'Your post is currently hidden',
+                      isBn ? 'আপনার এই পোস্টটি বর্তমানে লুকানো (হাইড) রয়েছে' : 'This post is currently hidden',
                       style: const TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.bold,
@@ -764,7 +913,7 @@ class _MyDemandCard extends StatelessWidget {
                     Text(
                       isBn
                           ? 'ভাড়াটিয়া চাহিদা ফিল্টারিং চালু রয়েছে: শুধুমাত্র ভেরিফাইড ভাড়াটিয়াদের চাহিদা বাড়িওয়ালাদের স্ক্রিনে দৃশ্যমান হয়। আপনার NID অনুমোদন হওয়ামাত্রই এটি স্বয়ংক্রিয়ভাবে সবার জন্য দৃশ্যমান হবে। অনুগ্রহ করে আপনার প্রোফাইল ভেরিফাই করুন।'
-                          : 'Tenant Demands Gating is active: Only verified tenants\' demand posts appear to house owners. Automatically visible upon NID approval. Please verify your profile.',
+                          : 'Only verified tenants\' demand posts appear to house owners. Automatically visible upon NID approval. Please verify your profile.',
                       style: TextStyle(
                         fontSize: 11,
                         height: 1.35,

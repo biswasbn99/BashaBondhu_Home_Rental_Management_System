@@ -11,6 +11,7 @@ import 'package:bashabondhu_home_rental_management_system/features/account/prese
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/widgets/account_setting_tiles.dart';
 import 'package:bashabondhu_home_rental_management_system/features/account/presentation/widgets/account_stat_card.dart';
 import 'package:bashabondhu_home_rental_management_system/features/auth/data/models/user_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/auth/data/providers/user_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/home/data/models/property_model.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/data/services/property_firestore_service.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/providers/main_nav_holder_provider.dart';
@@ -22,6 +23,8 @@ import 'package:bashabondhu_home_rental_management_system/features/shared/presen
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/refund_policy_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/support_policy_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/shared/presentation/screens/terms_conditions_screen.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/data/models/free_tier_policy_model.dart';
+import 'package:bashabondhu_home_rental_management_system/features/subscription/data/providers/subscription_provider.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/house_owner_subscription_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/screens/subscription_history_screen.dart';
 import 'package:bashabondhu_home_rental_management_system/features/subscription/presentation/widgets/subscription_status_details_modal.dart';
@@ -69,6 +72,8 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final navProvider = context.read<MainNavHolderProvider>();
 
+    final currentUser = context.watch<UserProvider>().user ?? widget.user;
+
     return StreamBuilder<List<PropertyModel>>(
       stream: _propertiesStream,
       builder: (context, snapshot) {
@@ -79,7 +84,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Header
-            AccountProfileHeader(user: widget.user),
+            AccountProfileHeader(user: currentUser),
             const SizedBox(height: 16),
 
             // House Owner Quick Stats Bar
@@ -119,7 +124,7 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
             const SizedBox(height: 16),
 
             // --- 🌟 Prominent Subscription Status & Upgrade Card for House Owner ---
-            _buildOwnerSubscriptionBannerCard(context, widget.user, isDark, l10n, postCount),
+            _buildOwnerSubscriptionBannerCard(context, currentUser, isDark, l10n, postCount),
             const SizedBox(height: 24),
 
             // House Owner Action Hub
@@ -392,139 +397,237 @@ class _HouseOwnerAccountScreenState extends State<HouseOwnerAccountScreen> {
     final int activeCount = user.activePlans.length;
     final String languageCode = Localizations.localeOf(context).languageCode;
     final bool isBn = languageCode == 'bn';
+    final subProvider = context.watch<SubscriptionProvider>();
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isSubscribed
-              ? (isDark
-                  ? [const Color(0xFF163228), const Color(0xFF0F241D)]
-                  : [const Color(0xFFE4F9ED), const Color(0xFFC7F3DC)])
-              : (isDark
-                  ? [const Color(0xFF332910), const Color(0xFF241C08)]
-                  : [const Color(0xFFFFF9E6), const Color(0xFFFFECC0)]),
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSubscribed ? Colors.green.shade600 : Colors.amber.shade700,
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isSubscribed ? Colors.green : Colors.amber).withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return StreamBuilder<FreeTierPolicyModel>(
+      stream: subProvider.streamFreeTierPolicy(),
+      initialData: subProvider.currentPolicy ?? FreeTierPolicyModel.defaultPolicy(),
+      builder: (context, policySnap) {
+        final policy = policySnap.data ?? FreeTierPolicyModel.defaultPolicy();
+
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isSubscribed
+                  ? (isDark
+                      ? [const Color(0xFF163228), const Color(0xFF0F241D)]
+                      : [const Color(0xFFE4F9ED), const Color(0xFFC7F3DC)])
+                  : (isDark
+                      ? [const Color(0xFF332910), const Color(0xFF241C08)]
+                      : [const Color(0xFFFFF9E6), const Color(0xFFFFECC0)]),
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSubscribed ? Colors.green.shade600 : Colors.amber.shade700,
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: (isSubscribed ? Colors.green : Colors.amber).withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => SubscriptionStatusDetailsModal.show(context, user),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => SubscriptionStatusDetailsModal.show(context, user),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: (isSubscribed ? Colors.green : Colors.amber).withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isSubscribed ? Icons.verified_rounded : Icons.workspace_premium_rounded,
-                        color: isSubscribed ? Colors.green : Colors.amber.shade800,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            isSubscribed
-                                ? (activeCount > 1
-                                    ? (isBn ? '⭐ প্রিমিয়াম (${activeCount.toString().toLocalizedDigits("bn")}টি প্ল্যান সক্রিয়)' : '⭐ Premium ($activeCount Active Plans)')
-                                    : (isBn ? '👑 প্রিমিয়াম প্যাকেজ সক্রিয়' : '👑 Premium Package Active'))
-                                : (isBn ? '🆓 ফ্রি অ্যাকাউন্ট (সীমিত সুবিধা)' : '🆓 Free Account (Limited Quota)'),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 15,
-                              color: isSubscribed ? Colors.green : Colors.amber.shade900,
-                            ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: (isSubscribed ? Colors.green : Colors.amber).withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            isSubscribed
-                                ? (isBn ? 'আপনার ব্যবহারের কোটা ও প্ল্যান বিস্তারিত দেখতে চাপুন' : 'Tap to view quotas and active plans breakdown')
-                                : (isBn ? 'আপনার ফ্রি লিমিট ও ব্যবহারের হিসেব দেখতে চাপুন' : 'Tap to view free tier limits and usage count'),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.grey[300] : Colors.grey[800],
-                            ),
+                          child: Icon(
+                            isSubscribed ? Icons.verified_rounded : Icons.workspace_premium_rounded,
+                            color: isSubscribed ? Colors.green : Colors.amber.shade800,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isSubscribed
+                                    ? (activeCount > 1
+                                        ? (isBn ? '⭐ প্রিমিয়াম (${activeCount.toString().toLocalizedDigits("bn")}টি প্ল্যান সক্রিয়)' : '⭐ Premium ($activeCount Active Plans)')
+                                        : (isBn ? '👑 প্রিমিয়াম প্যাকেজ সক্রিয়' : '👑 Premium Package Active'))
+                                    : (isBn ? '🆓 ফ্রি অ্যাকাউন্ট (সীমিত সুবিধা)' : '🆓 Free Account (Limited Quota)'),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 15,
+                                  color: isSubscribed ? Colors.green : Colors.amber.shade900,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                isSubscribed
+                                    ? (isBn ? 'আপনার ব্যবহারের কোটা ও প্ল্যান বিস্তারিত দেখতে চাপুন' : 'Tap to view quotas and active plans breakdown')
+                                    : (isBn ? 'আপনার ফ্রি লিমিট ও ব্যবহারের হিসেব দেখতে চাপুন' : 'Tap to view free tier limits and usage count'),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? Colors.grey[300] : Colors.grey[800],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (!isSubscribed) ...[
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _buildOwnerFacilityBadge(
+                            icon: Icons.home_work_rounded,
+                            label: isBn ? 'বিজ্ঞাপন' : 'Listings',
+                            remaining: user.remainingPostsForPolicy(policy: policy),
+                            limit: policy.ownerMaxListings,
+                            isBn: isBn,
+                          ),
+                          _buildOwnerFacilityBadge(
+                            icon: Icons.phone_iphone_rounded,
+                            label: isBn ? 'ভাড়াটিয়া নম্বর' : 'Contacts',
+                            remaining: user.remainingContactUnlocksForPolicy(policy: policy),
+                            limit: policy.ownerUnlockNumbers,
+                            isBn: isBn,
+                          ),
+                          _buildOwnerFacilityBadge(
+                            icon: Icons.pin_drop_rounded,
+                            label: isBn ? 'সাব-এরিয়া' : 'Sub-Area',
+                            remaining: user.remainingOwnerSubAreaUnlocks(policy: policy),
+                            limit: policy.ownerSubAreaUnlocks,
+                            isBn: isBn,
+                          ),
+                          _buildOwnerFacilityBadge(
+                            icon: Icons.auto_awesome_rounded,
+                            label: isBn ? 'এআই চ্যাট' : 'AI Queries',
+                            remaining: user.remainingAiQueriesForRole(policy: policy),
+                            limit: policy.ownerAiAssistant,
+                            isBn: isBn,
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: isSubscribed ? Colors.green.shade700 : Colors.amber.shade900,
-                          side: BorderSide(
-                            color: isSubscribed ? Colors.green.shade600 : Colors.amber.shade700,
+                    ],
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: isSubscribed ? Colors.green.shade700 : Colors.amber.shade900,
+                              side: BorderSide(
+                                color: isSubscribed ? Colors.green.shade600 : Colors.amber.shade700,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            icon: const Icon(Icons.info_outline_rounded, size: 16),
+                            label: Text(
+                              isBn ? 'সুবিধা বিস্তারিত' : 'View Limits',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                            onPressed: () {
+                              SubscriptionStatusDetailsModal.show(context, user);
+                            },
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        icon: const Icon(Icons.info_outline_rounded, size: 16),
-                        label: Text(
-                          isBn ? 'সুবিধা বিস্তারিত' : 'View Limits',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: isSubscribed ? Colors.green.shade700 : Colors.amber.shade800,
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            icon: Icon(isSubscribed ? Icons.add_circle_outline_rounded : Icons.star_rounded, size: 16),
+                            label: Text(
+                              isSubscribed
+                                  ? (isBn ? 'প্যাকেজ যোগ / আপগ্রেড' : 'Add / Upgrade Plan')
+                                  : (isBn ? 'প্যাকেজ কিনুন' : 'Upgrade Plan'),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                            onPressed: () {
+                              Navigator.pushNamed(context, HouseOwnerSubscriptionScreen.name);
+                            },
+                          ),
                         ),
-                        onPressed: () {
-                          SubscriptionStatusDetailsModal.show(context, user);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: isSubscribed ? Colors.green.shade700 : Colors.amber.shade800,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        icon: Icon(isSubscribed ? Icons.add_circle_outline_rounded : Icons.star_rounded, size: 16),
-                        label: Text(
-                          isSubscribed
-                              ? (isBn ? 'প্যাকেজ যোগ / আপগ্রেড' : 'Add / Upgrade Plan')
-                              : (isBn ? 'প্যাকেজ কিনুন' : 'Upgrade Plan'),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                        ),
-                        onPressed: () {
-                          Navigator.pushNamed(context, HouseOwnerSubscriptionScreen.name);
-                        },
-                      ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOwnerFacilityBadge({
+    required IconData icon,
+    required String label,
+    required int remaining,
+    required int limit,
+    required bool isBn,
+  }) {
+    final bool isDisabled = limit == 0;
+    final bool isUnlimited = limit == -1;
+    final Color badgeColor = isDisabled
+        ? Colors.grey
+        : (isUnlimited || remaining > 0 ? const Color(0xFF0D9488) : Colors.redAccent);
+
+    final String countText = isDisabled
+        ? (isBn ? 'লক' : 'Locked')
+        : (isUnlimited
+            ? '∞'
+            : '${remaining.toString().toLocalizedDigits(isBn ? "bn" : "en")}/${limit.toString().toLocalizedDigits(isBn ? "bn" : "en")}');
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: badgeColor),
+          const SizedBox(width: 3.5),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          Text(
+            countText,
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.bold,
+              color: badgeColor,
+            ),
+          ),
+        ],
       ),
     );
   }
