@@ -39,9 +39,9 @@ class AdminFirestoreService {
   CollectionReference get _faqsCollection => _firestore.collection('faqs');
   DocumentReference get _settingsDoc => _firestore.collection('app_settings').doc('general');
 
-  // ==========================================================================
+  
   // 1. USER MANAGEMENT
-  // ==========================================================================
+  
 
   Stream<List<UserModel>> streamAllUsers() {
     return _usersCollection.snapshots().map((snapshot) {
@@ -236,9 +236,9 @@ class AdminFirestoreService {
     await _usersCollection.doc(uid).delete();
   }
 
-  // ==========================================================================
+
   // 2. PROPERTY MANAGEMENT
-  // ==========================================================================
+  
 
   Stream<List<PropertyModel>> streamAllProperties() {
     return _propertiesCollection.snapshots().map((snapshot) {
@@ -351,9 +351,9 @@ class AdminFirestoreService {
     await _propertiesCollection.doc(propertyId).delete();
   }
 
-  // ==========================================================================
+
   // 2.1 TENANT DEMAND MANAGEMENT
-  // ==========================================================================
+  
 
   Stream<List<TenantDemandModel>> streamAllDemands() {
     return _demandsCollection.snapshots().map((snapshot) {
@@ -465,9 +465,9 @@ class AdminFirestoreService {
     await _demandsCollection.doc(demandId).delete();
   }
 
-  // ==========================================================================
+  
   // 3. REPORTS MANAGEMENT
-  // ==========================================================================
+  
 
   Stream<List<Map<String, dynamic>>> streamReports() {
     return _reportsCollection.snapshots().map((snapshot) {
@@ -505,9 +505,9 @@ class AdminFirestoreService {
     await _reportsCollection.doc(reportId).delete();
   }
 
-  // ==========================================================================
+  
   // 4. CATEGORY MANAGEMENT
-  // ==========================================================================
+  
 
   Stream<List<Map<String, dynamic>>> streamCategories() {
     return _categoriesCollection.snapshots().map((snapshot) {
@@ -554,9 +554,9 @@ class AdminFirestoreService {
     }
   }
 
-  // ==========================================================================
+  
   // 5. FAQ MANAGEMENT
-  // ==========================================================================
+  
 
   Stream<List<Map<String, dynamic>>> streamFaqs() {
     return _faqsCollection.snapshots().map((snapshot) {
@@ -620,9 +620,9 @@ class AdminFirestoreService {
     }
   }
 
-  // ==========================================================================
+  
   // 6. GENERAL SETTINGS
-  // ==========================================================================
+  
 
   Stream<Map<String, dynamic>> streamSettings() {
     return _settingsDoc.snapshots().map((snapshot) {

@@ -805,9 +805,9 @@ class _FindHomeView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ==========================================
+        
         // 1. REQUIRED FIELDS SECTION
-        // ==========================================
+        
         DecoratedSectionHeader(title: l10n.accommodationPromptTitle),
         const SizedBox(height: 10),
         Row(

@@ -252,9 +252,9 @@ class AdminReportPdfService {
     return converted;
   }
 
-  // ==========================================================================
+  
   // 1. REVENUE & SUBSCRIPTIONS FINANCIAL STATEMENT (BILINGUAL / ALL TEXT SUPPORT)
-  // ==========================================================================
+  
   Future<Uint8List> generateRevenueReportPdf({
     required List<SubscriptionTransactionModel> transactions,
     required DateTime? startDate,
@@ -409,9 +409,9 @@ class AdminReportPdfService {
     return pdf.save();
   }
 
-  // ==========================================================================
+  
   // 2. PROPERTY LISTINGS & INVENTORY AUDIT (BILINGUAL)
-  // ==========================================================================
+
   Future<Uint8List> generatePropertiesReportPdf({
     required List<PropertyModel> properties,
     required DateTime? startDate,
@@ -542,9 +542,9 @@ class AdminReportPdfService {
     return pdf.save();
   }
 
-  // ==========================================================================
+  
   // 3. TENANT DEMANDS REPORT PDF (BILINGUAL)
-  // ==========================================================================
+  
   Future<Uint8List> generateDemandsReportPdf({
     required List<TenantDemandModel> demands,
     required DateTime? startDate,
@@ -666,9 +666,9 @@ class AdminReportPdfService {
     return pdf.save();
   }
 
-  // ==========================================================================
+  
   // 4. HOUSE OWNERS & KYC AUDIT REPORT PDF (BILINGUAL)
-  // ==========================================================================
+  
   Future<Uint8List> generateHouseOwnersReportPdf({
     required List<UserModel> owners,
     required DateTime? startDate,
@@ -797,9 +797,9 @@ class AdminReportPdfService {
     return pdf.save();
   }
 
-  // ==========================================================================
+  
   // 5. TENANTS & KYC AUDIT REPORT PDF (BILINGUAL)
-  // ==========================================================================
+  
   Future<Uint8List> generateTenantsReportPdf({
     required List<UserModel> tenants,
     required DateTime? startDate,
@@ -941,9 +941,9 @@ class AdminReportPdfService {
     return pdf.save();
   }
 
-  // ==========================================================================
+  
   // 6. SINGLE TRANSACTION PAYMENT RECEIPT / TAX INVOICE (PORTRAIT A4, BILINGUAL)
-  // ==========================================================================
+  
   Future<Uint8List> generateSingleTransactionReceiptPdf({
     required SubscriptionTransactionModel transaction,
     bool isBn = false,

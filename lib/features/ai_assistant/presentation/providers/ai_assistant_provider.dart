@@ -725,9 +725,9 @@ class AIAssistantProvider extends ChangeNotifier {
     }
   }
 
-  // ==========================================
+  
   // WIZARD 1: FIND A HOME (12 STEPS)
-  // ==========================================
+  
 
   void startFindHomeWizard(UserModel user, String languageCode) {
     _activeWizard = WizardMode.findHome;
@@ -982,9 +982,9 @@ class AIAssistantProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ==========================================
+  
   // WIZARD 2: DEMAND POST (17 STEPS WITH BD PHONE VALIDATION)
-  // ==========================================
+  
 
   void startDemandPostWizard(UserModel user, String languageCode) {
     _activeWizard = WizardMode.postDemand;
@@ -1268,9 +1268,9 @@ class AIAssistantProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ==========================================
+  
   // REAL FIRESTORE TENANT DEMANDS FOR HOUSE OWNER
-  // ==========================================
+
 
   Future<void> startOwnerViewDemandsWizard(UserModel user, String languageCode) async {
     await _showOwnerTenantDemands(user, languageCode);
@@ -1637,9 +1637,9 @@ $topBudgetListEn
     }
   }
 
-  // ==========================================
+  
   // TENANT 3 CORE METHODS & FIND HOME
-  // ==========================================
+  
 
   /// Public method to trigger the 3 core options menu for tenants
   void showTenant3Options(UserModel user, String languageCode, [FreeTierPolicyModel? policy]) {
@@ -1974,9 +1974,9 @@ $topPriceListEn
     }
   }
 
-  // ==========================================
+  
   // HOUSE OWNER 4 CORE METHODS
-  // ==========================================
+  
 
   /// Public method to trigger the 4 core options menu at any time
   void showHouseOwner4Options(UserModel user, String languageCode, [FreeTierPolicyModel? policy]) {
@@ -2364,13 +2364,13 @@ $topPriceListEn
     notifyListeners();
   }
 
-  // ==========================================
+  
   // HOUSE OWNER FAQS (FETCHED LIVE FROM FIRESTORE)
-  // ==========================================
+  
 
-  // ==========================================
+  
   // HOUSE OWNER FAQS (FETCHED LIVE FROM FIRESTORE WITH AI ANALYSIS)
-  // ==========================================
+  
 
   Future<void> _showHouseOwnerFaq(UserModel user, String languageCode) async {
     _isGenerating = true;
@@ -2440,9 +2440,9 @@ $topPriceListEn
     }
   }
 
-  // ==========================================
+
   // HOUSE OWNER STEP-BY-STEP "HOW TO USE" MASTER GUIDE
-  // ==========================================
+  
 
   void _showHouseOwnerHowToUse(UserModel user, String languageCode) {
     final isBn = languageCode == 'bn';
@@ -2525,9 +2525,9 @@ $topPriceListEn
     notifyListeners();
   }
 
-  // ==========================================
+  
   // TENANT FAQS (FETCHED LIVE FROM FIRESTORE WITH AI ANALYSIS)
-  // ==========================================
+  
 
   Future<void> _showTenantFaq(UserModel user, String languageCode) async {
     _isGenerating = true;
@@ -2597,9 +2597,9 @@ $topPriceListEn
     }
   }
 
-  // ==========================================
+  
   // TENANT STEP-BY-STEP "HOW TO USE" MASTER GUIDE
-  // ==========================================
+  
 
   void _showTenantHowToUse(UserModel user, String languageCode) {
     final isBn = languageCode == 'bn';
@@ -2667,9 +2667,9 @@ $topPriceListEn
     notifyListeners();
   }
 
-  // ==========================================
+  
   // DYNAMIC POLICY HANDLER (FIREBASE BACKED WITH AI ANALYSIS)
-  // ==========================================
+  
 
   Future<void> _showHouseOwnerPolicy(UserModel user, String policyType, String languageCode) async {
     _isGenerating = true;
@@ -2815,9 +2815,9 @@ ${demandSummaries.take(8).join('\n')}''';
     }
   }
 
-  // ==========================================
+  
   // CONFIRM & PUBLISH DEMAND TO FIRESTORE
-  // ==========================================
+  
 
   Future<bool> confirmAndPublishDemand({
     required DemandDraftModel draft,
@@ -2877,9 +2877,9 @@ ${demandSummaries.take(8).join('\n')}''';
     }
   }
 
-  // ==========================================
+  
   // AD GENERATION HELPER FOR HOUSE OWNER FORM
-  // ==========================================
+  
 
   Future<String> generateAdDescriptionForOwner({
     String? area,
@@ -2925,9 +2925,9 @@ ${demandSummaries.take(8).join('\n')}''';
     );
   }
 
-  // ==========================================
+  
   // FIRESTORE QUERIES
-  // ==========================================
+  
 
   Future<List<PropertyModel>> _fetchProperties(Map<String, dynamic>? filters) async {
     try {

@@ -268,9 +268,9 @@ class AIMessageBubble extends StatelessWidget {
   }
 }
 
-// ==========================================
+
 // ACTION CARDS
-// ==========================================
+
 
 class _SubscriptionHistoryCard extends StatelessWidget {
   final String languageCode;
@@ -659,9 +659,9 @@ class _AdminStatsCard extends StatelessWidget {
   }
 }
 
-// ==========================================
+
 // PROPERTY CARDS CAROUSEL
-// ==========================================
+
 
 class _PropertyCardsCarousel extends StatelessWidget {
   final List<PropertyModel> properties;
@@ -793,9 +793,9 @@ class _PropertyCardsCarousel extends StatelessWidget {
   }
 }
 
-// ==========================================
+
 // MATCHING DEMANDS CAROUSEL (HOUSE OWNER)
-// ==========================================
+
 
 class _MatchingDemandsCarousel extends StatelessWidget {
   final List<MatchingDemandItem> matchingDemands;

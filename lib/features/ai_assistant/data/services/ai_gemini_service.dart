@@ -159,9 +159,9 @@ Respond with a JSON object:
     final isOwner = userRole.toLowerCase().contains('owner');
     final isAdmin = userRole.toLowerCase().contains('admin');
 
-    // ==========================================
+    
     // 1. APP OVERVIEW (অ্যাপ ওভারভিউ / পরিচিতি)
-    // ==========================================
+    
     if (lower.contains('overview') ||
         lower.contains('about app') ||
         lower.contains('about bashabondhu') ||
@@ -231,9 +231,9 @@ Respond with a JSON object:
       );
     }
 
-    // ==========================================
+    
     // 2. FAQ (সাধারণ জিজ্ঞাসা ও প্রশ্নোত্তর)
-    // ==========================================
+  
     if (lower.contains('faq') ||
         lower.contains('faqs') ||
         lower.contains('frequently asked questions') ||
@@ -359,9 +359,9 @@ Respond with a JSON object:
       );
     }
 
-    // ==========================================
+    
     // 2.5 HOW TO USE THIS APP (ব্যবহার নির্দেশিকা)
-    // ==========================================
+    
     if (lower.contains('how to use') ||
         lower.contains('how to use this app') ||
         lower.contains('কীভাবে অ্যাপ ব্যবহার করবেন') ||
@@ -495,9 +495,9 @@ Respond with a JSON object:
       );
     }
 
-    // ==========================================
+    
     // 3. PRIVACY POLICY (প্রাইভেসি পলিসি)
-    // ==========================================
+    
     if (lower.contains('privacy') ||
         lower.contains('privacy policy') ||
         lower.contains('গোপনীয়তা') ||
@@ -538,9 +538,9 @@ BashaBondhu is strictly committed to protecting the privacy, confidentiality, an
       );
     }
 
-    // ==========================================
+
     // 4. TERMS & CONDITIONS (ব্যবহারিক শর্তাবলী)
-    // ==========================================
+    
     if (lower.contains('terms') ||
         lower.contains('conditions') ||
         lower.contains('terms and conditions') ||
@@ -581,9 +581,9 @@ All users must adhere to the following community standards and platform terms:
       );
     }
 
-    // ==========================================
+    
     // 5. SUPPORT & REFUND POLICIES
-    // ==========================================
+    
     if (lower.contains('refund') || lower.contains('রিফান্ড') || lower.contains('টাকা ফেরত')) {
       final refundText = isBn
           ? '💳 **বাসাবন্ধু রিফান্ড পলিসি (Refund Policy):**\n\nসাবস্ক্রিপশন সংক্রান্ত কোনো ট্রানজেকশনে টেকনিক্যাল ত্রুটি হলে অথবা প্যাকেজের সুবিধা প্রদান ব্যাহত হলে ২৪ ঘণ্টার মধ্যে আমাদের সাপোর্ট হেল্পডেস্কে যোগাযোগ করলে তদন্তসাপেক্ষে দ্রুত সমাধান ও রিফান্ড প্রক্রিয়া সম্পন্ন করা হয়।'
@@ -606,9 +606,9 @@ All users must adhere to the following community standards and platform terms:
       );
     }
 
-    // ==========================================
+    
     // 6. SPECIFIC LOCATION RENT PRICE QUERY INTENT
-    // ==========================================
+    
     final locationMatch = _extractLocationKeyword(prompt);
     if (locationMatch != null &&
         (lower.contains('price') ||
@@ -640,9 +640,9 @@ All users must adhere to the following community standards and platform terms:
       );
     }
 
-    // ==========================================
+    
     // 7. SUBSCRIPTION HISTORY
-    // ==========================================
+    
     if (lower.contains('subscription history') ||
         lower.contains('সাবস্ক্রিপশন হিস্ট্রি') ||
         lower.contains('হিস্ট্রি') ||
@@ -661,9 +661,9 @@ All users must adhere to the following community standards and platform terms:
       );
     }
 
-    // ==========================================
+  
     // 8. SUBSCRIPTION PACKAGES
-    // ==========================================
+    
     if (lower.contains('subscription package') ||
         lower.contains('প্যাকেজ') ||
         lower.contains('package') ||
@@ -681,9 +681,9 @@ All users must adhere to the following community standards and platform terms:
       );
     }
 
-    // ==========================================
+    
     // 9. MY PROFILE
-    // ==========================================
+  
     if (lower.contains('profile') ||
         lower.contains('প্রোফাইল') ||
         lower.contains('আমার তথ্য') ||
@@ -699,9 +699,9 @@ All users must adhere to the following community standards and platform terms:
       );
     }
 
-    // ==========================================
+    
     // 10. ADMIN LIVE STATS
-    // ==========================================
+    
     if (isAdmin && (lower.contains('stat') || lower.contains('হিসাব') || lower.contains('ইউজার') || lower.contains('পোস্ট') || lower.contains('revenue'))) {
       return AIResponseData(
         replyText: isBn
@@ -714,9 +714,9 @@ All users must adhere to the following community standards and platform terms:
       );
     }
 
-    // ==========================================
+  
     // 11. PROPERTY SEARCH INTENT (TENANT)
-    // ==========================================
+    
     if (lower.contains('বাসা') ||
         lower.contains('ফ্ল্যাট') ||
         lower.contains('রুম') ||
@@ -754,9 +754,9 @@ All users must adhere to the following community standards and platform terms:
       );
     }
 
-    // ==========================================
+    
     // 12. DEFAULT GREETINGS & GUIDED 4 CORE OPTIONS
-    // ==========================================
+    
     return AIResponseData(
       replyText: isBn
           ? (isAdmin

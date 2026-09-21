@@ -161,9 +161,9 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     );
   }
 
-  // ==========================================================================
+  
   // HEADER
-  // ==========================================================================
+  
   Widget _buildHeader(bool isBn, bool isDark, bool isCompact) {
     return Wrap(
       alignment: WrapAlignment.spaceBetween,
@@ -213,9 +213,9 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     );
   }
 
-  // ==========================================================================
+  
   // TAB SELECTOR (RESPONSIVE HORIZONTAL SCROLL)
-  // ==========================================================================
+  
   Widget _buildTabSelector(bool isBn, bool isDark, Color borderColor) {
     final List<Map<String, dynamic>> tabs = [
       {
@@ -306,9 +306,9 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     );
   }
 
-  // ==========================================================================
+  
   // DATE FILTER & SEARCH BAR (RESPONSIVE)
-  // ==========================================================================
+  
   Widget _buildFilterBar(bool isBn, bool isDark, Color cardBg, Color borderColor, bool isCompact) {
     final dateFormat = DateFormat('dd MMM yyyy');
     String rangeLabel = isBn ? 'সর্বমোট (All Time)' : 'All Time';
@@ -466,9 +466,9 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     );
   }
 
-  // ==========================================================================
+  
   // 1. REVENUE & FINANCIAL REPORT TAB
-  // ==========================================================================
+  
   Widget _buildRevenueTab(bool isBn, bool isDark, Color cardBg, Color borderColor, bool isCompact) {
     final currencyFormat = NumberFormat('#,##0.00', 'en_US');
     final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
@@ -690,9 +690,9 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     );
   }
 
-  // ==========================================================================
+  
   // 2. PROPERTY LISTINGS REPORT TAB
-  // ==========================================================================
+  
   Widget _buildPropertiesTab(bool isBn, bool isDark, Color cardBg, Color borderColor, bool isCompact) {
     final currencyFormat = NumberFormat('#,##0', 'en_US');
     final dateFormat = DateFormat('dd MMM yyyy');
@@ -910,9 +910,9 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     );
   }
 
-  // ==========================================================================
+  
   // 3. TENANT DEMANDS REPORT TAB
-  // ==========================================================================
+  
   Widget _buildDemandsTab(bool isBn, bool isDark, Color cardBg, Color borderColor, bool isCompact) {
     final dateFormat = DateFormat('dd MMM yyyy');
 
@@ -1099,9 +1099,9 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     );
   }
 
-  // ==========================================================================
+  
   // 4. HOUSE OWNERS & KYC AUDIT REPORT TAB
-  // ==========================================================================
+  
   Widget _buildHouseOwnersTab(bool isBn, bool isDark, Color cardBg, Color borderColor, bool isCompact) {
     final dateFormat = DateFormat('dd MMM yyyy');
 
@@ -1323,9 +1323,9 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     );
   }
 
-  // ==========================================================================
+  
   // 5. TENANTS & KYC AUDIT REPORT TAB
-  // ==========================================================================
+  
   Widget _buildTenantsTab(bool isBn, bool isDark, Color cardBg, Color borderColor, bool isCompact) {
     final dateFormat = DateFormat('dd MMM yyyy');
 
@@ -1575,9 +1575,9 @@ class _ReportsManagementViewState extends State<ReportsManagementView> {
     );
   }
 
-  // ==========================================================================
+  
   // SHARED UI HELPERS
-  // ==========================================================================
+  
   Widget _buildKpiCard({
     required String title,
     required String value,

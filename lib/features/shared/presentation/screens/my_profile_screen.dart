@@ -903,9 +903,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     );
   }
 
-  // ==========================================================================
+  
   // VERIFICATION STATUS BANNER
-  // ==========================================================================
+  
 
   Widget _buildVerificationStatusCard(UserModel? user, bool isDark, bool isBn) {
     if (user == null) return const SizedBox.shrink();
@@ -1116,9 +1116,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     }
   }
 
-  // ==========================================================================
+  
   // WIDGET BUILDERS
-  // ==========================================================================
+  
 
   Widget _buildAvatarSection(
     ThemeData theme,

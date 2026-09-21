@@ -24,9 +24,9 @@ class SubscriptionFirestoreService {
   final DocumentReference _freeTierPolicyDoc =
       FirebaseFirestore.instance.collection('app_settings').doc('free_tier_policy');
 
-  // ==========================================================================
+  
   // FREE TIER POLICY CONFIGURATION (ADMIN)
-  // ==========================================================================
+  
 
   Stream<FreeTierPolicyModel> streamFreeTierPolicy() {
     return _freeTierPolicyDoc.snapshots().map((snapshot) {
@@ -100,9 +100,9 @@ class SubscriptionFirestoreService {
     }
   }
 
-  // ==========================================================================
+  
   // SUBSCRIPTION PLANS CRUD & SEEDING
-  // ==========================================================================
+  
 
   /// Seed initial default plans into Firestore if not yet seeded
   Future<void> seedDefaultPlansIfEmpty({bool forceCheck = false}) async {
@@ -268,9 +268,9 @@ class SubscriptionFirestoreService {
     }
   }
 
-  // ==========================================================================
+  
   // MULTI-PLAN PURCHASE & ACTIVATION
-  // ==========================================================================
+  
 
   /// Record a new purchase / payment and activate user subscription (appends to activeSubscriptionPlans)
   Future<void> purchaseSubscription({
@@ -351,9 +351,9 @@ class SubscriptionFirestoreService {
     }
   }
 
-  // ==========================================================================
+  
   // MULTI-PLAN QUOTA CONSUMPTION
-  // ==========================================================================
+  
 
   String _getLimitKeyForFacility(String facility) {
     switch (facility) {
@@ -588,9 +588,9 @@ class SubscriptionFirestoreService {
     }
   }
 
-  // ==========================================================================
+  
   // TRANSACTION HISTORY
-  // ==========================================================================
+  
 
   /// Stream transaction history for a specific user
   Stream<List<SubscriptionTransactionModel>> streamUserTransactions(String userId) {
@@ -638,9 +638,9 @@ class SubscriptionFirestoreService {
     });
   }
 
-  // ==========================================================================
+  
   // INITIAL SEED PLANS
-  // ==========================================================================
+  
 
   List<SubscriptionPlanModel> _getDefaultPlans() {
     return [

@@ -238,9 +238,9 @@ class _MyRecordScreenState extends State<MyRecordScreen>
     );
   }
 
-  // ===========================================================================
+  
   // 1. OVERVIEW KPI METRICS HEADER
-  // ===========================================================================
+  
 
   Widget _buildOverviewKpis(
       UserModel user, bool isOwner, bool isBn, bool isDark) {
@@ -584,9 +584,9 @@ class _MyRecordScreenState extends State<MyRecordScreen>
     );
   }
 
-  // ===========================================================================
+  
   // 2. SEARCH AND SORT TOOLBAR
-  // ===========================================================================
+  
 
   Widget _buildSearchAndSortBar(bool isBn, bool isDark) {
     return Padding(
@@ -829,9 +829,9 @@ class _MyRecordScreenState extends State<MyRecordScreen>
     );
   }
 
-  // ===========================================================================
+  
   // 3. TAB 1: HOUSE OWNER PROPERTIES TAB
-  // ===========================================================================
+  
 
   Widget _buildOwnerPropertiesTab(UserModel user, bool isBn, bool isDark) {
     return StreamBuilder<List<PropertyModel>>(
@@ -1251,9 +1251,9 @@ class _MyRecordScreenState extends State<MyRecordScreen>
     );
   }
 
-  // ===========================================================================
+  
   // 4. TAB 1 (TENANT): MY DEMANDS TAB
-  // ===========================================================================
+  
 
   Widget _buildTenantDemandsTab(UserModel user, bool isBn, bool isDark) {
     return StreamBuilder<List<TenantDemandModel>>(
@@ -1683,9 +1683,9 @@ class _MyRecordScreenState extends State<MyRecordScreen>
     );
   }
 
-  // ===========================================================================
+  
   // 5. TAB 2: SUBSCRIPTIONS & RECEIPTS TAB
-  // ===========================================================================
+  
 
   Widget _buildSubscriptionsTab(UserModel user, bool isBn, bool isDark) {
     return StreamBuilder<List<SubscriptionTransactionModel>>(
@@ -2089,9 +2089,9 @@ class _MyRecordScreenState extends State<MyRecordScreen>
     );
   }
 
-  // ===========================================================================
+  
   // 6. TAB 3 (TENANT): SAVED HOUSES (WISHLIST)
-  // ===========================================================================
+  
 
   Widget _buildTenantWishlistTab(UserModel user, bool isBn, bool isDark) {
     final wishlist = context.watch<WishlistProvider>().wishlistProperties;
@@ -2233,9 +2233,9 @@ class _MyRecordScreenState extends State<MyRecordScreen>
     );
   }
 
-  // ===========================================================================
+  
   // 7. TAB 3 (HOUSE OWNER): DEMAND INQUIRIES
-  // ===========================================================================
+  
 
   Widget _buildOwnerInquiriesTab(UserModel user, bool isBn, bool isDark) {
     return StreamBuilder<List<TenantDemandModel>>(
@@ -2383,9 +2383,9 @@ class _MyRecordScreenState extends State<MyRecordScreen>
     );
   }
 
-  // ===========================================================================
+
   // 8. REUSABLE EMPTY TAB STATE
-  // ===========================================================================
+  
 
   Widget _buildEmptyTabState({
     required IconData icon,

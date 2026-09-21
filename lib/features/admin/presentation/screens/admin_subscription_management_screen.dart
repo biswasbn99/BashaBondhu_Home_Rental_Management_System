@@ -1134,9 +1134,9 @@ class _AdminSubscriptionManagementViewState extends State<AdminSubscriptionManag
   }
 }
 
-// ============================================================================
+
 // 📊 ADMIN TRANSACTIONS TAB (SUBSCRIBERS & TRANSACTIONS)
-// ============================================================================
+
 class _AdminTransactionsTab extends StatefulWidget {
   final bool isBn;
   final bool isDark;
@@ -1295,9 +1295,9 @@ class _AdminTransactionsTabState extends State<_AdminTransactionsTab> {
   }
 }
 
-/// =========================================================================
+
 /// 🎨 MODERN BILINGUAL PACKAGE STUDIO MODAL (ADD / EDIT)
-/// =========================================================================
+
 class _BilingualPlanStudioModal extends StatefulWidget {
   final SubscriptionTargetRole targetRole;
   final SubscriptionPlanModel? existingPlan;
@@ -3323,9 +3323,9 @@ class _BilingualPlanStudioModalState extends State<_BilingualPlanStudioModal> {
   }
 }
 
-/// =========================================================================
+
 /// 🛡️ ADMIN FREE TIER POLICY TAB (TAB 4)
-/// =========================================================================
+
 class _AdminFreeTierPolicyTab extends StatefulWidget {
   final bool isBn;
   final bool isDark;
