@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BashaBondhu Level 1 DFD</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #FFFFFF; font-family: 'Segoe UI', Roboto, sans-serif; display: flex; justify-content: center; align-items: center; }
+    svg { display: block; width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1350" width="1920" height="1350">
+    
+  <defs>
+    <!-- Markers -->
+    <marker id="m-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284C7"/>
+    </marker>
+    <marker id="m-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0D9488"/>
+    </marker>
+    <marker id="m-indigo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366F1"/>
+    </marker>
+    <marker id="m-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#E11D48"/>
+    </marker>
+    <marker id="m-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#9333EA"/>
+    </marker>
+    <marker id="m-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#D97706"/>
+    </marker>
+    <marker id="m-slate" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#475569"/>
+    </marker>
+
+    <!-- Drop Shadows -->
+    <filter id="shadow-sm" x="-5%" y="-10%" width="110%" height="125%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <filter id="shadow-card" x="-5%" y="-8%" width="110%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+    <filter id="shadow-proc" x="-5%" y="-8%" width="110%" height="120%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#0284C7" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+    
+    <rect width="1920" height="1350" fill="#FFFFFF"/>
+    <rect x="20" y="20" width="1880" height="1310" rx="16" fill="none" stroke="#E2E8F0" stroke-width="1.5"/>
+
+    <!-- Title Header -->
+    <g transform="translate(60, 45)">
+      <rect width="40" height="40" rx="10" fill="#0D9488"/>
+      <text x="20" y="26" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="900" text-anchor="middle">1.0</text>
+      <text x="56" y="24" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800">BashaBondhu: Level 1 Data Flow Diagram (Subsystems Decomposition)</text>
+      <text x="56" y="44" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600">Decomposition of Process 0.0 into Core Functional Subsystems, Internal Data Stores &amp; Inter-process Flows</text>
+      
+      <rect x="1560" y="5" width="240" height="32" rx="16" fill="#F0FDFA" stroke="#0D9488" stroke-width="1.5"/>
+      <text x="1680" y="26" fill="#0F766E" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800" text-anchor="middle">DETAILED LEVEL 1 DFD</text>
+    </g>
+
+    <!-- EXTERNAL ENTITIES (Edges) -->
+    
+    <g transform="translate(60, 150)" filter="url(#shadow-card)">
+      <rect width="200" height="85" rx="12" fill="#FFFFFF" stroke="#6366F1" stroke-width="2.4"/>
+      <path d="M 0 12 Q 0 0 12 0 L 188 0 Q 200 0 200 12 L 200 28 L 0 28 Z" fill="#6366F1"/>
+      <text x="12" y="19" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800" letter-spacing="0.8">ROLE: GUEST</text>
+      <text x="100" y="48.5" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="700" text-anchor="middle">Guest User</text>
+      <text x="100" y="67.5" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Visitor / Explorer</text>
+    </g>
+  
+    
+    <g transform="translate(60, 600)" filter="url(#shadow-card)">
+      <rect width="200" height="85" rx="12" fill="#FFFFFF" stroke="#0284C7" stroke-width="2.4"/>
+      <path d="M 0 12 Q 0 0 12 0 L 188 0 Q 200 0 200 12 L 200 28 L 0 28 Z" fill="#0284C7"/>
+      <text x="12" y="19" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800" letter-spacing="0.8">ROLE: TENANT</text>
+      <text x="100" y="48.5" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="700" text-anchor="middle">Tenant</text>
+      <text x="100" y="67.5" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">House Seeker</text>
+    </g>
+  
+    
+    <g transform="translate(1660, 150)" filter="url(#shadow-card)">
+      <rect width="200" height="85" rx="12" fill="#FFFFFF" stroke="#0D9488" stroke-width="2.4"/>
+      <path d="M 0 12 Q 0 0 12 0 L 188 0 Q 200 0 200 12 L 200 28 L 0 28 Z" fill="#0D9488"/>
+      <text x="12" y="19" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800" letter-spacing="0.8">ROLE: OWNER</text>
+      <text x="100" y="48.5" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="700" text-anchor="middle">House Owner</text>
+      <text x="100" y="67.5" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Property Manager</text>
+    </g>
+  
+    
+    <g transform="translate(1660, 980)" filter="url(#shadow-card)">
+      <rect width="200" height="85" rx="12" fill="#FFFFFF" stroke="#E11D48" stroke-width="2.4"/>
+      <path d="M 0 12 Q 0 0 12 0 L 188 0 Q 200 0 200 12 L 200 28 L 0 28 Z" fill="#E11D48"/>
+      <text x="12" y="19" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800" letter-spacing="0.8">ROLE: ADMIN</text>
+      <text x="100" y="48.5" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="700" text-anchor="middle">System Admin</text>
+      <text x="100" y="67.5" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Super Administrator</text>
+    </g>
+  
+    
+    <g transform="translate(840, 1180)" filter="url(#shadow-card)">
+      <rect width="240" height="75" rx="12" fill="#FFFFFF" stroke="#D97706" stroke-width="2.4"/>
+      <path d="M 0 12 Q 0 0 12 0 L 228 0 Q 240 0 240 12 L 240 28 L 0 28 Z" fill="#D97706"/>
+      <text x="12" y="19" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800" letter-spacing="0.8">FINANCIAL SERVICE</text>
+      <text x="120" y="43.5" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="700" text-anchor="middle">Payment Gateway</text>
+      <text x="120" y="62.5" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">bKash / Nagad API</text>
+    </g>
+  
+
+    <!-- 8 CORE PROCESSES -->
+    <!-- Row 1 -->
+    
+    <g transform="translate(360, 140)" filter="url(#shadow-proc)">
+      <rect width="260" height="100" rx="20" fill="#FFFFFF" stroke="#6366F1" stroke-width="2.4"/>
+      <path d="M 0 20 Q 0 0 20 0 L 240 0 Q 260 0 260 20 L 260 34 L 0 34 Z" fill="#6366F1"/>
+      <text x="130" y="23" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" letter-spacing="1" text-anchor="middle">PROCESS 1.0</text>
+      <text x="130" y="57" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="700" text-anchor="middle">User Auth & Profile</text>
+      <text x="130" y="75" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Registration, Login & KYC State</text>
+    </g>
+  
+    
+    <g transform="translate(830, 140)" filter="url(#shadow-proc)">
+      <rect width="260" height="100" rx="20" fill="#FFFFFF" stroke="#0D9488" stroke-width="2.4"/>
+      <path d="M 0 20 Q 0 0 20 0 L 240 0 Q 260 0 260 20 L 260 34 L 0 34 Z" fill="#0D9488"/>
+      <text x="130" y="23" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" letter-spacing="1" text-anchor="middle">PROCESS 2.0</text>
+      <text x="130" y="57" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="700" text-anchor="middle">Property Listings & Media</text>
+      <text x="130" y="75" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Listing CRUD, Rent Specs & Photos</text>
+    </g>
+  
+    
+    <g transform="translate(1300, 140)" filter="url(#shadow-proc)">
+      <rect width="260" height="100" rx="20" fill="#FFFFFF" stroke="#0284C7" stroke-width="2.4"/>
+      <path d="M 0 20 Q 0 0 20 0 L 240 0 Q 260 0 260 20 L 260 34 L 0 34 Z" fill="#0284C7"/>
+      <text x="130" y="23" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" letter-spacing="1" text-anchor="middle">PROCESS 3.0</text>
+      <text x="130" y="57" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="700" text-anchor="middle">Tenant Demands Matching</text>
+      <text x="130" y="75" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Demand Posting & Lead Distribution</text>
+    </g>
+  
+
+    <!-- Row 2 -->
+    
+    <g transform="translate(360, 520)" filter="url(#shadow-proc)">
+      <rect width="260" height="100" rx="20" fill="#FFFFFF" stroke="#E11D48" stroke-width="2.4"/>
+      <path d="M 0 20 Q 0 0 20 0 L 240 0 Q 260 0 260 20 L 260 34 L 0 34 Z" fill="#E11D48"/>
+      <text x="130" y="23" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" letter-spacing="1" text-anchor="middle">PROCESS 4.0</text>
+      <text x="130" y="57" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="700" text-anchor="middle">KYC & NID Verification</text>
+      <text x="130" y="75" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Image Base64 Decode & KYC Auditing</text>
+    </g>
+  
+    
+    <g transform="translate(830, 520)" filter="url(#shadow-proc)">
+      <rect width="260" height="100" rx="20" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.4"/>
+      <path d="M 0 20 Q 0 0 20 0 L 240 0 Q 260 0 260 20 L 260 34 L 0 34 Z" fill="#DC2626"/>
+      <text x="130" y="23" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" letter-spacing="1" text-anchor="middle">PROCESS 5.0</text>
+      <text x="130" y="57" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="700" text-anchor="middle">Verification Gating Engine</text>
+      <text x="130" y="75" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Visibility Toggles (Demands & Posts)</text>
+    </g>
+  
+    
+    <g transform="translate(1300, 520)" filter="url(#shadow-proc)">
+      <rect width="260" height="100" rx="20" fill="#FFFFFF" stroke="#0284C7" stroke-width="2.4"/>
+      <path d="M 0 20 Q 0 0 20 0 L 240 0 Q 260 0 260 20 L 260 34 L 0 34 Z" fill="#0284C7"/>
+      <text x="130" y="23" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" letter-spacing="1" text-anchor="middle">PROCESS 6.0</text>
+      <text x="130" y="57" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="700" text-anchor="middle">Search, Filter & Wishlist</text>
+      <text x="130" y="75" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Real-time Query & Bookmarks</text>
+    </g>
+  
+
+    <!-- Row 3 -->
+    
+    <g transform="translate(360, 960)" filter="url(#shadow-proc)">
+      <rect width="260" height="100" rx="20" fill="#FFFFFF" stroke="#D97706" stroke-width="2.4"/>
+      <path d="M 0 20 Q 0 0 20 0 L 240 0 Q 260 0 260 20 L 260 34 L 0 34 Z" fill="#D97706"/>
+      <text x="130" y="23" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" letter-spacing="1" text-anchor="middle">PROCESS 7.0</text>
+      <text x="130" y="57" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="700" text-anchor="middle">Subscription & Payment</text>
+      <text x="130" y="75" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Tier Quotas, bKash/Nagad Trx</text>
+    </g>
+  
+    
+    <g transform="translate(1300, 960)" filter="url(#shadow-proc)">
+      <rect width="260" height="100" rx="20" fill="#FFFFFF" stroke="#475569" stroke-width="2.4"/>
+      <path d="M 0 20 Q 0 0 20 0 L 240 0 Q 260 0 260 20 L 260 34 L 0 34 Z" fill="#475569"/>
+      <text x="130" y="23" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" letter-spacing="1" text-anchor="middle">PROCESS 8.0</text>
+      <text x="130" y="57" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="700" text-anchor="middle">Admin Governance & KPIs</text>
+      <text x="130" y="75" fill="#64748B" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" text-anchor="middle">Executive Audits, Gating & Reports</text>
+    </g>
+  
+
+    <!-- 6 CENTRAL DATA STORES -->
+    
+    <g transform="translate(640, 320)" filter="url(#shadow-card)">
+      <rect width="230" height="55" fill="#F8FAFC" stroke="none"/>
+      <line x1="0" y1="0" x2="230" y2="0" stroke="#334155" stroke-width="2.4"/>
+      <line x1="0" y1="55" x2="230" y2="55" stroke="#334155" stroke-width="2.4"/>
+      <rect x="0" y="0" width="44" height="55" fill="#334155"/>
+      <text x="22" y="32" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" text-anchor="middle">D1</text>
+      <text x="140" y="32" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">Users & Profiles Store</text>
+    </g>
+  
+    
+    <g transform="translate(1110, 320)" filter="url(#shadow-card)">
+      <rect width="230" height="55" fill="#F8FAFC" stroke="none"/>
+      <line x1="0" y1="0" x2="230" y2="0" stroke="#334155" stroke-width="2.4"/>
+      <line x1="0" y1="55" x2="230" y2="55" stroke="#334155" stroke-width="2.4"/>
+      <rect x="0" y="0" width="44" height="55" fill="#334155"/>
+      <text x="22" y="32" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" text-anchor="middle">D2</text>
+      <text x="140" y="32" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">Properties & Posts Store</text>
+    </g>
+  
+    
+    <g transform="translate(640, 730)" filter="url(#shadow-card)">
+      <rect width="230" height="55" fill="#F8FAFC" stroke="none"/>
+      <line x1="0" y1="0" x2="230" y2="0" stroke="#334155" stroke-width="2.4"/>
+      <line x1="0" y1="55" x2="230" y2="55" stroke="#334155" stroke-width="2.4"/>
+      <rect x="0" y="0" width="44" height="55" fill="#334155"/>
+      <text x="22" y="32" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" text-anchor="middle">D3</text>
+      <text x="140" y="32" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">Tenant Demands Store</text>
+    </g>
+  
+    
+    <g transform="translate(1110, 730)" filter="url(#shadow-card)">
+      <rect width="230" height="55" fill="#F8FAFC" stroke="none"/>
+      <line x1="0" y1="0" x2="230" y2="0" stroke="#334155" stroke-width="2.4"/>
+      <line x1="0" y1="55" x2="230" y2="55" stroke="#334155" stroke-width="2.4"/>
+      <rect x="0" y="0" width="44" height="55" fill="#334155"/>
+      <text x="22" y="32" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" text-anchor="middle">D4</text>
+      <text x="140" y="32" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">Verification Requests Store</text>
+    </g>
+  
+    
+    <g transform="translate(640, 1100)" filter="url(#shadow-card)">
+      <rect width="230" height="55" fill="#F8FAFC" stroke="none"/>
+      <line x1="0" y1="0" x2="230" y2="0" stroke="#334155" stroke-width="2.4"/>
+      <line x1="0" y1="55" x2="230" y2="55" stroke="#334155" stroke-width="2.4"/>
+      <rect x="0" y="0" width="44" height="55" fill="#334155"/>
+      <text x="22" y="32" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" text-anchor="middle">D5</text>
+      <text x="140" y="32" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">Subscriptions & Trx Store</text>
+    </g>
+  
+    
+    <g transform="translate(1110, 1100)" filter="url(#shadow-card)">
+      <rect width="230" height="55" fill="#F8FAFC" stroke="none"/>
+      <line x1="0" y1="0" x2="230" y2="0" stroke="#334155" stroke-width="2.4"/>
+      <line x1="0" y1="55" x2="230" y2="55" stroke="#334155" stroke-width="2.4"/>
+      <rect x="0" y="0" width="44" height="55" fill="#334155"/>
+      <text x="22" y="32" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-size="11.5" font-weight="800" text-anchor="middle">D6</text>
+      <text x="140" y="32" fill="#0F172A" font-family="'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">System Config (Gating Flags)</text>
+    </g>
+  
+
+    <!-- FLOW CONNECTIONS -->
+    <!-- Entity to Process 1.0 (Auth) -->
+    <path d="M 260 180 L 360 180" fill="none" stroke="#6366F1" stroke-width="2" marker-end="url(#m-indigo)"/>
+    
+    <g transform="translate(240.7, 149)">
+      <rect width="138.60000000000002" height="22" rx="11" fill="#FFFFFF" stroke="#6366F1" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="69.30000000000001" y="15" fill="#6366F1" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Credentials & Role</text>
+    </g>
+  
+
+    <!-- Process 1.0 to D1 -->
+    <path d="M 490 240 L 490 350 L 640 350" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m-slate)"/>
+    
+    <g transform="translate(464.05, 324)">
+      <rect width="131.9" height="22" rx="11" fill="#FFFFFF" stroke="#334155" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="65.95" y="15" fill="#334155" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Write User Record</text>
+    </g>
+  
+
+    <!-- Owner to Process 2.0 (Property) -->
+    <path d="M 1660 180 L 1090 180" fill="none" stroke="#0D9488" stroke-width="2" marker-end="url(#m-teal)"/>
+    
+    <g transform="translate(1293.95, 149)">
+      <rect width="172.1" height="22" rx="11" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="86.05" y="15" fill="#0D9488" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">To-Let Listing & Photos</text>
+    </g>
+  
+
+    <!-- Process 2.0 to D2 -->
+    <path d="M 960 240 L 960 350 L 1110 350" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m-slate)"/>
+    
+    <g transform="translate(947.3, 324)">
+      <rect width="165.4" height="22" rx="11" fill="#FFFFFF" stroke="#334155" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="82.7" y="15" fill="#334155" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Store Property Listing</text>
+    </g>
+  
+
+    <!-- Tenant to Process 3.0 (Demand) -->
+    <path d="M 160 600 C 160 400, 1200 400, 1300 220" fill="none" stroke="#0284C7" stroke-width="2" marker-end="url(#m-blue)"/>
+    
+    <g transform="translate(547.05, 379)">
+      <rect width="265.9" height="22" rx="11" fill="#FFFFFF" stroke="#0284C7" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="132.95" y="15" fill="#0284C7" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Submit Demand Criteria (Budget, Area)</text>
+    </g>
+  
+
+    <!-- Process 3.0 to D3 -->
+    <path d="M 1430 240 L 1430 760 L 870 760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m-slate)"/>
+    
+    <g transform="translate(1127.35, 734)">
+      <rect width="145.3" height="22" rx="11" fill="#FFFFFF" stroke="#334155" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="72.65" y="15" fill="#334155" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Store Tenant Demand</text>
+    </g>
+  
+
+    <!-- Tenant & Owner NID upload to Process 4.0 (KYC) -->
+    <path d="M 260 640 L 360 600" fill="none" stroke="#E11D48" stroke-width="2" marker-end="url(#m-rose)"/>
+    
+    <g transform="translate(210.64999999999998, 569)">
+      <rect width="158.70000000000002" height="22" rx="11" fill="#FFFFFF" stroke="#E11D48" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="79.35000000000001" y="15" fill="#E11D48" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Upload NID Front/Back</text>
+    </g>
+  
+
+    <!-- Process 4.0 to D4 -->
+    <path d="M 620 570 L 1110 740" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m-slate)"/>
+    
+    <g transform="translate(677, 629)">
+      <rect width="286" height="22" rx="11" fill="#FFFFFF" stroke="#334155" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="143" y="15" fill="#334155" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Log Verification Request & Base64 Photos</text>
+    </g>
+  
+
+    <!-- Process 4.0 updates D1 (Verified Badge) -->
+    <path d="M 490 520 L 490 375" fill="none" stroke="#10B981" stroke-width="2" marker-end="url(#m-teal)"/>
+    
+    <g transform="translate(357.3, 429)">
+      <rect width="165.4" height="22" rx="11" fill="#FFFFFF" stroke="#10B981" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="82.7" y="15" fill="#10B981" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Update isVerified Flag</text>
+    </g>
+  
+
+    <!-- Process 5.0 (Verification Gating) reads D6 & filters D2/D3 -->
+    <path d="M 1160 1100 L 1160 920 L 960 620" fill="none" stroke="#DC2626" stroke-width="2" marker-end="url(#m-rose)"/>
+    
+    <g transform="translate(990.55, 809)">
+      <rect width="198.9" height="22" rx="11" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="99.45" y="15" fill="#DC2626" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Read Active Gating Policies</text>
+    </g>
+  
+
+    <path d="M 960 520 L 960 450 L 1110 370" fill="none" stroke="#DC2626" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#m-rose)"/>
+    
+    <g transform="translate(933.8, 459)">
+      <rect width="232.4" height="22" rx="11" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="116.2" y="15" fill="#DC2626" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Filter Owner Posts by KYC Status</text>
+    </g>
+  
+
+    <path d="M 830 570 L 760 570 L 760 730" fill="none" stroke="#DC2626" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#m-rose)"/>
+    
+    <g transform="translate(630.65, 639)">
+      <rect width="158.70000000000002" height="22" rx="11" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="79.35000000000001" y="15" fill="#DC2626" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Filter Demands by KYC</text>
+    </g>
+  
+
+    <!-- Process 6.0 (Search & Wishlist) reads D2 through Gating -->
+    <path d="M 1220 375 L 1380 520" fill="none" stroke="#0284C7" stroke-width="2" marker-end="url(#m-blue)"/>
+    
+    <g transform="translate(1227.25, 429)">
+      <rect width="185.5" height="22" rx="11" fill="#FFFFFF" stroke="#0284C7" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="92.75" y="15" fill="#0284C7" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Query Approved Properties</text>
+    </g>
+  
+
+    <path d="M 1300 590 L 260 660" fill="none" stroke="#0284C7" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#m-blue)"/>
+    
+    <g transform="translate(640.35, 604)">
+      <rect width="279.3" height="22" rx="11" fill="#FFFFFF" stroke="#0284C7" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="139.65" y="15" fill="#0284C7" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Return Filtered Results & Bookmark List</text>
+    </g>
+  
+
+    <!-- Process 7.0 (Subscription & Payment) -->
+    <path d="M 490 960 L 490 700 L 260 670" fill="none" stroke="#D97706" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#m-amber)"/>
+    
+    <g transform="translate(317.35, 819)">
+      <rect width="145.3" height="22" rx="11" fill="#FFFFFF" stroke="#D97706" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="72.65" y="15" fill="#D97706" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Quota & Tier Status</text>
+    </g>
+  
+
+    <path d="M 620 1010 L 840 1200" fill="none" stroke="#D97706" stroke-width="2" marker-end="url(#m-amber)"/>
+    
+    <g transform="translate(633.95, 1129)">
+      <rect width="172.1" height="22" rx="11" fill="#FFFFFF" stroke="#D97706" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="86.05" y="15" fill="#D97706" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Initiate bKash Checkout</text>
+    </g>
+  
+
+    <path d="M 620 1040 L 640 1100" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m-slate)"/>
+    
+    <g transform="translate(520.7, 1059)">
+      <rect width="138.60000000000002" height="22" rx="11" fill="#FFFFFF" stroke="#334155" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="69.30000000000001" y="15" fill="#334155" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Record Payment Trx</text>
+    </g>
+  
+
+    <!-- Process 8.0 (Admin Governance) -->
+    <path d="M 1660 1020 L 1560 1010" fill="none" stroke="#E11D48" stroke-width="2" marker-end="url(#m-rose)"/>
+    
+    <g transform="translate(1500.5, 979)">
+      <rect width="219" height="22" rx="11" fill="#FFFFFF" stroke="#E11D48" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="109.5" y="15" fill="#E11D48" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Admin Actions & Gating Toggles</text>
+    </g>
+  
+
+    <path d="M 1430 1060 L 1430 1130 L 1340 1130" fill="none" stroke="#DC2626" stroke-width="2" marker-end="url(#m-rose)"/>
+    
+    <g transform="translate(1280.45, 1104)">
+      <rect width="239.1" height="22" rx="11" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="119.55" y="15" fill="#DC2626" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Save Gating Switch (Tenant/Owner)</text>
+    </g>
+  
+
+    <path d="M 1300 1000 L 1220 785" fill="none" stroke="#E11D48" stroke-width="2" marker-end="url(#m-rose)"/>
+    
+    <g transform="translate(1153.85, 859)">
+      <rect width="212.3" height="22" rx="11" fill="#FFFFFF" stroke="#E11D48" stroke-width="1.3" filter="url(#shadow-sm)"/>
+      <text x="106.15" y="15" fill="#E11D48" font-family="'Segoe UI', Roboto, sans-serif" font-size="10.8" font-weight="600" text-anchor="middle">Approve / Reject KYC Document</text>
+    </g>
+  
+  
+  </svg>
+</body>
+</html>
