@@ -241,7 +241,7 @@ To eliminate external cloud storage bucket fees, token expiry headaches, and cro
   <tr>
     <td width="25%" align="center">
       <img width="100%" src="ui_screenshot_for_readme_file/13-Tenant%20AI%20Assistant%20Screen.jpeg" alt="13 Tenant AI Assistant Screen"/>
-      <br/><sub><b>13: Gemini AI Voice Assistant</b></sub>
+      <br/><sub><b>13: Gemini AI Assistant</b></sub>
     </td>
     <td width="25%" align="center">
       <img width="100%" src="ui_screenshot_for_readme_file/14-Tenant%20Subscription%20Screen.jpeg" alt="14 Tenant Subscription Screen"/>
